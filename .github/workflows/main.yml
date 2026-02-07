@@ -1,60 +1,83 @@
-name: Update MIGU Live Channels
+name: 合并仓库A/B并生成drpys.zip推送
 
-#on:
- # schedule:
-    # 每2小时运行一次（UTC时间，对应北京时间+8小时）
-   # - cron: '0 */2 * * *'
-  workflow_dispatch:  # 支持手动触发
-  push:  # 代码变更时运行
-    paths:
-      - '**.py'
-    branches: [ main, master ]
+on:
+  workflow_dispatch:  # 手动触发工作流
+  schedule:
+    - cron: '0 0 * * *'  # 可选：每天凌晨自动执行（按需开启）
 
-# -------------------------- 【新增核心】全局代理环境变量（所有步骤继承） --------------------------
-env:
-  # 国内稳定公共代理（亲测适配GitHub Actions，直接使用）
-  HTTP_PROXY: http://117.143.139.249:8080
-  HTTPS_PROXY: http://117.143.139.249:8080
-  # 关键：排除GitHub相关域名，避免拉取代码/提交变更走代理导致失败
-  NO_PROXY: localhost,127.0.0.1,github.com,api.github.com,*.githubusercontent.com,gitlab.com
+permissions:
+  contents: write  # 赋予写入仓库内容的权限
 
 jobs:
-  update-channels:
+  merge-and-package:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      # 步骤1：检出TY仓库（用于后续推送zip文件）
+      - name: 检出TY仓库
+        uses: actions/checkout@v4
+        with:
+          path: ty-repo  # 检出到ty-repo目录
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-        cache: 'pip'
+      # 步骤2：克隆仓库A（drpy-node）
+      - name: 克隆仓库A (hjdhnx/drpy-node)
+        run: |
+          git clone https://github.com/hjdhnx/drpy-node.git repo-a
+          echo "仓库A克隆完成"
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install requests
-      # 依赖安装也走代理（继承全局env，无需额外配置）
+      # 步骤3：克隆仓库B (DRPY)
+      - name: 克隆仓库B (GSD-3726/DRPY)
+        run: |
+          git clone https://github.com/GSD-3726/DRPY.git repo-b
+          echo "仓库B克隆完成"
 
-    - name: Run MIGU channel updater
-      run: |
-        python main.py  # 脚本执行走代理，自动输出验证日志
-      # 继承全局代理环境变量
+      # 步骤4：创建临时目录，合并仓库A/B的内容
+      - name: 合并仓库A/B内容
+        run: |
+          # 创建合并后的根目录
+          mkdir -p merged-drpys
+          
+          # 复制仓库A的全部内容到合并目录（保留目录结构）
+          cp -r repo-a/* merged-drpys/
+          # 复制仓库B的全部内容到合并目录（覆盖同名文件，如需保留双份可调整路径，比如merged-drpys/repo-b/）
+          cp -r repo-b/* merged-drpys/
+          
+          # 可选：添加备注文件，说明仓库来源
+          cat > merged-drpys/仓库合并备注.md << EOF
+          ### 仓库合并备注
+          - 仓库A：https://github.com/hjdhnx/drpy-node
+          - 仓库B：https://github.com/GSD-3726/DRPY
+          - 合并时间：$(date +'%Y-%m-%d %H:%M:%S')
+          EOF
+          
+          echo "仓库A/B内容合并完成"
 
-    - name: Commit and push changes
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        if git diff --quiet HEAD -- migu.m3u migu.txt; then
-          echo "No changes detected in output files"
-        else
-          git add migu.m3u migu.txt
-          git commit -m "🤖 Auto-update: MIGU直播源 $(date +'%Y-%m-%d %H:%M')"
-          git push
-        fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # 步骤5：压缩合并后的目录为drpys.zip
+      - name: 压缩为drpys.zip
+        run: |
+          zip -r drpys.zip merged-drpys/
+          # 将zip文件移动到TY仓库的检出目录（方便后续推送）
+          mv drpys.zip ty-repo/
+          echo "drpys.zip压缩完成"
+
+      # 步骤6：推送drpys.zip到TY仓库根目录
+      - name: 推送drpys.zip到TY仓库
+        run: |
+          cd ty-repo
+          
+          # 配置git用户信息（Actions执行环境需要）
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # 检查是否有文件变更
+          if git status | grep -q "drpys.zip"; then
+              git add drpys.zip
+              git commit -m "feat: 合并仓库A/B并生成drpys.zip [$(date +'%Y-%m-%d %H:%M:%S')]"
+              # 推送提交（使用GITHUB_TOKEN认证）
+              git push origin main
+              echo "drpys.zip已推送至TY仓库根目录"
+          else
+              echo "drpys.zip无变更，无需推送"
+          fi
+        env:
+          # 自动注入的GITHUB_TOKEN，用于认证推送
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
