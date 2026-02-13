@@ -135,18 +135,31 @@ def build_classifier():
 
 classify_channel = build_classifier()
 
-# ---------- 频道标准化（央视专用）----------
+# ---------- 频道标准化（央视专用，增强版）----------
 def normalize_cctv(name: str) -> str:
-    """将央视相关频道统一为 CCTV数字 或 CCTV5+ 格式"""
+    """
+    将央视相关频道统一为标准格式：
+    - CCTV1, CCTV2, ..., CCTV5+, CETV1 等
+    - 支持各种变体：CCTV-1, CCTV1HD, CCTV1高清, CCTV 1, cctv1, 等等
+    """
     name_lower = name.lower()
+    
+    # 特殊：CCTV5+（多种写法）
     if "cctv5+" in name_lower or "cctv5＋" in name_lower or "cctv5加" in name_lower:
         return "CCTV5+"
-    match = re.search(r'cctv(\d{1,3})', name_lower)
+    
+    # 普通 CCTV 数字（允许连字符、空格、无分隔符）
+    # 匹配模式：cctv 后跟可选的 [-\s] 然后 1-3位数字
+    match = re.search(r'cctv[-\s]?(\d{1,3})', name_lower)
     if match:
         return f"CCTV{match.group(1)}"
-    match = re.search(r'cetv(\d)', name_lower)
+    
+    # 中国教育电视台（CETV）
+    match = re.search(r'cetv[-\s]?(\d)', name_lower)
     if match:
         return f"CETV{match.group(1)}"
+    
+    # 其他频道名称保持不变（主要是卫视）
     return name
 
 def clean_chinese_only(name: str) -> str:
@@ -306,7 +319,7 @@ async def main():
                 if not raw_name or not link:
                     continue
 
-                # 标准化央视
+                # 标准化央视（增强版）
                 norm_name = normalize_cctv(raw_name)
                 # 分类（使用配置生成的分类器）
                 group = classify_channel(norm_name) or classify_channel(raw_name)
