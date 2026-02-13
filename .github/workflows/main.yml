@@ -26,8 +26,12 @@ jobs:
       - name: 安装 Python 依赖
         run: pip install playwright
 
+      # ===== 🔧 关键修复：显式安装 Chromium 浏览器驱动 =====
+      - name: 安装 Playwright 浏览器驱动
+        run: python -m playwright install chromium
+
       - name: 运行提取脚本
-        run: python main.py   # ⚠️ 关键：这里必须与你的脚本文件名一致
+        run: python main.py   # 确保文件名与你的脚本一致
 
       - name: 上传播放列表
         uses: actions/upload-artifact@v4
