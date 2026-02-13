@@ -8,6 +8,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # 必须给予写入权限，才能推送回仓库
+    permissions:
+      contents: write
+
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
@@ -26,24 +30,35 @@ jobs:
       - name: 安装 Python 依赖
         run: pip install playwright
 
-      # ========== 🔥 加速关键：缓存 Playwright 浏览器驱动 ==========
+      # ========== 🚀 缓存 Playwright 浏览器驱动 ==========
       - name: 缓存 Playwright 浏览器
         uses: actions/cache@v4
         id: playwright-cache
         with:
-          path: ~/.cache/ms-playwright          # Playwright 浏览器存储路径
+          path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('**/main.py') }}
           restore-keys: |
             ${{ runner.os }}-playwright-
 
       - name: 安装 Playwright 浏览器驱动
         run: python -m playwright install chromium
-        # 如果缓存命中，此步骤会瞬间完成（仅验证）
+        # 如果缓存命中，此步骤瞬间完成
 
       - name: 运行提取脚本
-        run: python main.py   # 确保文件名与你的脚本一致
+        run: python main.py
 
-      - name: 上传播放列表
+      # ========== 📤 将生成的文件提交回仓库 ==========
+      - name: 提交并推送播放列表
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add iptv_channels.m3u iptv_channels.txt
+          # 只有当文件有变化时才 commit 和 push
+          git diff --quiet && git diff --staged --quiet || git commit -m "chore: 自动更新 IPTV 播放列表 [skip ci]"
+          git push
+
+      # ========== 📦 同时上传 Artifact 作为备份 ==========
+      - name: 上传播放列表（Artifact）
         uses: actions/upload-artifact@v4
         with:
           name: iptv-playlists
