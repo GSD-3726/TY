@@ -1,86 +1,39 @@
-name: 合并仓库A/B并生成drpys.zip推送
+name: IPTV 播放列表自动更新
 
 on:
-  workflow_dispatch:  # 手动触发工作流（保留，方便手动执行）
   schedule:
-    - cron: '0 0 1 */15 *'  # 每15天执行一次（每月1日、16日凌晨0点）
-
-permissions:
-  contents: write  # 赋予写入仓库内容的权限
+    - cron: '0 */2 * * *'   # 每 2 小时运行一次（UTC 时间）
+  workflow_dispatch:         # 允许手动触发
 
 jobs:
-  merge-and-package:
+  build:
     runs-on: ubuntu-latest
     steps:
-      # 步骤1：检出TY仓库（用于后续推送zip文件）
-      - name: 检出TY仓库
+      - name: 检出代码
         uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
         with:
-          path: ty-repo  # 检出到ty-repo目录
+          python-version: '3.12'
 
-      # 步骤2：克隆仓库A（drpy-node）
-      - name: 克隆仓库A (hjdhnx/drpy-node)
+      - name: 安装系统依赖（Chromium 必需）
         run: |
-          git clone https://github.com/hjdhnx/drpy-node.git repo-a
-          echo "仓库A克隆完成"
+          sudo apt update
+          sudo apt install -y libatk-bridge2.0-0t64 libgtk-3-0t64 libx11-xcb1 \
+            libxcb-dri3-0 libdrm2 libgbm1 libasound2t64
 
-      # 步骤3：克隆仓库B (DRPY)
-      - name: 克隆仓库B (GSD-3726/DRPY)
-        run: |
-          git clone https://github.com/GSD-3726/DRPY.git repo-b
-          echo "仓库B克隆完成"
+      - name: 安装 Python 依赖
+        run: pip install playwright
 
-      # 步骤4：创建临时目录，合并仓库A/B的内容
-      - name: 合并仓库A/B内容
-        run: |
-          # 创建合并后的根目录
-          mkdir -p merged-drpys
-          
-          # 复制仓库A的全部内容到合并目录（保留目录结构）
-          cp -r repo-a/* merged-drpys/
-          # 复制仓库B的全部内容到合并目录（覆盖同名文件，如需保留双份可调整路径）
-          cp -r repo-b/* merged-drpys/
-          
-          # 添加备注文件，说明仓库来源和合并时间
-          cat > merged-drpys/仓库合并备注.md << EOF
-          ### 仓库合并备注
-          - 仓库A：https://github.com/hjdhnx/drpy-node
-          - 仓库B：https://github.com/GSD-3726/DRPY
-          - 合并时间：$(date +'%Y-%m-%d %H:%M:%S')
-          - 执行周期：每15天自动合并一次
-          EOF
-          
-          echo "仓库A/B内容合并完成"
+      - name: 运行提取脚本
+        run: python test.py
 
-      # 步骤5：压缩合并后的目录为drpys.zip
-      - name: 压缩为drpys.zip
-        run: |
-          # 确保zip工具已安装
-          sudo apt-get update && sudo apt-get install -y zip
-          zip -r drpys.zip merged-drpys/
-          # 将zip文件移动到TY仓库的检出目录（方便后续推送）
-          mv drpys.zip ty-repo/
-          echo "drpys.zip压缩完成"
-
-      # 步骤6：推送drpys.zip到TY仓库根目录
-      - name: 推送drpys.zip到TY仓库
-        run: |
-          cd ty-repo
-          
-          # 配置git用户信息（Actions执行环境需要）
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          
-          # 检查是否有文件变更（避免空提交）
-          if [ -f "drpys.zip" ]; then
-              git add drpys.zip
-              git commit -m "feat: 每15天合并仓库A/B并生成drpys.zip [$(date +'%Y-%m-%d %H:%M:%S')]"
-              # 推送提交（使用GITHUB_TOKEN认证）
-              git push origin main
-              echo "drpys.zip已推送至TY仓库根目录"
-          else
-              echo "drpys.zip文件不存在，无需推送"
-          fi
-        env:
-          # 自动注入的GITHUB_TOKEN，用于认证推送
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 上传播放列表
+        uses: actions/upload-artifact@v4
+        with:
+          name: iptv-playlists
+          path: |
+            iptv_channels.m3u
+            iptv_channels.txt
+            debug_screenshots/
