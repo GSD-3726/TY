@@ -1,469 +1,365 @@
-import requests
-import json
-import time
-import random
-import hashlib
+#!/usr/bin/env python3
+"""
+IPTV 组播提取工具 —— GitHub Actions 全自动版
+所有配置项均已集中管理，一键运行，无需人工干预。
+"""
+
+import asyncio
 import re
-import unicodedata
-from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor
+import subprocess
+import sys
 from collections import defaultdict
-import os
-import xml.etree.ElementTree as ET
+from pathlib import Path
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
-# -------------------------- 【新增核心】代理配置与生效验证（最前置执行，日志优先输出） --------------------------
-# 从环境变量读取代理（与GitHub Actions配置一致，无需硬编码）
-HTTP_PROXY = os.getenv("HTTP_PROXY")
-HTTPS_PROXY = os.getenv("HTTPS_PROXY")
-# 构造requests通用代理字典
-PROXIES = {
-    "http": HTTP_PROXY,
-    "https": HTTPS_PROXY
-}
-# 全局设置urllib代理（覆盖pip/所有基于urllib的库，双保险）
-os.environ['http_proxy'] = HTTP_PROXY or ""
-os.environ['https_proxy'] = HTTPS_PROXY or ""
-os.environ['no_proxy'] = os.getenv("NO_PROXY") or ""
+# ============================================================================
+# 用户可配置区域（请根据需求修改）
+# ============================================================================
 
-# 【关键】代理生效验证日志（最先执行，一眼看出是否加载代理+是否国内IP）
-print("="*50 + "【代理生效验证】" + "="*50)
-print(f"当前加载的HTTP代理：{HTTP_PROXY if HTTP_PROXY else '未加载！'}")
-print(f"当前加载的HTTPS代理：{HTTPS_PROXY if HTTPS_PROXY else '未加载！'}")
-if HTTP_PROXY and HTTPS_PROXY:
-    try:
-        # 访问IP查询接口，获取代理出口IP（国内IP则代理生效）
-        ip_resp = requests.get("https://httpbin.org/ip", proxies=PROXIES, timeout=10)
-        ip_data = ip_resp.json()
-        print(f"✅ 代理出口IP（国内则生效）：{ip_data}")
-    except Exception as e:
-        print(f"❌ 代理验证失败（可能代理失效/网络问题）：{str(e)}")
-else:
-    print("⚠️  未检测到代理配置！请检查GitHub Actions的env环境变量")
-print("="*110 + "\n")
+# ---------------------------- 基础设置 ------------------------------------
+TARGET_URL = "https://iptv.809899.xyz"          # 目标网页
+OUTPUT_DIR = Path(__file__).parent              # 输出目录（仓库根目录）
+MAX_IPS = 10                                    # 只处理前 N 个 IP（0=全部）
+HEADLESS = True                                 # 无头模式（CI 必须为 True）
+BROWSER_TYPE = "chromium"                       # 可选 chromium / firefox / webkit
 
-# -------------------------- 原有核心配置（无修改） --------------------------
-LOCAL_EPG_CACHE = "epg.xml"
-thread_mum = 10
-headers = {
-    "Accept": "application/json, text/plain, */*",
-    "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-    "Cache-Control": "no-cache",
-    "Connection": "keep-alive",
-    "Origin": "https://m.miguvideo.com",
-    "Pragma": "no-cache",
-    "Referer": "https://m.miguvideo.com/",
-    "Sec-Fetch-Dest": "empty",
-    "Sec-Fetch-Mode": "cors",
-    "Sec-Fetch-Site": "same-site",
-    "Support-Pendant": "1",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
-    "appCode": "miguvideo_default_h5",
-    "appId": "miguvideo",
-    "channel": "H5",
-    "sec-ch-ua": "\"Chromium\";v=\"136\", \"Microsoft Edge\";v=\"136\", \"Not.A/Brand\";v=\"99\"",
-    "sec-ch-ua-mobile": "?0",
-    "sec-ch-ua-platform": "\"Windows\"",
-    "terminalId": "h5"
+# ------------------------ 播放列表生成设置 --------------------------------
+# 分组输出顺序（严格按照此顺序）
+GROUP_ORDER = [
+    "央视频道",
+    "卫视频道",
+    "电影频道",
+    "4K专区",
+    "儿童频道",
+    "轮播频道"
+]
+
+# 每个频道名最多保留的链接数量（自动去重，取前 N 个）
+MAX_LINKS_PER_CHANNEL = 10
+
+# 输出文件名（可自定义）
+OUTPUT_M3U_FILENAME = "iptv.m3u"
+OUTPUT_TXT_FILENAME = "iptv.txt"
+
+# -------------------------- 功能开关 -------------------------------------
+# 是否启用汉字清洗（非央视频道）
+ENABLE_CHINESE_CLEAN = True
+
+# 是否启用去重（同一分组内频道名+链接完全一致则去重）
+ENABLE_DEDUPLICATION = True
+
+# 调试截图开关（CI 中建议关闭以节省时间）
+ENABLE_SCREENSHOTS = False
+
+# ============================================================================
+# 以下为核心代码，非必要请勿修改
+# ============================================================================
+
+SCREENSHOT_DIR = OUTPUT_DIR / "debug_screenshots"
+if ENABLE_SCREENSHOTS:
+    SCREENSHOT_DIR.mkdir(exist_ok=True)
+
+# 浏览器启动参数
+LAUNCH_ARGS = {
+    "headless": HEADLESS,
+    "args": ["--no-sandbox"]
 }
 
-lives = ['热门', '央视', '卫视', '地方', '体育', '影视', '综艺', '少儿', '新闻', '教育', '熊猫', '纪实']
-LIVE = {'热门': 'e7716fea6aa1483c80cfc10b7795fcb8', '体育': '7538163cdac044398cb292ecf75db4e0',
-        '央视': '1ff892f2b5ab4a79be6e25b69d2f5d05', '卫视': '0847b3f6c08a4ca28f85ba5701268424',
-        '地方': '855e9adc91b04ea18ef3f2dbd43f495b', '影视': '10b0d04cb23d4ac5945c4bc77c7ac44e',
-        '新闻': 'c584f67ad63f4bc983c31de3a9be977c', '教育': 'af72267483d94275995a4498b2799ecd',
-        '熊猫': 'e76e56e88fff4c11b0168f55e826445d', '综艺': '192a12edfef04b5eb616b878f031f32f',
-        '少儿': 'fc2f5b8fd7db43ff88c4243e731ecede', '纪实': 'e1165138bdaa44b9a3138d74af6c6673'}
-
-m3u_path = 'migu.m3u'
-txt_path = 'migu.txt'
-M3U_HEADER = f'#EXTM3U\n'
-channels_dict = {}
-processed_pids = set()
-FLAG = 0
-appVersion = "2600034600"
-appVersionID = appVersion + "-99000-201600010010028"
-
-# -------------------------- 原有工具函数（无修改） --------------------------
-def extract_cctv_number(channel_name):
-    match = re.search(r'CCTV[-\s]?(\d+)', channel_name)
-    if match:
-        try:
-            return int(match.group(1))
-        except:
-            return 999
-    if 'CCTV' in channel_name:
-        if 'CGTN' in channel_name:
-            if '法语' in channel_name:
-                return 1001
-            elif '西班牙语' in channel_name:
-                return 1002
-            elif '俄语' in channel_name:
-                return 1003
-            elif '阿拉伯语' in channel_name:
-                return 1004
-            elif '外语纪录' in channel_name:
-                return 1005
-            else:
-                return 1000
-        elif '美洲' in channel_name:
-            return 1006
-        elif '欧洲' in channel_name:
-            return 1007
-    return 9999
-
-def extract_panda_number(channel_name):
-    match = re.search(r'熊猫(\d+)', channel_name)
-    if match:
-        try:
-            return int(match.group(1))
-        except:
-            return 999
-    return 9999
-
-def extract_satellite_first_char(channel_name):
-    if not channel_name:
-        return 'z'
-    first_char = channel_name[0]
-    normalized_char = unicodedata.normalize('NFKC', first_char)
-    return normalized_char
-
-def get_sort_key(channel_name):
-    if 'CCTV' in channel_name:
-        cctv_num = extract_cctv_number(channel_name)
-        return (0, cctv_num, channel_name)
-    if '熊猫' in channel_name:
-        panda_num = extract_panda_number(channel_name)
-        return (1, panda_num, channel_name)
-    if is_satellite_channel(channel_name):
-        first_char = extract_satellite_first_char(channel_name)
-        return (2, first_char, channel_name)
-    return (3, channel_name)
-
-def is_cctv_channel(channel_name):
-    return 'CCTV' in channel_name or 'CGTN' in channel_name
-
-def is_satellite_channel(channel_name):
-    return '卫视' in channel_name and 'CCTV' not in channel_name
-
-def smart_classify_5_categories(channel_name):
-    if channel_name in channels_dict:
-        return None
-    if '熊猫' in channel_name:
-        return '🐼熊猫频道'
-    if is_cctv_channel(channel_name):
-        return '📺央视频道'
-    if is_satellite_channel(channel_name):
-        return '📡卫视频道'
-    lower_name = channel_name.lower()
-    entertainment_keywords = ['电影', '影视', '影院', '影迷', '少儿', '卡通', '动漫', '动画',
-                              '综艺', '戏曲', '音乐', '秦腔', '嘉佳', '优漫', '新动漫', '经典动画']
-    for keyword in entertainment_keywords:
-        if keyword in channel_name:
-            return '🎬影音娱乐'
-    return '📰生活资讯'
-
-def format_date_ymd():
-    current_date = datetime.now()
-    return f"{current_date.year}{current_date.month:02d}{current_date.day:02d}"
-
-def writefile(path, content, mode='w'):
-    with open(path, mode, encoding='utf-8') as f:
-        f.write(content)
-
-def md5(text):
-    md5_obj = hashlib.md5()
-    md5_obj.update(text.encode('utf-8'))
-    return md5_obj.hexdigest()
-
-def getSaltAndSign(pid):
-    timestamp = str(int(time.time() * 1000))
-    random_num = random.randint(0, 999999)
-    salt = f"{random_num:06d}25"
-    suffix = "2cac4f2c6c3346a5b34e085725ef7e33migu" + salt[:4]
-    app_t = timestamp + pid + appVersion[:8]
-    sign = md5(md5(app_t) + suffix)
-    return {
-        "salt": salt,
-        "sign": sign,
-        "timestamp": timestamp
-    }
-
-# -------------------------- 【修改】所有requests请求添加proxies=PROXIES（确保走代理） --------------------------
-def get_content(pid):
-    _headers = {
-        "accept": "application/json, text/plain, */*",
-        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-        "apipost-client-id": "465aea51-4548-495a-8709-7e532dbe3703",
-        "apipost-language": "zh-cn",
-        "apipost-machine": "3a214a07786002",
-        "apipost-platform": "Win",
-        "apipost-terminal": "web",
-        "apipost-token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXJfaWQiOjM5NDY2NDM3MTIyMzAwMzEzNywidGltZSI6MTc2NTYzMjU2NSwidXVpZCI6ImJlNDJjOTMxLWQ4MjctMTFmMC1hNThiLTUyZTY1ODM4NDNhOSJ9fQ.QU0RXa0e-yB-fwJNjYt_OnyM6RteY3L1BaUWqCrdAB4",
-        "apipost-version": "8.2.6",
-        "cache-control": "no-cache",
-        "content-type": "application/json",
-        "pragma": "no-cache",
-        "priority": "u=1, i",
-        "sec-ch-ua": '"Chromium";v="136", "Microsoft Edge\";v="136", \"Not.A/Brand\";v="99"',
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": '"Windows"',
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "same-origin",
-        "cookie": "apipost-token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXJfaWQiOjM5NDY2NDM3MTIyMzAwMzEzNywidGltZSI6MTc2NTYzMjU2NSwidXVpZCI6ImJlNDJjOTMxLWQ4MjctMTFmMC1hNThiLTUyZTY1ODM4NDNhOSJ9fQ.QU0RXa0e-yB-fwJNjYt_OnyM6RteY3L1BaUWqCrdAB4; SERVERID=236fe4f21bf23223c449a2ac2dc20aa4|1765632725|1765632691; SERVERCORSID=236fe4f21bf23223c449a2ac2dc20aa4|1765632725|1765632691",
-        "Referer": "https://workspace.apipost.net/57a21612a051000/apis",
-        "Referrer-Policy": "strict-origin-when-cross-origin"
-    }
-    result = getSaltAndSign(pid)
-    rateType = "2" if pid == "608831231" else "3"
-    URL = f"https://play.miguvideo.com/playurl/v1/play/playurl?sign={result['sign']}&rateType={rateType}&contId={pid}&timestamp={result['timestamp']}&salt={result['salt']}"
-    params = URL.split("?")[1].split("&")
-    body = {
-        "option": {
-            "scene": "http_request",
-            "lang": "zh-cn",
-            "globals": {},
-            "project": {
-                "request": {
-                    "header": {
-                        "parameter": [
-                            {
-                                "key": "Accept",
-                                "value": "*/*",
-                                "is_checked": 1,
-                                "field_type": "String",
-                                "is_system": 1
-                            },
-                            {
-                                "key": "Accept-Encoding",
-                                "value": "gzip, deflate, br",
-                                "is_checked": 1,
-                                "field_type": "String",
-                                "is_system": 1
-                            },
-                            {
-                                "key": "User-Agent",
-                                "value": "PostmanRuntime-ApipostRuntime/1.1.0",
-                                "is_checked": 1,
-                                "field_type": "String",
-                                "is_system": 1
-                            },
-                            {
-                                "key": "Connection",
-                                "value": "keep-alive",
-                                "is_checked": 1,
-                                "field_type": "String",
-                                "is_system": 1
-                            }
-                        ]
-                    },
-                    "query": {"parameter": []},
-                    "body": {"parameter": []},
-                    "cookie": {"parameter": []},
-                    "auth": {"type": "noauth"},
-                    "pre_tasks": [],
-                    "post_tasks": []
-                }
-            },
-            "env": {
-                "env_id": "1",
-                "env_name": "默认环境",
-                "env_pre_url": "",
-                "env_pre_urls": {
-                    "1": {"server_id": "1", "name": "默认服务", "sort": 1000, "uri": ""},
-                    "default": {"server_id": "1", "name": "默认服务", "sort": 1000, "uri": ""}
-                },
-                "environment": {}
-            },
-            "cookies": {"switch": 1, "data": []},
-            "system_configs": {
-                "send_timeout": 0,
-                "auto_redirect": -1,
-                "max_redirect_time": 5,
-                "auto_gen_mock_url": -1,
-                "request_param_auto_json": -1,
-                "proxy": {
-                    "type": 2, "envfirst": 1, "bypass": [], "protocols": ["http"],
-                    "auth": {"authenticate": -1, "host": "", "username": "", "password": ""}
-                },
-                "ca_cert": {"open": -1, "path": "", "base64": ""},
-                "client_cert": {}
-            },
-            "custom_functions": {},
-            "collection": [{
-                "target_id": "3c5fd6a9786002", "target_type": "api", "parent_id": "0", "name": "MIGU",
-                "request": {
-                    "auth": {"type": "inherit"},
-                    "body": {
-                        "mode": "None", "parameter": [], "raw": "", "raw_parameter": [],
-                        "raw_schema": {"type": "object"}, "binary": None
-                    },
-                    "pre_tasks": [], "post_tasks": [],
-                    "header": {"parameter": [
-                        {"description": "", "field_type": "string", "is_checked": 1, "key": " AppVersion",
-                         "value": "2600034600", "not_None": 1, "schema": {"type": "string"},
-                         "param_id": "3c60653273e0b3"},
-                        {"description": "", "field_type": "string", "is_checked": 1, "key": "TerminalId",
-                         "value": "android", "not_None": 1, "schema": {"type": "string"}, "param_id": "3c6075c1f3e0e1"},
-                        {"description": "", "field_type": "string", "is_checked": 1, "key": "X-UP-CLIENT-CHANNEL-ID",
-                         "value": "2600034600-99000-201600010010028", "not_None": 1, "schema": {"type": "string"},
-                         "param_id": "3c60858bb3e10c"}
-                    ]},
-                    "query": {"parameter": [
-                        {"param_id": "3c5fd74233e004", "field_type": "string", "is_checked": 1, "key": "sign",
-                         "not_None": 1, "value": params[0].split("=")[1], "description": ""},
-                        {"param_id": "3c6022f433e030", "field_type": "string", "is_checked": 1, "key": "rateType",
-                         "not_None": 1, "value": params[1].split("=")[1], "description": ""},
-                        {"param_id": "3c60354133e05b", "field_type": "string", "is_checked": 1, "key": "contId",
-                         "not_None": 1, "value": params[2].split("=")[1], "description": ""},
-                        {"param_id": "3c605e4bf860b1", "field_type": "String", "is_checked": 1, "key": "timestamp",
-                         "not_None": 1, "value": params[3].split("=")[1], "description": ""},
-                        {"param_id": "3c605e4c3860b2", "field_type": "String", "is_checked": 1, "key": "salt",
-                         "not_None": 1, "value": params[4].split("=")[1], "description": ""}
-                    ], "query_add_equal": 1},
-                    "cookie": {"parameter": [], "cookie_encode": 1},
-                    "restful": {"parameter": []},
-                    "tabs_default_active_key": "query"
-                },
-                "parents": [], "method": "POST", "protocol": "http/1.1", "url": URL, "pre_url": ""
-            }],
-            "database_configs": {}
-        },
-        "test_events": [{
-            "type": "api",
-            "data": {"target_id": "3c5fd6a9786002", "project_id": "57a21612a051000", "parent_id": "0",
-                     "target_type": "api"}
-        }]
-    }
-    body = json.dumps(body, separators=(",", ":"))
-    url = "https://workspace.apipost.net/proxy/v2/http"
-    # 【新增】添加proxies=PROXIES，确保该请求走代理
-    resp = requests.post(url, headers=_headers, data=body, proxies=PROXIES).json()
-    return json.loads(resp["data"]["data"]["response"]["body"])
-
-def getddCalcu720p(url, pID):
-    puData = url.split("&puData=")[1]
-    keys = "cdabyzwxkl"
-    ddCalcu = []
-    for i in range(0, int(len(puData) / 2)):
-        ddCalcu.append(puData[int(len(puData)) - i - 1])
-        ddCalcu.append(puData[i])
-        if i == 1:
-            ddCalcu.append("v")
-        if i == 2:
-            ddCalcu.append(keys[int(format_date_ymd()[2])])
-        if i == 3:
-            ddCalcu.append(keys[int(pID[6])])
-        if i == 4:
-            ddCalcu.append("a")
-    return f'{url}&ddCalcu={"".join(ddCalcu)}&sv=10004&ct=android'
-
-def append_All_Live(live, flag, data):
+def ensure_browser_installed():
+    """确保 Playwright 浏览器驱动已安装（GitHub Actions 专用）"""
     try:
-        if data["pID"] in processed_pids:
-            return
-        processed_pids.add(data["pID"])
+        import playwright
+    except ImportError:
+        print("❌ Playwright 未安装，请先执行: pip install playwright")
+        sys.exit(1)
+    
+    result = subprocess.run(
+        [sys.executable, "-m", "playwright", "install", "--dry-run"],
+        capture_output=True, text=True
+    )
+    if BROWSER_TYPE not in result.stdout:
+        print(f"📦 正在安装 {BROWSER_TYPE} 浏览器驱动...")
+        subprocess.run(
+            [sys.executable, "-m", "playwright", "install", BROWSER_TYPE],
+            check=True
+        )
+        print("✅ 浏览器驱动安装完成")
 
-        respData = get_content(data["pID"])
-        playurl = getddCalcu720p(respData["body"]["urlInfo"]["url"], data["pID"])
+# ---------- 频道标准化与分类 ----------
+def normalize_cctv(name: str) -> str:
+    """将央视相关频道统一为 CCTV数字 或 CCTV5+ 格式"""
+    name_lower = name.lower()
+    if "cctv5+" in name_lower or "cctv5＋" in name_lower or "cctv5加" in name_lower:
+        return "CCTV5+"
+    match = re.search(r'cctv(\d{1,3})', name_lower)
+    if match:
+        return f"CCTV{match.group(1)}"
+    match = re.search(r'cetv(\d)', name_lower)
+    if match:
+        return f"CETV{match.group(1)}"
+    return name
 
-        if playurl != "":
-            z = 1
-            while z <= 6:
-                # 【新增】添加proxies=PROXIES，确保重定向请求走代理
-                obj = requests.get(playurl, allow_redirects=False, proxies=PROXIES)
-                location = obj.headers.get("Location", "")
-                if not location:
-                    continue
-                if location.startswith("http://hlsz"):
-                    playurl = location
-                    break
-                if z <= 6:
-                    time.sleep(0.15)
-                z += 1
+def clean_chinese_only(name: str) -> str:
+    """只保留汉字字符"""
+    return re.sub(r'[^\u4e00-\u9fff]', '', name)
 
-        if z != 7:
-            ch_name = data["name"]
-            if "CCTV" in ch_name:
-                ch_name = ch_name.replace("CCTV", "CCTV-")
-            if "熊猫" in ch_name:
-                ch_name = ch_name.replace("高清", "")
+def classify_channel(name: str) -> str | None:
+    """返回分组名称，不属于允许分类则返回 None"""
+    name_lower = name.lower()
+    if "4k" in name_lower:
+        return "4K专区"
+    if re.search(r'cctv|cetv|中央', name_lower):
+        return "央视频道"
+    if re.search(r'卫视|凤凰|tvb|湖南|浙江|江苏|东方|北京|深圳|山东|天津|'
+                 r'贵州|四川|黑龙江|安徽|江西|湖北|东南|辽宁|广东|河北|'
+                 r'甘肃|新疆|西藏|兵团|重庆|云南|广西|山西|陕西|吉林|'
+                 r'内蒙古|河南|宁夏|青海', name_lower):
+        return "卫视频道"
+    if re.search(r'电影|影迷|家庭影院|动作电影|光影|动作影院|喜剧影院|'
+                 r'经典电影|爱电影|chc', name_lower):
+        return "电影频道"
+    if "轮播频道" in name or "轮播" in name:
+        return "轮播频道"
+    if re.search(r'少儿|动画|卡通|kids|金鹰卡通|嘉佳卡通|卡酷少儿|动漫秀场|优优宝贝', name_lower):
+        return "儿童频道"
+    return None
 
-            category = smart_classify_5_categories(ch_name)
-            if category is None:
-                return
+# ---------- 主流程 ----------
+async def main():
+    ensure_browser_installed()
 
-            sort_key = get_sort_key(ch_name)
-            m3u_item = f'#EXTINF:-1 group-title="{category}",{ch_name}\n{playurl}\n'
-            txt_item = f"{ch_name},{playurl}\n"
-            channels_dict[ch_name] = [m3u_item, txt_item, category, sort_key]
-            print(f'频道 [{ch_name}]【{category}】更新成功！')
+    async with async_playwright() as p:
+        browser = await getattr(p, BROWSER_TYPE).launch(**LAUNCH_ARGS)
+        context = await browser.new_context(
+            accept_downloads=True,
+            viewport={"width": 1920, "height": 1080}
+        )
+        page = await context.new_page()
+
+        print("🌐 正在打开页面...")
+        await page.goto(TARGET_URL, timeout=60000)
+        await page.wait_for_load_state("networkidle", timeout=10000)
+        if ENABLE_SCREENSHOTS:
+            await page.screenshot(path=SCREENSHOT_DIR / "01_initial.png")
+            print("📸 已保存初始页面截图")
+
+        # ----- 1. 点击「引索搜索」-----
+        engine_selectors = [
+            "a.sidebar-link:text-matches('引索搜索|引擎搜索')",
+            "button:has-text('引擎搜索')",
+            "div.segment-item:has-text('关键词搜索')"
+        ]
+        for selector in engine_selectors:
+            element = page.locator(selector).first
+            if await element.count() > 0:
+                await element.click(timeout=10000)
+                print(f"✅ 点击「{selector}」")
+                break
         else:
-            print(f'频道 [{data["name"]}] 更新失败！')
-    except Exception as e:
-        print(f'频道 [{data["name"]}] 更新失败！错误：{e}')
+            print("⚠️ 未找到引擎搜索按钮，继续后续步骤")
+        await page.wait_for_timeout(1000)
 
-def update(live, url):
-    global FLAG
-    pool = ThreadPoolExecutor(thread_mum)
-    # 【新增】添加proxies=PROXIES，确保咪咕接口请求走代理
-    response = requests.get(url, headers=headers, proxies=PROXIES).json()
-    dataList = response["body"]["dataList"]
-    for flag, data in enumerate(dataList):
-        pool.submit(append_All_Live, live, FLAG + flag, data)
-    pool.shutdown()
-    FLAG += len(dataList)
+        # ----- 2. 点击「组播提取」-----
+        mcast_tab = page.locator("div.segment-item:has-text('组播提取')").first
+        await mcast_tab.wait_for(state="attached", timeout=15000)
+        await mcast_tab.click(timeout=10000)
+        print("✅ 点击「组播提取」")
+        await page.wait_for_timeout(500)
 
-# -------------------------- 原有主函数（无修改） --------------------------
-def main():
-    writefile(m3u_path, M3U_HEADER, 'w')
-    writefile(txt_path, "", 'w')
+        # ----- 3. 点击「开始播放」-----
+        start_selectors = [
+            "button:has-text('开始播放')",
+            "button:has-text('开始搜索')",
+            "button:has-text('开始提取')"
+        ]
+        for selector in start_selectors:
+            btn = page.locator(selector).first
+            if await btn.count() > 0:
+                await btn.click(timeout=10000)
+                print(f"✅ 点击「{selector}」")
+                break
+        else:
+            if ENABLE_SCREENSHOTS:
+                await page.screenshot(path=SCREENSHOT_DIR / "02_start_button_missing.png")
+            raise Exception("❌ 未找到开始播放/搜索/提取按钮")
 
-    for live in lives:
-        print(f"\n分类 ----- [{live}] ----- 开始更新. . .")
-        url = f'https://program-sc.miguvideo.com/live/v2/tv-data/{LIVE[live]}'
-        update(live, url)
+        # ----- 4. 等待扫描结果 -----
+        print("⏳ 等待扫描结果（最多60秒）...")
+        ip_locator = page.locator("div.item-title:text-matches('\\d+\\.\\d+\\.\\d+\\.\\d+')").first
+        try:
+            await ip_locator.wait_for(state="attached", timeout=60000)
+            print("✅ 扫描完成")
+        except PlaywrightTimeoutError:
+            if ENABLE_SCREENSHOTS:
+                await page.screenshot(path=SCREENSHOT_DIR / "03_scan_timeout.png")
+            print("⚠️ 扫描超时，但可能已有历史结果")
+        if ENABLE_SCREENSHOTS:
+            await page.screenshot(path=SCREENSHOT_DIR / "04_results_page.png")
 
-    category_channels = defaultdict(list)
-    for ch_name, (m3u_item, txt_item, category, sort_key) in channels_dict.items():
-        category_channels[category].append((sort_key, ch_name, m3u_item, txt_item))
+        # ----- 5. 获取IP列表并限制数量 -----
+        result_rows = page.locator("div.ios-list-item").filter(has_text="频道:")
+        total = await result_rows.count()
+        process_count = total if MAX_IPS <= 0 else min(total, MAX_IPS)
+        print(f"📋 共 {total} 个IP，本次处理前 {process_count} 个")
 
-    for category in category_channels:
-        category_channels[category].sort(key=lambda x: x[0])
+        # 存储所有原始条目 (group, channel_name, url)
+        raw_entries = []
 
-    category_order = [
-        '📺央视频道',
-        '📡卫视频道',
-        '🐼熊猫频道',
-        '🎬影音娱乐',
-        '📰生活资讯'
-    ]
+        for i in range(process_count):
+            row = result_rows.nth(i)
+            ip_text = await row.locator("div.item-title").first.inner_text()
+            ip_text = ip_text.strip()
+            if not re.match(r'^\d+\.\d+\.\d+\.\d+$', ip_text):
+                print(f"\n📌 [{i+1}/{process_count}] {ip_text} (非IP，跳过)")
+                continue
+            print(f"\n📌 [{i+1}/{process_count}] {ip_text}")
 
-    for category in category_order:
-        if category in category_channels:
-            for sort_key, ch_name, m3u_item, txt_item in category_channels[category]:
-                writefile(m3u_path, m3u_item, 'a')
+            # 点击菜单按钮
+            menu_btn = row.locator("button:has(i.fas.fa-list), button:has-text('≡'), button:has(i.fa-list)").first
+            if await menu_btn.count() > 0:
+                await menu_btn.click(timeout=5000)
+                print("   🖱️ 点击菜单按钮")
+            else:
+                await row.locator("div.item-title").first.click(timeout=5000)
+                print("   ⚠️ 点击IP地址")
 
-    for category in category_order:
-        if category in category_channels and category_channels[category]:
-            writefile(txt_path, f"{category},#genre#\n", 'a')
-            for sort_key, ch_name, m3u_item, txt_item in category_channels[category]:
-                writefile(txt_path, txt_item, 'a')
+            # 等待模态框
+            modal = page.locator(".modal-dialog").first
+            try:
+                await modal.wait_for(state="visible", timeout=8000)
+                print("   ✅ 模态框已打开")
+            except PlaywrightTimeoutError:
+                subtitle = row.locator("div.item-subtitle:has-text('频道:')").first
+                if await subtitle.count() > 0:
+                    print("   ⚠️ 尝试点击频道文本")
+                    await subtitle.click(timeout=5000)
+                    try:
+                        await modal.wait_for(state="visible", timeout=5000)
+                    except PlaywrightTimeoutError:
+                        print("   ❌ 模态框未出现，跳过")
+                        await page.keyboard.press("Escape")
+                        continue
+                else:
+                    print("   ❌ 无法打开模态框，跳过")
+                    await page.keyboard.press("Escape")
+                    continue
 
-    total_channels = len(channels_dict)
-    category_stats = {}
-    for category in category_order:
-        category_stats[category] = len(category_channels.get(category, []))
+            # 提取频道
+            items = modal.locator(".item-content")
+            count = await items.count()
+            print(f"   📺 共 {count} 个频道")
 
-    print(f"\n✅ 双格式文件生成完成！")
-    print(f"📁 M3U格式：{m3u_path}")
-    print(f"📁 TXT格式：{txt_path}")
-    print(f"📊 总计频道数：{total_channels}")
-    print("\n📋 5分类统计：")
-    for category in category_order:
-        count = category_stats[category]
-        percentage = (count / total_channels * 100) if total_channels > 0 else 0
-        print(f"  {category}: {count} 个 ({percentage:.1f}%)")
+            for j in range(count):
+                item = items.nth(j)
+                raw_name = await item.locator(".item-title").first.inner_text()
+                link = await item.locator(".item-subtitle").first.inner_text()
+                raw_name = raw_name.strip()
+                link = link.strip()
+                if not raw_name or not link:
+                    continue
+
+                # 标准化央视
+                norm_name = normalize_cctv(raw_name)
+                group = classify_channel(norm_name) or classify_channel(raw_name)
+                if not group:
+                    continue
+
+                # 名称清洗
+                if group == "央视频道":
+                    final_name = norm_name
+                elif ENABLE_CHINESE_CLEAN:
+                    final_name = clean_chinese_only(raw_name)
+                    if not final_name:
+                        continue
+                else:
+                    final_name = raw_name
+
+                raw_entries.append((group, final_name, link))
+
+                if j < 3 or count <= 5:
+                    print(f"      {j+1}. {final_name} -> {link[:60]}...")
+
+            await page.keyboard.press("Escape")
+            await page.wait_for_timeout(500)
+
+        print(f"\n📊 原始条目数：{len(raw_entries)}")
+
+        # ----- 6. 分组、去重、限制每个频道名的链接数量 -----
+        # 按 (group, name) 聚合所有链接
+        channel_urls = defaultdict(list)
+        seen_set = set() if ENABLE_DEDUPLICATION else None
+
+        for group, name, url in raw_entries:
+            # 去重：同一 (group, name, url) 只保留一次
+            if ENABLE_DEDUPLICATION:
+                key = (group, name, url)
+                if key in seen_set:
+                    continue
+                seen_set.add(key)
+
+            # 收集该频道的所有链接（保留发现顺序）
+            channel_urls[(group, name)].append(url)
+
+        # 对每个频道，只保留前 MAX_LINKS_PER_CHANNEL 个链接
+        limited_entries = []
+        for (group, name), urls in channel_urls.items():
+            for url in urls[:MAX_LINKS_PER_CHANNEL] if MAX_LINKS_PER_CHANNEL > 0 else urls:
+                limited_entries.append((group, name, url))
+
+        print(f"✅ 每个频道最多保留 {MAX_LINKS_PER_CHANNEL} 个链接，剩余 {len(limited_entries)} 条")
+
+        # 按分组整理
+        grouped = defaultdict(list)
+        for group, name, url in limited_entries:
+            grouped[group].append((name, url))
+
+        # ----- 7. 各组内排序 -----
+        # 央视频道按数字排序
+        if "央视频道" in grouped:
+            def cctv_sort_key(item):
+                name = item[0]
+                if name == "CCTV5+":
+                    return (5, 1)
+                m = re.search(r'CCTV(\d+)', name)
+                if m:
+                    return (int(m.group(1)), 0)
+                m = re.search(r'CETV(\d+)', name)
+                if m:
+                    return (int(m.group(1)) + 100, 0)
+                return (999, 0)
+            grouped["央视频道"].sort(key=cctv_sort_key)
+
+        # 其他分组按频道名称排序
+        for g in grouped:
+            if g != "央视频道":
+                grouped[g].sort(key=lambda x: x[0])
+
+        # ----- 8. 生成播放列表（按 GROUP_ORDER 顺序）-----
+        m3u_path = OUTPUT_DIR / OUTPUT_M3U_FILENAME
+        with open(m3u_path, "w", encoding="utf-8") as f:
+            f.write("#EXTM3U\n")
+            for group in GROUP_ORDER:
+                if group not in grouped:
+                    continue
+                for name, url in grouped[group]:
+                    f.write(f'#EXTINF:-1 group-title="{group}",{name}\n')
+                    f.write(f"{url}\n")
+        print(f"📀 M3U: {m3u_path}")
+
+        txt_path = OUTPUT_DIR / OUTPUT_TXT_FILENAME
+        with open(txt_path, "w", encoding="utf-8") as f:
+            for group in GROUP_ORDER:
+                if group not in grouped:
+                    continue
+                f.write(f"{group},#genre#\n")
+                for name, url in grouped[group]:
+                    f.write(f"{name},{url}\n")
+                f.write("\n")
+        print(f"📄 TXT: {txt_path}")
+
+        total_channels = sum(len(v) for v in grouped.values())
+        print(f"\n🎉 完成！共输出 {total_channels} 个频道条目（每个频道名 ≤ {MAX_LINKS_PER_CHANNEL} 链接）")
+        await browser.close()
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
