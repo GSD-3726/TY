@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具 —— 全配置化自动版（GitHub Actions 兼容）
-所有配置项均已在文件顶部集中管理，修改配置即可适配任何网站或命名习惯。
+IPTV 组播提取工具 —— 全配置自动化版（GitHub Actions 优化）
+所有配置项均在文件顶部集中管理，修改配置即可适配任何网站或命名习惯。
 """
 
 import asyncio
@@ -118,12 +118,10 @@ def ensure_browser_installed():
 # ---------- 从配置动态生成分类函数 ----------
 def build_classifier():
     """根据 CATEGORY_RULES 生成分类函数"""
-    # 编译所有关键词为正则模式（不区分大小写）
     patterns = []
     for rule in CATEGORY_RULES:
         if not rule["keywords"]:
             continue
-        # 将所有关键词用 | 连接，并整体作为正则
         pattern = "|".join(re.escape(kw.lower()) for kw in rule["keywords"])
         patterns.append((rule["name"], re.compile(pattern)))
     
@@ -162,13 +160,29 @@ def build_selector(text_list: list, element_type: str = "button") -> str:
         return ""
     if len(text_list) == 1:
         return f"{element_type}:has-text('{text_list[0]}')"
-    # 多个文本：用 text-matches 正则匹配
     pattern = "|".join(re.escape(t) for t in text_list)
     return f"{element_type}:text-matches('{pattern}')"
 
 ENGINE_SELECTOR = build_selector(PAGE_CONFIG["engine_search"], "a.sidebar-link,button,div.segment-item")
 MCAST_SELECTOR = build_selector(PAGE_CONFIG["multicast_tab"], "div.segment-item")
 START_SELECTOR = build_selector(PAGE_CONFIG["start_button"], "button")
+
+# ---------- 增强点击函数（强制点击 + JS 回退）----------
+async def robust_click(locator, timeout=10000, description="元素"):
+    """尝试强制点击，失败后回退到 JavaScript 点击"""
+    try:
+        await locator.click(force=True, timeout=timeout)
+        print(f"✅ {description} 点击成功（强制点击）")
+        return True
+    except Exception as e:
+        print(f"⚠️ {description} 强制点击失败: {e}")
+        try:
+            await locator.evaluate('el => el.click()')
+            print(f"✅ {description} 点击成功（JavaScript 回退）")
+            return True
+        except Exception as e2:
+            print(f"❌ {description} 所有点击方式均失败: {e2}")
+            return False
 
 # ---------- 主流程 ----------
 async def main():
@@ -193,26 +207,23 @@ async def main():
         if ENGINE_SELECTOR:
             element = page.locator(ENGINE_SELECTOR).first
             if await element.count() > 0:
-                await element.click(timeout=10000)
-                print(f"✅ 点击引擎搜索（配置：{PAGE_CONFIG['engine_search']}）")
+                await robust_click(element, description="引擎搜索按钮")
             else:
                 print("⚠️ 未找到引擎搜索按钮，继续后续步骤")
         await page.wait_for_timeout(1000)
 
-        # ----- 2. 点击「组播提取」标签-----
+        # ----- 2. 点击「组播提取」标签（增强稳健性）-----
         if MCAST_SELECTOR:
             mcast_tab = page.locator(MCAST_SELECTOR).first
             await mcast_tab.wait_for(state="attached", timeout=15000)
-            await mcast_tab.click(timeout=10000)
-            print(f"✅ 点击组播提取（配置：{PAGE_CONFIG['multicast_tab']}）")
+            await robust_click(mcast_tab, description="组播提取标签")
         await page.wait_for_timeout(500)
 
-        # ----- 3. 点击「开始播放」按钮-----
+        # ----- 3. 点击「开始播放」按钮（增强稳健性）-----
         if START_SELECTOR:
             start_btn = page.locator(START_SELECTOR).first
             if await start_btn.count() > 0:
-                await start_btn.click(timeout=10000)
-                print(f"✅ 点击开始按钮（配置：{PAGE_CONFIG['start_button']}）")
+                await robust_click(start_btn, description="开始按钮")
             else:
                 if ENABLE_SCREENSHOTS:
                     await page.screenshot(path=SCREENSHOT_DIR / "02_start_button_missing.png")
@@ -250,14 +261,14 @@ async def main():
                 continue
             print(f"\n📌 [{i+1}/{process_count}] {ip_text}")
 
-            # 点击菜单按钮
+            # ----- 点击右侧「≡」菜单按钮（同样使用强制点击）-----
             menu_btn = row.locator("button:has(i.fas.fa-list), button:has-text('≡'), button:has(i.fa-list)").first
             if await menu_btn.count() > 0:
-                await menu_btn.click(timeout=5000)
-                print("   🖱️ 点击菜单按钮")
+                await robust_click(menu_btn, description="菜单按钮")
             else:
+                print("   ⚠️ 未找到菜单按钮，尝试点击IP地址")
                 await row.locator("div.item-title").first.click(timeout=5000)
-                print("   ⚠️ 点击IP地址")
+                print("   🖱️ 点击IP地址")
 
             # 等待模态框
             modal = page.locator(".modal-dialog").first
@@ -267,12 +278,13 @@ async def main():
             except PlaywrightTimeoutError:
                 subtitle = row.locator("div.item-subtitle:has-text('频道:')").first
                 if await subtitle.count() > 0:
-                    print("   ⚠️ 尝试点击频道文本")
+                    print("   ⚠️ 模态框未出现，尝试点击频道文本")
                     await subtitle.click(timeout=5000)
                     try:
                         await modal.wait_for(state="visible", timeout=5000)
+                        print("   ✅ 模态框已打开")
                     except PlaywrightTimeoutError:
-                        print("   ❌ 模态框未出现，跳过")
+                        print("   ❌ 模态框仍未出现，跳过此IP")
                         await page.keyboard.press("Escape")
                         continue
                 else:
@@ -316,6 +328,7 @@ async def main():
                 if j < 3 or count <= 5:
                     print(f"      {j+1}. {final_name} -> {link[:60]}...")
 
+            # 关闭模态框
             await page.keyboard.press("Escape")
             await page.wait_for_timeout(500)
 
@@ -347,7 +360,7 @@ async def main():
             grouped[group].append((name, url))
 
         # ----- 7. 各组内排序 -----
-        # 央视频道按数字排序（分组名称必须包含“央视频道”）
+        # 央视频道按数字排序（分组名称必须包含“央视频道”或“央视”）
         CCTV_GROUP = next((g for g in grouped.keys() if "央视" in g or "cctv" in g.lower()), None)
         if CCTV_GROUP:
             def cctv_sort_key(item):
