@@ -26,9 +26,19 @@ jobs:
       - name: 安装 Python 依赖
         run: pip install playwright
 
-      # ===== 🔧 关键修复：显式安装 Chromium 浏览器驱动 =====
+      # ========== 🔥 加速关键：缓存 Playwright 浏览器驱动 ==========
+      - name: 缓存 Playwright 浏览器
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright          # Playwright 浏览器存储路径
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/main.py') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
       - name: 安装 Playwright 浏览器驱动
         run: python -m playwright install chromium
+        # 如果缓存命中，此步骤会瞬间完成（仅验证）
 
       - name: 运行提取脚本
         run: python main.py   # 确保文件名与你的脚本一致
