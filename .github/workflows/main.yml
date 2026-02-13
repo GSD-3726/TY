@@ -27,7 +27,7 @@ jobs:
         run: pip install playwright
 
       - name: 运行提取脚本
-        run: python test.py
+        run: python main.py   # ⚠️ 关键：这里必须与你的脚本文件名一致
 
       - name: 上传播放列表
         uses: actions/upload-artifact@v4
