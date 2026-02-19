@@ -92,12 +92,12 @@ SPEED_TEST_VERBOSE = False
 
 # -------------------------- 速度倍数过滤（代替比特率过滤）-----------------
 ENABLE_SPEED_FACTOR_FILTER = True          # 是否启用速度倍数过滤
-MIN_SPEED_FACTOR = 1.0                      # 最低速度倍数（低于此值丢弃）
+MIN_SPEED_FACTOR = 0.5                      # 最低速度倍数（低于此值丢弃）
 
 # -------------------------- 分辨率筛选设置 --------------------------------
 ENABLE_RESOLUTION_FILTER = True
-MIN_RESOLUTION_WIDTH = 1920
-MIN_RESOLUTION_HEIGHT = 1080
+MIN_RESOLUTION_WIDTH = 1280
+MIN_RESOLUTION_HEIGHT = 720
 
 # -------------------------- 负载控制 --------------------------------------
 DELAY_BETWEEN_IPS = float(os.getenv("DELAY_BETWEEN_IPS", "3.0"))
@@ -105,7 +105,7 @@ DELAY_AFTER_CLICK = float(os.getenv("DELAY_AFTER_CLICK", "0.5"))
 MAX_CHANNELS_PER_IP = int(os.getenv("MAX_CHANNELS_PER_IP", "0"))
 
 # -------------------------- 脚本全局超时（30分钟）------------------------
-SCRIPT_TIMEOUT = int(os.getenv("SCRIPT_TIMEOUT", "1800"))
+SCRIPT_TIMEOUT = int(os.getenv("SCRIPT_TIMEOUT", "4800"))
 
 # ============================================================================
 # 以下为核心代码，非必要请勿修改
