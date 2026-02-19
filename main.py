@@ -42,7 +42,7 @@ TARGET_URL = "https://iptv.809899.xyz"
 HEADLESS = True
 
 # 3. 一次抓多少个IP（越大源越多，但越慢）
-MAX_IPS = 15
+MAX_IPS = 3
 
 # 4. 【打开速度核心】首包超时：超过这个秒数直接丢弃（越小越严格）
 FIRST_PACKET_TIMEOUT = 2.0
