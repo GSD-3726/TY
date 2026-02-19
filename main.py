@@ -24,7 +24,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 # ---------------------------- 基础设置 ------------------------------------
 TARGET_URL = os.getenv("TARGET_URL", "https://iptv.809899.xyz")
 OUTPUT_DIR = Path(__file__).parent
-MAX_IPS = int(os.getenv("MAX_IPS", "2"))
+MAX_IPS = int(os.getenv("MAX_IPS", "5"))
 HEADLESS = os.getenv("HEADLESS", "true").lower() == "true"
 BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")
 
@@ -91,12 +91,12 @@ TS_DOWNLOAD_TIMEOUT = int(os.getenv("TS_DOWNLOAD_TIMEOUT", "10"))     # 单个�
 
 # -------------------------- 速度过滤（单位：Mbps）--------------------------
 ENABLE_SPEED_FACTOR_FILTER = True
-MIN_SPEED_FACTOR = float(os.getenv("MIN_SPEED_FACTOR", "0.5"))        # 最小下载速率（Mbps）
+MIN_SPEED_FACTOR = float(os.getenv("MIN_SPEED_FACTOR", "1.0"))        # 最小下载速率（Mbps）
 
 # -------------------------- 分辨率筛选（只对 m3u8 生效）----------------------
 ENABLE_RESOLUTION_FILTER = True
-MIN_RESOLUTION_WIDTH = 1280
-MIN_RESOLUTION_HEIGHT = 720
+MIN_RESOLUTION_WIDTH = 1920
+MIN_RESOLUTION_HEIGHT = 1080
 
 # 无符合分辨率时 → 仍然保留并按速度排序（True=开启，推荐）
 FALLBACK_TO_SPEED_WHEN_NO_RESOLUTION = True
