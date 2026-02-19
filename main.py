@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具 —— 全配置置顶版（已修复 subprocess 未定义问题）
+IPTV 组播提取工具 —— 全配置置顶版（已修复 ProcessLookupError）
 """
 
-# ==================== 必须的导入（放在最前面）====================
+# ==================== 必须的导入 ====================
 import asyncio
 import os
 import re
-import subprocess          # 关键修复：确保 subprocess 被导入
+import subprocess
 import shutil
 import sys
 import time
@@ -22,17 +22,17 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 # ============================================================================
 
 # ---------------------------- 基础设置 ------------------------------------
-TARGET_URL = os.getenv("TARGET_URL", "https://iptv.809899.xyz")          # 目标网页
-OUTPUT_DIR = Path(__file__).parent                                        # 输出目录（仓库根目录）
-MAX_IPS = int(os.getenv("MAX_IPS", "5"))                                  # 只处理前 N 个 IP（0=全部）
-HEADLESS = os.getenv("HEADLESS", "true").lower() == "true"                # 无头模式（CI 必须为 True）
-BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")                      # 可选 chromium / firefox / webkit
+TARGET_URL = os.getenv("TARGET_URL", "https://iptv.809899.xyz")
+OUTPUT_DIR = Path(__file__).parent
+MAX_IPS = int(os.getenv("MAX_IPS", "5"))
+HEADLESS = os.getenv("HEADLESS", "true").lower() == "true"
+BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")
 
 # ------------------------ 页面交互配置 ------------------------------------
 PAGE_CONFIG = {
-    "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],               # 引擎搜索按钮文字
-    "multicast_tab": ["组播提取"],                                         # 组播提取标签文字
-    "start_button": ["开始播放", "开始搜索", "开始提取"],                  # 开始按钮文字
+    "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
+    "multicast_tab": ["组播提取"],
+    "start_button": ["开始播放", "开始搜索", "开始提取"],
 }
 
 # ------------------------ 分类规则配置 ------------------------------------
@@ -51,7 +51,6 @@ CATEGORY_RULES = [
                                       "嘉佳卡通", "卡酷少儿", "动漫秀场", "优优宝贝"]},
 ]
 
-# 播放列表分组输出顺序
 GROUP_ORDER = [
     "央视频道",
     "卫视频道",
@@ -62,17 +61,17 @@ GROUP_ORDER = [
 ]
 
 # ------------------------ 播放列表生成设置 --------------------------------
-MAX_LINKS_PER_CHANNEL = int(os.getenv("MAX_LINKS_PER_CHANNEL", "10"))     # 每个频道名最多保留链接数
+MAX_LINKS_PER_CHANNEL = int(os.getenv("MAX_LINKS_PER_CHANNEL", "10"))
 OUTPUT_M3U_FILENAME = os.getenv("OUTPUT_M3U", "iptv_channels.m3u")
 OUTPUT_TXT_FILENAME = os.getenv("OUTPUT_TXT", "iptv_channels.txt")
 
 # -------------------------- 功能开关 -------------------------------------
-ENABLE_CHINESE_CLEAN = True                   # 非央视频道清洗为纯汉字
-ENABLE_DEDUPLICATION = True                    # 链接去重
-ENABLE_SCREENSHOTS = False                      # 调试截图（CI 建议关闭）
+ENABLE_CHINESE_CLEAN = True
+ENABLE_DEDUPLICATION = True
+ENABLE_SCREENSHOTS = False
 
 # -------------------------- 央视频道名称映射 -----------------------------
-CCTV_USE_MAPPING = True                          # 是否启用映射
+CCTV_USE_MAPPING = True
 CCTV_NAME_MAPPING = {
     "1": "综合", "2": "财经", "3": "综艺", "4": "国际", "5": "体育",
     "5+": "体育赛事", "6": "电影", "7": "国防军事", "8": "电视剧",
@@ -83,47 +82,46 @@ CCTV_NAME_MAPPING = {
 
 # -------------------------- 测速设置 --------------------------------------
 ENABLE_SPEED_TEST = os.getenv("ENABLE_SPEED_TEST", "true").lower() == "true"
-SPEED_TEST_CONCURRENCY = int(os.getenv("SPEED_TEST_CONCURRENCY", "5"))    # 并发测速数
-SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "1"))          # 每个链接测速时长（秒）
-SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "480"))          # 测速总超时（秒）
-KEEP_ON_SPEED_FAIL = False                                                 # 测速失败时是否保留链接（False=丢弃）
-SPEED_TEST_VERBOSE = False                                                 # 是否输出每个链接的详细日志
+SPEED_TEST_CONCURRENCY = int(os.getenv("SPEED_TEST_CONCURRENCY", "5"))
+SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "1"))
+SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "480"))
+KEEP_ON_SPEED_FAIL = False
+SPEED_TEST_VERBOSE = False
 
 # -------------------------- 带宽限制 ---------------------------------------
-ENABLE_BITRATE_FILTER = True                  # 是否启用最低带宽过滤
-MIN_BITRATE_KBPS = 1000                        # 最低带宽（千比特/秒），低于此值丢弃（1 Mbps = 1000 kbps）
+ENABLE_BITRATE_FILTER = True
+MIN_BITRATE_KBPS = 1000
 
 # -------------------------- 分辨率筛选设置 --------------------------------
-ENABLE_RESOLUTION_FILTER = True                 # 是否启用分辨率筛选
-MIN_RESOLUTION_WIDTH = 1920                      # 最小宽度
-MIN_RESOLUTION_HEIGHT = 1080                     # 最小高度
+ENABLE_RESOLUTION_FILTER = True
+MIN_RESOLUTION_WIDTH = 1920
+MIN_RESOLUTION_HEIGHT = 1080
 
 # -------------------------- 负载控制 --------------------------------------
-DELAY_BETWEEN_IPS = float(os.getenv("DELAY_BETWEEN_IPS", "3.0"))          # 处理完一个 IP 后等待秒数
-DELAY_AFTER_CLICK = float(os.getenv("DELAY_AFTER_CLICK", "0.5"))          # 每次点击后等待秒数
-MAX_CHANNELS_PER_IP = int(os.getenv("MAX_CHANNELS_PER_IP", "0"))           # 每个 IP 最多提取频道数（0=不限制）
+DELAY_BETWEEN_IPS = float(os.getenv("DELAY_BETWEEN_IPS", "3.0"))
+DELAY_AFTER_CLICK = float(os.getenv("DELAY_AFTER_CLICK", "0.5"))
+MAX_CHANNELS_PER_IP = int(os.getenv("MAX_CHANNELS_PER_IP", "0"))
 
 # -------------------------- 脚本全局超时（30分钟）------------------------
-SCRIPT_TIMEOUT = int(os.getenv("SCRIPT_TIMEOUT", "2800"))                  # 脚本最大运行时间（秒）
+SCRIPT_TIMEOUT = int(os.getenv("SCRIPT_TIMEOUT", "1800"))
 
 # ============================================================================
 # 以下为核心代码，非必要请勿修改
 # ============================================================================
 
-# 预编译正则表达式（提升性能）
+# 预编译正则表达式
 IP_PATTERN = re.compile(r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$')
 CCTV_PATTERN = re.compile(r'(cctv)[-\s]?(\d{1,3})', re.IGNORECASE)
 CETV_PATTERN = re.compile(r'(cetv)[-\s]?(\d)', re.IGNORECASE)
 SPEED_PATTERN = re.compile(r'speed=\s*([\d.]+)x')
 RESOLUTION_PATTERN = re.compile(r'(\d+)x(\d+)')
-BITRATE_PATTERN = re.compile(r'bitrate:\s*(\d+)\s*kb/s')                   # 匹配比特率（kb/s）
+BITRATE_PATTERN = re.compile(r'bitrate:\s*(\d+)\s*kb/s')
 CHINESE_ONLY_PATTERN = re.compile(r'[^\u4e00-\u9fff]')
 
 SCREENSHOT_DIR = OUTPUT_DIR / "debug_screenshots"
 if ENABLE_SCREENSHOTS:
     SCREENSHOT_DIR.mkdir(exist_ok=True)
 
-# 构建分类器
 def build_classifier():
     compiled = []
     for rule in CATEGORY_RULES:
@@ -135,7 +133,6 @@ def build_classifier():
 
 classify_channel = build_classifier()
 
-# 央视名称标准化
 def normalize_cctv(name: str) -> str:
     name_lower = name.lower()
     if "cctv5+" in name_lower or "cctv5＋" in name_lower or "cctv5加" in name_lower:
@@ -190,10 +187,9 @@ async def robust_click(locator, timeout=10000, description="元素"):
             print(f"❌ {description} 所有点击方式均失败: {e2}")
             return False
 
-# ====================== 测速函数（含带宽过滤）===========================
+# ====================== 测速函数（修复 ProcessLookupError）================
 
 async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semaphore) -> Optional[Tuple[str, str, str, float]]:
-    """单个链接测速，返回 (url, group, name, speed) 或 None（失败或带宽不足）"""
     async with semaphore:
         if SPEED_TEST_VERBOSE:
             print(f"   ⏳ 测速: [{group}] {name[:30]}...")
@@ -214,7 +210,13 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
         try:
             stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=SPEED_TEST_DURATION + 5)
         except asyncio.TimeoutError:
-            process.kill()
+            # 超时处理：尝试终止进程，忽略进程已结束的异常
+            if process.returncode is None:
+                try:
+                    process.kill()
+                except ProcessLookupError:
+                    # 进程可能已自然结束
+                    pass
             await process.wait()
             if SPEED_TEST_VERBOSE:
                 print(f"   ❌ [{group}] {name[:30]} 超时")
@@ -240,7 +242,7 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
                 print(f"   ❌ [{group}] {name[:30]} 无法解析速度")
             return None
 
-        # 提取比特率（用于带宽过滤）
+        # 提取比特率（带宽过滤）
         bitrate_kbps = None
         if ENABLE_BITRATE_FILTER:
             for line in lines:
@@ -278,7 +280,6 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
         return (url, group, name, speed)
 
 async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
-    """并发测速，支持整体超时和带宽过滤"""
     total_links = sum(len(v) for v in channel_urls.values())
     filter_info = []
     if ENABLE_RESOLUTION_FILTER:
@@ -311,7 +312,6 @@ async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict
                 print(f"   📊 测速进度: {completed}/{total_links} ({percent}%)")
                 next_progress += 10
 
-        # 检查测速整体超时
         elapsed = time.monotonic() - start_time
         if elapsed > SPEED_TEST_TIMEOUT:
             print(f"⚠️ 测速整体超时（{SPEED_TEST_TIMEOUT}秒），强制结束，已测 {completed}/{total_links} 个链接")
@@ -319,7 +319,6 @@ async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict
                 task.cancel()
             break
 
-    # 按速度排序并截取
     speed_map = defaultdict(list)
     for res in results:
         if res is None:
@@ -340,7 +339,6 @@ async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict
 # ====================== IP 提取逻辑 ================================
 
 async def extract_from_ip(page, row, ip_text: str) -> List[Tuple[str, str, str]]:
-    """从单个 IP 行提取频道信息"""
     entries = []
     print(f"\n📌 处理 IP: {ip_text}")
 
@@ -422,12 +420,11 @@ async def extract_from_ip(page, row, ip_text: str) -> List[Tuple[str, str, str]]
 # ====================== 主流程 ================================
 
 async def _main():
-    """实际的主逻辑"""
     global ENABLE_SPEED_TEST
 
     print(f"[{time.strftime('%H:%M:%S')}] 🚀 脚本开始运行")
 
-    # 检查浏览器（已确保 subprocess 可用）
+    # 检查浏览器
     try:
         import playwright
     except ImportError:
@@ -470,21 +467,18 @@ async def _main():
         if ENABLE_SCREENSHOTS:
             await page.screenshot(path=SCREENSHOT_DIR / "01_initial.png")
 
-        # 点击引擎搜索
         if ENGINE_SELECTOR:
             elem = page.locator(ENGINE_SELECTOR).first
             if await elem.count() > 0:
                 await robust_click(elem, description="引擎搜索按钮")
                 await asyncio.sleep(DELAY_AFTER_CLICK)
 
-        # 点击组播提取标签
         if MCAST_SELECTOR:
             tab = page.locator(MCAST_SELECTOR).first
             await tab.wait_for(state="attached", timeout=15000)
             await robust_click(tab, description="组播提取标签")
             await asyncio.sleep(DELAY_AFTER_CLICK)
 
-        # 点击开始按钮
         if START_SELECTOR:
             start_btn = page.locator(START_SELECTOR).first
             if await start_btn.count() > 0:
@@ -493,7 +487,6 @@ async def _main():
             else:
                 raise Exception("❌ 未找到开始按钮，请检查配置")
 
-        # 等待扫描结果
         print("⏳ 等待扫描结果（最多60秒）...")
         ip_locator = page.locator("div.item-title:text-matches('\\d+\\.\\d+\\.\\d+\\.\\d+')").first
         try:
@@ -505,7 +498,6 @@ async def _main():
         if ENABLE_SCREENSHOTS:
             await page.screenshot(path=SCREENSHOT_DIR / "04_results_page.png")
 
-        # 获取 IP 列表
         result_rows = page.locator("div.ios-list-item").filter(has_text="频道:")
         total_ips = await result_rows.count()
         process_count = total_ips if MAX_IPS <= 0 else min(total_ips, MAX_IPS)
@@ -530,7 +522,6 @@ async def _main():
 
         print(f"\n📊 原始条目数：{len(raw_entries)}")
 
-        # 去重
         channel_urls = defaultdict(list)
         seen: Set[Tuple] = set() if ENABLE_DEDUPLICATION else None
         for group, name, url in raw_entries:
@@ -541,18 +532,15 @@ async def _main():
                 seen.add(key)
             channel_urls[(group, name)].append(url)
 
-        # 测速
         if ENABLE_SPEED_TEST and channel_urls:
             channel_urls = await run_speed_test(channel_urls)
         else:
-            # 直接截取
             new_urls = defaultdict(list)
             for key, urls in channel_urls.items():
                 for url in (urls[:MAX_LINKS_PER_CHANNEL] if MAX_LINKS_PER_CHANNEL > 0 else urls):
                     new_urls[key].append(url)
             channel_urls = new_urls
 
-        # 组装最终列表
         final_entries = []
         for (group, name), urls in channel_urls.items():
             for url in urls:
@@ -560,12 +548,10 @@ async def _main():
 
         print(f"✅ 每个频道最多保留 {MAX_LINKS_PER_CHANNEL} 个链接，剩余 {len(final_entries)} 条")
 
-        # 分组排序
         grouped = defaultdict(list)
         for group, name, url in final_entries:
             grouped[group].append((name, url))
 
-        # 央视排序
         cctv_group = next((g for g in grouped if "央视" in g or "cctv" in g.lower()), None)
         if cctv_group:
             def cctv_key(item):
@@ -584,7 +570,6 @@ async def _main():
             if g != cctv_group:
                 grouped[g].sort(key=lambda x: x[0])
 
-        # 输出 M3U
         m3u_path = OUTPUT_DIR / OUTPUT_M3U_FILENAME
         with open(m3u_path, "w", encoding="utf-8", newline="") as f:
             f.write("#EXTM3U\n")
@@ -593,7 +578,6 @@ async def _main():
                     f.write(f'#EXTINF:-1 group-title="{group_name}",{name}\n{url}\n')
         print(f"📀 M3U: {m3u_path}")
 
-        # 输出 TXT
         txt_path = OUTPUT_DIR / OUTPUT_TXT_FILENAME
         with open(txt_path, "w", encoding="utf-8", newline="") as f:
             for group_name in GROUP_ORDER:
@@ -611,7 +595,6 @@ async def _main():
         await browser.close()
 
 async def main_with_timeout():
-    """全局超时保护（30分钟）"""
     try:
         await asyncio.wait_for(_main(), timeout=SCRIPT_TIMEOUT)
     except asyncio.TimeoutError:
