@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具 —— 全配置置顶版（已修复 ProcessLookupError）
+IPTV 组播提取工具 —— 全配置置顶版（修复页面加载超时）
 """
 
 # ==================== 必须的导入 ====================
@@ -22,11 +22,14 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 # ============================================================================
 
 # ---------------------------- 基础设置 ------------------------------------
-TARGET_URL = os.getenv("TARGET_URL", "https://iptv.809899.xyz")
-OUTPUT_DIR = Path(__file__).parent
-MAX_IPS = int(os.getenv("MAX_IPS", "5"))
-HEADLESS = os.getenv("HEADLESS", "true").lower() == "true"
-BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")
+TARGET_URL = os.getenv("TARGET_URL", "https://iptv.809899.xyz")          # 目标网页
+OUTPUT_DIR = Path(__file__).parent                                        # 输出目录
+MAX_IPS = int(os.getenv("MAX_IPS", "5"))                                  # 只处理前 N 个 IP（0=全部）
+HEADLESS = os.getenv("HEADLESS", "true").lower() == "true"                # 无头模式（CI 必须为 True）
+BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")                      # 可选 chromium / firefox / webkit
+
+# ------------------------ 页面加载超时 ------------------------------------
+PAGE_LOAD_TIMEOUT = int(os.getenv("PAGE_LOAD_TIMEOUT", "60000"))          # 页面加载超时（毫秒）
 
 # ------------------------ 页面交互配置 ------------------------------------
 PAGE_CONFIG = {
@@ -83,7 +86,7 @@ CCTV_NAME_MAPPING = {
 # -------------------------- 测速设置 --------------------------------------
 ENABLE_SPEED_TEST = os.getenv("ENABLE_SPEED_TEST", "true").lower() == "true"
 SPEED_TEST_CONCURRENCY = int(os.getenv("SPEED_TEST_CONCURRENCY", "5"))
-SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "1"))
+SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "3"))
 SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "480"))
 KEEP_ON_SPEED_FAIL = False
 SPEED_TEST_VERBOSE = False
@@ -210,12 +213,10 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
         try:
             stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=SPEED_TEST_DURATION + 5)
         except asyncio.TimeoutError:
-            # 超时处理：尝试终止进程，忽略进程已结束的异常
             if process.returncode is None:
                 try:
                     process.kill()
                 except ProcessLookupError:
-                    # 进程可能已自然结束
                     pass
             await process.wait()
             if SPEED_TEST_VERBOSE:
@@ -460,8 +461,8 @@ async def _main():
         print("✅ 浏览器启动完成")
 
         print(f"🌐 正在打开页面: {TARGET_URL}")
-        await page.goto(TARGET_URL, timeout=60000)
-        await page.wait_for_load_state("networkidle", timeout=10000)
+        # 使用统一的超时，并等待 networkidle 状态
+        await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT, wait_until="networkidle")
         print("✅ 页面加载完成")
 
         if ENABLE_SCREENSHOTS:
