@@ -1,283 +1,480 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取 —— 【稳定可抓取版】
-流程：爬取 → 去重 → 批量测速 → 输出 + 完整日志
-仅新增逻辑，不改动原有能抓的页面结构
+IPTV 组播提取工具 —— 全配置自动化版（GitHub Actions 优化 + 负载控制 + 央视名称统一映射）
+所有配置项均在文件顶部集中管理，修改配置即可适配任何网站或命名习惯。
 """
+
 import asyncio
 import re
+import subprocess
 import sys
-import time
 from collections import defaultdict
 from pathlib import Path
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 # ============================================================================
-# 【你原来能用的配置 —— 完全不动】
+# 用户可配置区域（请根据需求修改）
 # ============================================================================
-TARGET_URL = "https://iptv.809899.xyz"
-OUTPUT_DIR = Path(__file__).parent
 
-MAX_IPS = 10
-HEADLESS = True
-BROWSER = "chromium"
+# ---------------------------- 基础设置 ------------------------------------
+TARGET_URL = "https://iptv.809899.xyz"          # 目标网页
+OUTPUT_DIR = Path(__file__).parent              # 输出目录（仓库根目录）
+MAX_IPS = 10                                    # 只处理前 N 个 IP（0=全部）
+HEADLESS = True                                 # 无头模式（CI 必须为 True）
+BROWSER_TYPE = "chromium"                      # 可选 chromium / firefox / webkit
 
+# ------------------------ 页面交互配置 ------------------------------------
 PAGE_CONFIG = {
     "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
     "multicast_tab": ["组播提取"],
     "start_button": ["开始播放", "开始搜索", "开始提取"],
 }
 
+# ------------------------ 分类规则配置 ------------------------------------
 CATEGORY_RULES = [
     {"name": "4K专区",      "keywords": ["4k"]},
     {"name": "央视频道",    "keywords": ["cctv", "cetv", "中央"]},
-    {"name": "卫视频道",    "keywords": ["卫视", "凤凰", "tvb", "湖南", "浙江", "江苏", "东方",
+    {"name": "卫视频道",    "keywords": ["卫视", "凤凰", "tvb", "湖南", "浙江", "江苏", "东方", 
                                       "北京", "深圳", "山东", "天津", "贵州", "四川", "黑龙江",
-                                      "安徽", "江西", "湖北", "东南", "辽宁", "广东", "河北"]},
-    {"name": "电影频道",    "keywords": ["电影", "影迷", "影院", "chc"]},
-    {"name": "轮播频道",    "keywords": ["轮播"]},
-    {"name": "儿童频道",    "keywords": ["少儿", "动画", "卡通", "金鹰", "嘉佳", "卡酷"]},
+                                      "安徽", "江西", "湖北", "东南", "辽宁", "广东", "河北",
+                                      "甘肃", "新疆", "西藏", "兵团", "重庆", "云南", "广西",
+                                      "山西", "陕西", "吉林", "内蒙古", "河南", "宁夏", "青海"]},
+    {"name": "电影频道",    "keywords": ["电影", "影迷", "家庭影院", "动作电影", "光影", 
+                                      "动作影院", "喜剧影院", "经典电影", "爱电影", "chc"]},
+    {"name": "轮播频道",    "keywords": ["轮播频道", "轮播"]},
+    {"name": "儿童频道",    "keywords": ["少儿", "动画", "卡通", "kids", "金鹰卡通", 
+                                      "嘉佳卡通", "卡酷少儿", "动漫秀场", "优优宝贝"]},
 ]
 
-GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "4K专区", "儿童频道", "轮播频道"]
+# 播放列表分组输出顺序
+GROUP_ORDER = [
+    "央视频道",
+    "卫视频道",
+    "电影频道",
+    "4K专区",
+    "儿童频道",
+    "轮播频道",
+]
 
-MAX_LINKS_PER_CHANNEL = 8
-ENABLE_DEDUPLICATION = True
+# ------------------------ 播放列表生成设置 --------------------------------
+MAX_LINKS_PER_CHANNEL = 10                     # 每个频道名最多保留链接数
+OUTPUT_M3U_FILENAME = "iptv_channels.m3u"
+OUTPUT_TXT_FILENAME = "iptv_channels.txt"
 
-# -------------------------- FFmpeg 测速 -----------------------------
-TEST_TIMEOUT = 4.0
-CONCURRENCY = 3
-MAX_ALLOW_DELAY = 3000
+# -------------------------- 功能开关 -------------------------------------
+ENABLE_CHINESE_CLEAN = True                   # 非央视频道清洗为纯汉字
+ENABLE_DEDUPLICATION = True                  # 链接去重
+ENABLE_SCREENSHOTS = False                   # 调试截图（CI 建议关闭）
 
-# -------------------------- 央视名称（你原来能用的版本）-----------------------------
-CCTV_MAP = {
-    "1": "综合", "2": "财经", "3": "综艺", "4": "国际", "5": "体育",
-    "5+": "体育赛事", "6": "电影", "7": "国防军事", "8": "电视剧",
-    "9": "纪录", "10": "科教", "11": "戏曲", "12": "社会与法",
-    "13": "新闻", "14": "少儿", "15": "音乐", "16": "奥林匹克", "17": "农业农村"
+# -------------------------- 央视频道名称映射（⚠️ 核心配置）----------------
+# 当 CCTV_USE_MAPPING = True 时，所有央视频道将按照以下映射表输出标准名称
+# 格式：频道数字 -> 中文名称（会自动添加 "CCTV-" 前缀）
+# 支持特殊键："5+" 对应 CCTV5+
+CCTV_USE_MAPPING = True                      # 是否启用映射（True=使用下方映射表，False=保留原始名称）
+CCTV_NAME_MAPPING = {
+    "1": "综合",
+    "2": "财经",
+    "3": "综艺",
+    "4": "国际",
+    "5": "体育",
+    "5+": "体育赛事",
+    "6": "电影",
+    "7": "国防军事",
+    "8": "电视剧",
+    "9": "纪录",
+    "10": "科教",
+    "11": "戏曲",
+    "12": "社会与法",
+    "13": "新闻",
+    "14": "少儿",
+    "15": "音乐",
+    "16": "奥林匹克",
+    "17": "农业农村",
+    # 如需补充，请按格式添加
 }
 
+# -------------------------- 负载控制（减轻服务器压力）----------------------
+DELAY_BETWEEN_IPS = 3.0                      # 处理完一个 IP 后等待秒数
+DELAY_AFTER_CLICK = 0.5                     # 每次点击后等待秒数
+MAX_CHANNELS_PER_IP = 0                     # 每个 IP 最多提取频道数（0=不限制）
+
 # ============================================================================
-# 【你原来能用的浏览器参数 —— 完全不动】
+# 以下为核心代码，非必要请勿修改
 # ============================================================================
+
+SCREENSHOT_DIR = OUTPUT_DIR / "debug_screenshots"
+if ENABLE_SCREENSHOTS:
+    SCREENSHOT_DIR.mkdir(exist_ok=True)
+
 LAUNCH_ARGS = {
     "headless": HEADLESS,
-    "args": [
-        "--no-sandbox",
-        "--disable-gpu",
-        "--disable-dev-shm-usage",
-        "--disable-extensions",
-        "--no-first-run",
-        "--single-process"
-    ]
+    "args": ["--no-sandbox"]
 }
 
-# ============================================================================
-# 【你原来能用的工具函数 —— 完全不动】
-# ============================================================================
-def clean_name(name):
+def ensure_browser_installed():
+    try:
+        import playwright
+    except ImportError:
+        print("❌ Playwright 未安装，请先执行: pip install playwright")
+        sys.exit(1)
+    result = subprocess.run(
+        [sys.executable, "-m", "playwright", "install", "--dry-run"],
+        capture_output=True, text=True
+    )
+    if BROWSER_TYPE not in result.stdout:
+        print(f"📦 正在安装 {BROWSER_TYPE} 浏览器驱动...")
+        subprocess.run(
+            [sys.executable, "-m", "playwright", "install", BROWSER_TYPE],
+            check=True
+        )
+        print("✅ 浏览器驱动安装完成")
+
+def build_classifier():
+    patterns = []
+    for rule in CATEGORY_RULES:
+        if not rule["keywords"]:
+            continue
+        pattern = "|".join(re.escape(kw.lower()) for kw in rule["keywords"])
+        patterns.append((rule["name"], re.compile(pattern)))
+    def classify(name: str) -> str | None:
+        name_lower = name.lower()
+        for group_name, pattern in patterns:
+            if pattern.search(name_lower):
+                return group_name
+        return None
+    return classify
+
+classify_channel = build_classifier()
+
+# ---------- 央视名称标准化（增强版，支持映射表）----------
+def normalize_cctv(name: str) -> str:
+    """
+    将央视相关频道标准化。
+    若 CCTV_USE_MAPPING = True：
+        - 根据映射表输出固定名称，如 CCTV-1综合、CCTV-5+体育赛事、CCTV-15音乐
+    若 CCTV_USE_MAPPING = False：
+        - 回退到详细模式或简化模式（取决于 CCTV_DETAILED_NAMES，此处已整合）
+    """
+    name_lower = name.lower()
+    
+    # ----- 特殊：CCTV5+ -----
+    if "cctv5+" in name_lower or "cctv5＋" in name_lower or "cctv5加" in name_lower:
+        if CCTV_USE_MAPPING and "5+" in CCTV_NAME_MAPPING:
+            return f"CCTV-5+{CCTV_NAME_MAPPING['5+']}"
+        else:
+            return "CCTV5+"
+    
+    # ----- 普通 CCTV 数字 -----
+    cctv_match = re.search(r'(cctv)[-\s]?(\d{1,3})', name_lower)
+    if cctv_match:
+        number = cctv_match.group(2)
+        if CCTV_USE_MAPPING:
+            # 如果映射表中存在该数字，使用映射名称
+            if number in CCTV_NAME_MAPPING:
+                return f"CCTV-{number}{CCTV_NAME_MAPPING[number]}"
+            else:
+                # 映射表中不存在，则只返回 CCTV-数字
+                return f"CCTV-{number}"
+        else:
+            # 不使用映射，回退到原始详细模式（保留连字符风格，去除后缀）
+            rest = name[cctv_match.end():].strip()
+            redundant = re.sub(r'(?i)(HD|SD|高清|标清|超清|\s*-?\s*)?$', '', rest).strip()
+            if redundant:
+                if '-' in name[cctv_match.start():cctv_match.end()]:
+                    return f"CCTV-{number} {redundant}"
+                else:
+                    return f"CCTV{number} {redundant}"
+            else:
+                if '-' in name[cctv_match.start():cctv_match.end()]:
+                    return f"CCTV-{number}"
+                else:
+                    return f"CCTV{number}"
+    
+    # ----- CETV 中国教育电视台（可类似映射，但暂不强制）-----
+    cetv_match = re.search(r'(cetv)[-\s]?(\d)', name_lower)
+    if cetv_match:
+        prefix = cetv_match.group(1).upper()
+        number = cetv_match.group(2)
+        if CCTV_USE_MAPPING:
+            # CETV 暂不加中文映射，直接返回 CETV-数字
+            return f"CETV-{number}"
+        else:
+            if '-' in name[cetv_match.start():cetv_match.end()]:
+                return f"CETV-{number}"
+            else:
+                return f"CETV{number}"
+    
+    return name  # 非央视频道，原样返回
+
+def clean_chinese_only(name: str) -> str:
+    """只保留汉字字符"""
     return re.sub(r'[^\u4e00-\u9fff]', '', name)
 
-def normalize_cctv(name):
-    name_lower = name.lower()
-    if "cctv5+" in name_lower:
-        return f"CCTV-5+{CCTV_MAP.get('5+', '体育赛事')}"
-    match = re.search(r'cctv[-\s]?(\d{1,2})', name_lower)
-    if match:
-        num = match.group(1)
-        return f"CCTV-{num}{CCTV_MAP.get(num, '')}"
-    match = re.search(r'cetv[-\s]?(\d)', name_lower)
-    if match:
-        return f"CETV-{match.group(1)}"
-    return name
-
-def build_selector(texts, tag="button"):
-    if not texts:
+# ---------- 构建页面选择器 ----------
+def build_selector(text_list: list, element_type: str = "button") -> str:
+    if not text_list:
         return ""
-    return ",".join([f"{tag}:has-text('{t}')" for t in texts])
+    if len(text_list) == 1:
+        return f"{element_type}:has-text('{text_list[0]}')"
+    pattern = "|".join(re.escape(t) for t in text_list)
+    return f"{element_type}:text-matches('{pattern}')"
 
-ENGINE_SEL = build_selector(PAGE_CONFIG["engine_search"], "a,button,div")
-MCAST_SEL = build_selector(PAGE_CONFIG["multicast_tab"], "div")
-START_SEL = build_selector(PAGE_CONFIG["start_button"], "button")
+ENGINE_SELECTOR = build_selector(PAGE_CONFIG["engine_search"], "a.sidebar-link,button,div.segment-item")
+MCAST_SELECTOR = build_selector(PAGE_CONFIG["multicast_tab"], "div.segment-item")
+START_SELECTOR = build_selector(PAGE_CONFIG["start_button"], "button")
 
-# ============================================================================
-# ====================== 新增：FFmpeg 测速 + 日志 ======================
-# ============================================================================
-async def test_url(url):
-    start = time.time()
+# ---------- 增强点击函数 ----------
+async def robust_click(locator, timeout=10000, description="元素"):
     try:
-        proc = await asyncio.create_subprocess_exec(
-            "ffmpeg",
-            "-hide_banner",
-            "-loglevel", "error",
-            "-timeout", str(int(TEST_TIMEOUT * 1000)),
-            "-i", url,
-            "-t", "0.1",
-            "-f", "null", "-",
-            stdout=asyncio.subprocess.DEVNULL,
-            stderr=asyncio.subprocess.DEVNULL
-        )
-        await asyncio.wait_for(proc.communicate(), TEST_TIMEOUT + 0.5)
-        cost = int((time.time() - start) * 1000)
-        if proc.returncode == 0 and cost <= MAX_ALLOW_DELAY:
-            return (True, cost)
-        return (False, cost)
-    except:
-        return (False, 9999)
-
-async def batch_test(url_list):
-    sem = asyncio.Semaphore(CONCURRENCY)
-    async def wrap(u):
-        async with sem:
-            return await test_url(u)
-    return await asyncio.gather(*[wrap(u) for u in url_list])
-
-# ============================================================================
-# ====================== 主流程：完全恢复你能抓的逻辑 ======================
-# ============================================================================
-async def main():
-    print("=" * 60)
-    print("📥 步骤1：开始爬取播放链接（原版稳定逻辑）")
-    print("=" * 60)
-
-    raw = []
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(**LAUNCH_ARGS)
-        page = await browser.new_page(viewport={"width": 1280, "height": 720})
-
+        await locator.click(force=True, timeout=timeout)
+        print(f"✅ {description} 点击成功（强制点击）")
+        return True
+    except Exception as e:
+        print(f"⚠️ {description} 强制点击失败: {e}")
         try:
-            await page.goto(TARGET_URL, timeout=120000)
-            await page.wait_for_load_state("networkidle", timeout=30000)
-        except:
-            pass
+            await locator.evaluate('el => el.click()')
+            print(f"✅ {description} 点击成功（JavaScript 回退）")
+            return True
+        except Exception as e2:
+            print(f"❌ {description} 所有点击方式均失败: {e2}")
+            return False
 
-        # 你原来的点击逻辑 —— 完全不动
-        for sel in [ENGINE_SEL, MCAST_SEL, START_SEL]:
-            try:
-                await page.locator(sel).first.click(timeout=10000)
-                await asyncio.sleep(1)
-            except:
-                continue
+# ---------- 主流程 ----------
+async def main():
+    ensure_browser_installed()
 
-        await asyncio.sleep(8)
+    async with async_playwright() as p:
+        browser = await getattr(p, BROWSER_TYPE).launch(**LAUNCH_ARGS)
+        context = await browser.new_context(
+            accept_downloads=True,
+            viewport={"width": 1920, "height": 1080}
+        )
+        page = await context.new_page()
 
-        # 你原来能抓到的选择器 —— 完全不动
-        rows = page.locator("div.ios-list-item:has-text('频道:')")
-        total = await rows.count()
-        print(f"✅ 找到线路总数：{total}，抓取前 {MAX_IPS} 条")
+        print("🌐 正在打开页面...")
+        await page.goto(TARGET_URL, timeout=60000)
+        await page.wait_for_load_state("networkidle", timeout=10000)
+        if ENABLE_SCREENSHOTS:
+            await page.screenshot(path=SCREENSHOT_DIR / "01_initial.png")
+            print("📸 已保存初始页面截图")
 
-        cnt = min(total, MAX_IPS)
-        for i in range(cnt):
-            try:
-                row = rows.nth(i)
-                await row.click(timeout=5000)
-                await asyncio.sleep(1)
-                items = page.locator(".modal-dialog .item-content")
-                item_cnt = await items.count()
-                print(f"  线路 {i+1}/{cnt} → 频道数：{item_cnt}")
+        # ----- 1. 点击引擎搜索 -----
+        if ENGINE_SELECTOR:
+            element = page.locator(ENGINE_SELECTOR).first
+            if await element.count() > 0:
+                await robust_click(element, description="引擎搜索按钮")
+                await asyncio.sleep(DELAY_AFTER_CLICK)
+            else:
+                print("⚠️ 未找到引擎搜索按钮，继续后续步骤")
+        await page.wait_for_timeout(1000)
 
-                for j in range(min(item_cnt, 50)):
-                    try:
-                        name = await items.nth(j).locator(".item-title").inner_text()
-                        link = await items.nth(j).locator(".item-subtitle").inner_text()
-                        name, link = name.strip(), link.strip()
-                        if not name or not link:
-                            continue
+        # ----- 2. 点击组播提取标签 -----
+        if MCAST_SELECTOR:
+            mcast_tab = page.locator(MCAST_SELECTOR).first
+            await mcast_tab.wait_for(state="attached", timeout=15000)
+            await robust_click(mcast_tab, description="组播提取标签")
+            await asyncio.sleep(DELAY_AFTER_CLICK)
+        await page.wait_for_timeout(500)
 
-                        norm = normalize_cctv(name)
-                        group = None
-                        for rule in CATEGORY_RULES:
-                            if any(k in norm.lower() for k in rule["keywords"]):
-                                group = rule["name"]
-                                break
-                        if not group:
-                            continue
-
-                        final = norm if group == "央视频道" else clean_name(name) or norm
-                        raw.append((group, final, link))
-                    except:
-                        continue
-
-                await page.keyboard.press("Escape")
-                await asyncio.sleep(1)
-            except:
-                continue
-
-        await browser.close()
-
-    print(f"\n✅ 爬取完成：原始链接 {len(raw)} 条")
-
-    # ======================================
-    print("\n" + "="*60)
-    print("📛 步骤2：统一去重")
-    print("="*60)
-    # ======================================
-    channel_map = defaultdict(set)
-    for g, n, u in raw:
-        channel_map[(g, n)].add(u)
-
-    total_after = sum(len(v) for v in channel_map.values())
-    print(f"✅ 去重后：频道 {len(channel_map)} 个，链接 {total_after} 条")
-
-    # ======================================
-    print("\n" + "="*60)
-    print("⚡ 步骤3：FFmpeg 批量测速")
-    print("="*60)
-    # ======================================
-    test_list = []
-    key_map = {}
-    for (g, n), urls in channel_map.items():
-        for u in urls:
-            test_list.append(u)
-            key_map[u] = (g, n)
-
-    results = await batch_test(test_list)
-
-    valid = defaultdict(list)
-    ok = 0
-    fail = 0
-
-    for url, (ok_flag, ms) in zip(test_list, results):
-        g, n = key_map[url]
-        if ok_flag:
-            valid[(g, n)].append((ms, url))
-            print(f"✅  {n} | {ms}ms")
-            ok +=1
+        # ----- 3. 点击开始按钮 -----
+        if START_SELECTOR:
+            start_btn = page.locator(START_SELECTOR).first
+            if await start_btn.count() > 0:
+                await robust_click(start_btn, description="开始按钮")
+                await asyncio.sleep(DELAY_AFTER_CLICK)
+            else:
+                if ENABLE_SCREENSHOTS:
+                    await page.screenshot(path=SCREENSHOT_DIR / "02_start_button_missing.png")
+                raise Exception("❌ 未找到开始按钮，请检查 PAGE_CONFIG['start_button'] 配置")
         else:
-            print(f"❌  {n} | 失败")
-            fail +=1
+            raise Exception("❌ 开始按钮未配置")
 
-    print(f"\n📊 测速完成：有效={ok}  |  无效={fail}")
+        # ----- 4. 等待扫描结果 -----
+        print("⏳ 等待扫描结果（最多60秒）...")
+        ip_locator = page.locator("div.item-title:text-matches('\\d+\\.\\d+\\.\\d+\\.\\d+')").first
+        try:
+            await ip_locator.wait_for(state="attached", timeout=60000)
+            print("✅ 扫描完成")
+        except PlaywrightTimeoutError:
+            if ENABLE_SCREENSHOTS:
+                await page.screenshot(path=SCREENSHOT_DIR / "03_scan_timeout.png")
+            print("⚠️ 扫描超时，但可能已有历史结果")
+        if ENABLE_SCREENSHOTS:
+            await page.screenshot(path=SCREENSHOT_DIR / "04_results_page.png")
 
-    # ======================================
-    # 排序 + 输出
-    # ======================================
-    final = []
-    for (g, n), items in valid.items():
-        items.sort()
-        items = items[:MAX_LINKS_PER_CHANNEL]
-        for ms, u in items:
-            final.append((g, n, u))
+        # ----- 5. 获取IP列表并限制数量 -----
+        result_rows = page.locator("div.ios-list-item").filter(has_text="频道:")
+        total = await result_rows.count()
+        process_count = total if MAX_IPS <= 0 else min(total, MAX_IPS)
+        print(f"📋 共 {total} 个IP，本次处理前 {process_count} 个")
 
-    grouped = defaultdict(list)
-    for g, n, u in final:
-        grouped[g].append((n, u))
+        raw_entries = []  # (group, channel_name, url)
 
-    with open("iptv_channels.m3u", "w", encoding="utf-8") as f:
-        f.write("#EXTM3U\n")
-        for g in GROUP_ORDER:
-            for n, u in sorted(grouped.get(g, [])):
-                f.write(f'#EXTINF:-1 group-title="{g}",{n}\n{u}\n')
+        for i in range(process_count):
+            row = result_rows.nth(i)
+            ip_text = await row.locator("div.item-title").first.inner_text()
+            ip_text = ip_text.strip()
+            if not re.match(r'^\d+\.\d+\.\d+\.\d+$', ip_text):
+                print(f"\n📌 [{i+1}/{process_count}] {ip_text} (非IP，跳过)")
+                continue
+            print(f"\n📌 [{i+1}/{process_count}] {ip_text}")
 
-    with open("iptv_channels.txt", "w", encoding="utf-8") as f:
-        for g in GROUP_ORDER:
-            f.write(f"{g},#genre#\n")
-            for n, u in sorted(grouped.get(g, [])):
-                f.write(f"{n},{u}\n")
-            f.write("\n")
+            # 点击菜单按钮
+            menu_btn = row.locator("button:has(i.fas.fa-list), button:has-text('≡'), button:has(i.fa-list)").first
+            if await menu_btn.count() > 0:
+                await robust_click(menu_btn, description="菜单按钮")
+                await asyncio.sleep(DELAY_AFTER_CLICK)
+            else:
+                print("   ⚠️ 未找到菜单按钮，尝试点击IP地址")
+                await row.locator("div.item-title").first.click(timeout=5000)
+                await asyncio.sleep(DELAY_AFTER_CLICK)
+                print("   🖱️ 点击IP地址")
 
-    print("\n🎉 全部完成！")
-    print(f"📺 最终有效源：{len(final)} 条")
+            # 等待模态框
+            modal = page.locator(".modal-dialog").first
+            try:
+                await modal.wait_for(state="visible", timeout=8000)
+                print("   ✅ 模态框已打开")
+            except PlaywrightTimeoutError:
+                subtitle = row.locator("div.item-subtitle:has-text('频道:')").first
+                if await subtitle.count() > 0:
+                    print("   ⚠️ 模态框未出现，尝试点击频道文本")
+                    await subtitle.click(timeout=5000)
+                    await asyncio.sleep(DELAY_AFTER_CLICK)
+                    try:
+                        await modal.wait_for(state="visible", timeout=5000)
+                        print("   ✅ 模态框已打开")
+                    except PlaywrightTimeoutError:
+                        print("   ❌ 模态框仍未出现，跳过此IP")
+                        await page.keyboard.press("Escape")
+                        continue
+                else:
+                    print("   ❌ 无法打开模态框，跳过")
+                    await page.keyboard.press("Escape")
+                    continue
+
+            # 提取频道
+            items = modal.locator(".item-content")
+            total_channels_in_modal = await items.count()
+            extract_limit = total_channels_in_modal
+            if MAX_CHANNELS_PER_IP > 0:
+                extract_limit = min(total_channels_in_modal, MAX_CHANNELS_PER_IP)
+            print(f"   📺 共 {total_channels_in_modal} 个频道，本次提取前 {extract_limit} 个")
+
+            for j in range(extract_limit):
+                item = items.nth(j)
+                raw_name = await item.locator(".item-title").first.inner_text()
+                link = await item.locator(".item-subtitle").first.inner_text()
+                raw_name = raw_name.strip()
+                link = link.strip()
+                if not raw_name or not link:
+                    continue
+
+                # 标准化央视（使用映射表）
+                norm_name = normalize_cctv(raw_name)
+                group = classify_channel(norm_name) or classify_channel(raw_name)
+                if not group:
+                    continue
+
+                # 名称处理：
+                if group == "央视频道":
+                    final_name = norm_name   # 已通过 normalize_cctv 完成映射
+                elif ENABLE_CHINESE_CLEAN:
+                    final_name = clean_chinese_only(raw_name)
+                    if not final_name:
+                        continue
+                else:
+                    final_name = raw_name
+
+                raw_entries.append((group, final_name, link))
+
+                if j < 3 or extract_limit <= 5:
+                    print(f"      {j+1}. {final_name} -> {link[:60]}...")
+
+            # 关闭模态框
+            await page.keyboard.press("Escape")
+            await asyncio.sleep(DELAY_AFTER_CLICK)
+
+            # IP 处理间隔
+            if i < process_count - 1:
+                print(f"⏳ 等待 {DELAY_BETWEEN_IPS} 秒后处理下一个 IP...")
+                await asyncio.sleep(DELAY_BETWEEN_IPS)
+
+        print(f"\n📊 原始条目数：{len(raw_entries)}")
+
+        # ----- 6. 分组、去重、限制链接数量 -----
+        channel_urls = defaultdict(list)
+        seen_set = set() if ENABLE_DEDUPLICATION else None
+
+        for group, name, url in raw_entries:
+            if ENABLE_DEDUPLICATION:
+                key = (group, name, url)
+                if key in seen_set:
+                    continue
+                seen_set.add(key)
+            channel_urls[(group, name)].append(url)
+
+        limited_entries = []
+        for (group, name), urls in channel_urls.items():
+            for url in urls[:MAX_LINKS_PER_CHANNEL] if MAX_LINKS_PER_CHANNEL > 0 else urls:
+                limited_entries.append((group, name, url))
+
+        print(f"✅ 每个频道最多保留 {MAX_LINKS_PER_CHANNEL} 个链接，剩余 {len(limited_entries)} 条")
+
+        grouped = defaultdict(list)
+        for group, name, url in limited_entries:
+            grouped[group].append((name, url))
+
+        # ----- 7. 各组内排序 -----
+        # 央视频道按数字排序（从标准化名称中提取数字）
+        CCTV_GROUP = next((g for g in grouped.keys() if "央视" in g or "cctv" in g.lower()), None)
+        if CCTV_GROUP:
+            def cctv_sort_key(item):
+                name = item[0]
+                # 提取数字（包括5+特殊处理）
+                m = re.search(r'CCTV-?(\d+)(?:\+|)', name, re.IGNORECASE)
+                if m:
+                    num = int(m.group(1))
+                    if '5+' in name:
+                        return (num, 1)
+                    return (num, 0)
+                m = re.search(r'CETV-?(\d+)', name, re.IGNORECASE)
+                if m:
+                    return (int(m.group(1)) + 100, 0)
+                return (999, 0)
+            grouped[CCTV_GROUP].sort(key=cctv_sort_key)
+
+        # 其他分组按频道名称排序
+        for g in grouped:
+            if g != CCTV_GROUP:
+                grouped[g].sort(key=lambda x: x[0])
+
+        # ----- 8. 生成播放列表 -----
+        m3u_path = OUTPUT_DIR / OUTPUT_M3U_FILENAME
+        with open(m3u_path, "w", encoding="utf-8") as f:
+            f.write("#EXTM3U\n")
+            for group_name in GROUP_ORDER:
+                if group_name not in grouped:
+                    continue
+                for name, url in grouped[group_name]:
+                    f.write(f'#EXTINF:-1 group-title="{group_name}",{name}\n')
+                    f.write(f"{url}\n")
+        print(f"📀 M3U: {m3u_path}")
+
+        txt_path = OUTPUT_DIR / OUTPUT_TXT_FILENAME
+        with open(txt_path, "w", encoding="utf-8") as f:
+            for group_name in GROUP_ORDER:
+                if group_name not in grouped:
+                    continue
+                f.write(f"{group_name},#genre#\n")
+                for name, url in grouped[group_name]:
+                    f.write(f"{name},{url}\n")
+                f.write("\n")
+        print(f"📄 TXT: {txt_path}")
+
+        total_channels = sum(len(v) for v in grouped.values())
+        print(f"\n🎉 完成！共输出 {total_channels} 个频道条目（每个频道名 ≤ {MAX_LINKS_PER_CHANNEL} 链接）")
+        await browser.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
