@@ -64,8 +64,8 @@ MAX_LINKS_PER_CHANNEL = 5
 SPEED_TEST_CONCURRENCY = 20
 
 # 9. 输出文件名
-OUTPUT_M3U_FILENAME = "iptv_fast_channels.m3u"
-OUTPUT_TXT_FILENAME = "iptv_fast_channels.txt"
+OUTPUT_M3U_FILENAME = "iptv_channels.m3u"
+OUTPUT_TXT_FILENAME = "iptv_channels.txt"
 
 # 10. 测速缓存（开启后重复链接不再测速）
 ENABLE_SPEED_CACHE = True
