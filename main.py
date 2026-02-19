@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """
 IPTV 组播提取工具 —— 全配置自动化版（GitHub Actions 优化 + 负载控制 + 央视名称统一映射）
@@ -101,10 +100,16 @@ CCTV_NAME_MAPPING = {
 #   - 测速时长 2~3 秒，平衡准确性与总耗时
 #   - 详细日志关闭，仅显示进度（可手动开启）
 ENABLE_SPEED_TEST = True                      # 是否启用 ffmpeg 测速
-SPEED_TEST_CONCURRENCY = 3                    # 并发测速数（降低以适配免费环境）
+SPEED_TEST_CONCURRENCY = 3                    # 并发测速数（可调）
 SPEED_TEST_DURATION = 3                       # 每个链接测速时长（秒）
 KEEP_ON_SPEED_FAIL = False                     # 测速失败时是否保留链接（False=丢弃）
-SPEED_TEST_VERBOSE = False                     # 是否输出每个链接的详细日志（默认关闭，简化输出）
+SPEED_TEST_VERBOSE = False                     # 是否输出每个链接的详细日志（默认关闭）
+
+# -------------------------- 分辨率筛选设置（新增）--------------------------
+# 启用后，只保留分辨率不低于指定值的频道（若无法获取分辨率则丢弃）
+ENABLE_RESOLUTION_FILTER = False                # 是否启用分辨率筛选
+MIN_RESOLUTION_WIDTH = 1920                     # 最小宽度
+MIN_RESOLUTION_HEIGHT = 1080                    # 最小高度
 
 # -------------------------- 负载控制（减轻服务器压力）----------------------
 DELAY_BETWEEN_IPS = 3.0                      # 处理完一个 IP 后等待秒数
@@ -255,9 +260,12 @@ async def robust_click(locator, timeout=10000, description="元素"):
             print(f"❌ {description} 所有点击方式均失败: {e2}")
             return False
 
-# ---------- 测速函数（支持详细/简洁模式）----------
+# ---------- 测速函数（支持分辨率解析）----------
 async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semaphore):
-    """使用 ffmpeg 测试单个链接的下载速度，返回 (url, group, name, speed) 或 None"""
+    """
+    使用 ffmpeg 测试单个链接的下载速度，并获取视频分辨率。
+    返回 (url, group, name, speed) 或 None（测速失败或分辨率不符合要求）。
+    """
     async with semaphore:
         if SPEED_TEST_VERBOSE:
             print(f"   ⏳ 测速: [{group}] {name[:30]}...")
@@ -287,9 +295,11 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
             if SPEED_TEST_VERBOSE:
                 print(f"   ❌ [{group}] {name[:30]} 失败 (ffmpeg 返回码 {process.returncode})")
             return None
-        # 解析 stderr 获取 speed=...x
+        
         stderr_text = stderr.decode('utf-8', errors='ignore')
         lines = stderr_text.splitlines()
+        
+        # 解析速度
         speed = None
         for line in reversed(lines):
             match = re.search(r'speed=\s*([\d.]+)x', line)
@@ -300,8 +310,31 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
             if SPEED_TEST_VERBOSE:
                 print(f"   ❌ [{group}] {name[:30]} 无法解析速度")
             return None
+        
+        # 解析分辨率（从视频流信息中提取）
+        width = height = None
+        if ENABLE_RESOLUTION_FILTER:
+            for line in lines:
+                # 匹配流信息中的分辨率，例如: Stream #0:0: Video: h264, 1920x1080, ...
+                if 'Video:' in line:
+                    res_match = re.search(r'(\d+)x(\d+)', line)
+                    if res_match:
+                        width = int(res_match.group(1))
+                        height = int(res_match.group(2))
+                        break
+            # 如果找不到分辨率，或分辨率低于要求，则丢弃
+            if width is None or height is None:
+                if SPEED_TEST_VERBOSE:
+                    print(f"   ❌ [{group}] {name[:30]} 无法获取分辨率，丢弃")
+                return None
+            if width < MIN_RESOLUTION_WIDTH or height < MIN_RESOLUTION_HEIGHT:
+                if SPEED_TEST_VERBOSE:
+                    print(f"   ❌ [{group}] {name[:30]} 分辨率 {width}x{height} 低于要求，丢弃")
+                return None
+        
         if SPEED_TEST_VERBOSE:
-            print(f"   ✅ [{group}] {name[:30]} 速度: {speed:.2f}x")
+            res_str = f"{width}x{height}" if width else "未知"
+            print(f"   ✅ [{group}] {name[:30]} 速度: {speed:.2f}x, 分辨率: {res_str}")
         return (url, group, name, speed)
 
 # ---------- 主流程 ----------
@@ -433,10 +466,16 @@ async def main():
                 extract_limit = min(total_channels_in_modal, MAX_CHANNELS_PER_IP)
             print(f"   📺 共 {total_channels_in_modal} 个频道，本次提取前 {extract_limit} 个")
 
+            # ========== 修改点：添加超时处理，防止因懒加载卡死 ==========
             for j in range(extract_limit):
                 item = items.nth(j)
-                raw_name = await item.locator(".item-title").first.inner_text()
-                link = await item.locator(".item-subtitle").first.inner_text()
+                try:
+                    # 设置 5 秒超时，避免无限等待（某些元素可能尚未渲染）
+                    raw_name = await item.locator(".item-title").first.inner_text(timeout=5000)
+                    link = await item.locator(".item-subtitle").first.inner_text(timeout=5000)
+                except Exception as e:
+                    print(f"      ⚠️ 第 {j+1} 个频道获取失败（可能未渲染），跳过: {e}")
+                    continue
                 raw_name = raw_name.strip()
                 link = link.strip()
                 if not raw_name or not link:
@@ -462,6 +501,7 @@ async def main():
 
                 if j < 3 or extract_limit <= 5:
                     print(f"      {j+1}. {final_name} -> {link[:60]}...")
+            # ========== 修改结束 ==========
 
             # 关闭模态框
             await page.keyboard.press("Escape")
@@ -489,7 +529,10 @@ async def main():
         # ----- 7. 测速（简洁进度版）-----
         if ENABLE_SPEED_TEST:
             total_links = sum(len(v) for v in channel_urls.values())
-            print(f"🚀 开始测速（并发 {SPEED_TEST_CONCURRENCY}，时长 {SPEED_TEST_DURATION}s，共 {total_links} 个链接）...")
+            filter_info = ""
+            if ENABLE_RESOLUTION_FILTER:
+                filter_info = f"，分辨率≥{MIN_RESOLUTION_WIDTH}x{MIN_RESOLUTION_HEIGHT}"
+            print(f"🚀 开始测速（并发 {SPEED_TEST_CONCURRENCY}，时长 {SPEED_TEST_DURATION}s{filter_info}，共 {total_links} 个链接）...")
             semaphore = asyncio.Semaphore(SPEED_TEST_CONCURRENCY)
             tasks = []
             for (group, name), urls in channel_urls.items():
