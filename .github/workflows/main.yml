@@ -2,67 +2,48 @@ name: IPTV 播放列表自动更新
 
 on:
   schedule:
-    - cron: '0 */2 * * *'   # 每 2 小时运行一次（UTC 时间）
-  workflow_dispatch:         # 允许手动触发
+    - cron: '0 */2 * * *'  # 每2小时更新一次
+  workflow_dispatch:       # 允许手动点一下运行
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    # 必须给予写入权限，才能推送回仓库
     permissions:
       contents: write
 
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-      - name: 安装 Python
+      - name: 设置 Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.11'
 
-      - name: 安装系统依赖（Chromium 必需）
+      - name: 安装系统依赖
         run: |
           sudo apt update
-          sudo apt install -y libatk-bridge2.0-0t64 libgtk-3-0t64 libx11-xcb1 \
-            libxcb-dri3-0 libdrm2 libgbm1 libasound2t64
+          sudo apt install -y libopencv-dev python3-opencv libatk-bridge2.0-0 libgtk-3-0 libx11-xcb1 libxcb-dri3-0 libdrm2 libgbm1 libasound2
 
-      - name: 安装 Python 依赖
-        run: pip install playwright
+      - name: 安装 Python 库
+        run: |
+          pip install --upgrade pip
+          pip install playwright opencv-python
 
-      # ========== 🚀 缓存 Playwright 浏览器驱动 ==========
-      - name: 缓存 Playwright 浏览器
-        uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('**/main.py') }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-
+      - name: 安装浏览器
+        run: |
+          python -m playwright install chromium --with-deps
 
-      - name: 安装 Playwright 浏览器驱动
-        run: python -m playwright install chromium
-        # 如果缓存命中，此步骤瞬间完成
-
-      - name: 运行提取脚本
+      - name: 运行 IPTV 提取脚本
         run: python main.py
 
-      # ========== 📤 将生成的文件提交回仓库 ==========
-      - name: 提交并推送播放列表
+      - name: 提交更新到仓库
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add iptv_channels.m3u iptv_channels.txt
-          # 只有当文件有变化时才 commit 和 push
-          git diff --quiet && git diff --staged --quiet || git commit -m "chore: 自动更新 IPTV 播放列表 [skip ci]"
+          git diff --quiet && exit 0
+          git commit -m "自动更新 IPTV 源 [skip ci]"
           git push
-
-      # ========== 📦 同时上传 Artifact 作为备份 ==========
-      - name: 上传播放列表（Artifact）
-        uses: actions/upload-artifact@v4
-        with:
-          name: iptv-playlists
-          path: |
-            iptv_channels.m3u
-            iptv_channels.txt
-            debug_screenshots/
