@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具 - m3u8 分辨率+速度过滤排序增强版 (纯 HTTP 测速，无 ffmpeg)
+IPTV 组播提取工具 - m3u8 分辨率+速度过滤排序增强版 (HTTP 测速，单位 Mbps)
 """
 
 import asyncio
@@ -24,7 +24,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 # ---------------------------- 基础设置 ------------------------------------
 TARGET_URL = os.getenv("TARGET_URL", "https://iptv.809899.xyz")
 OUTPUT_DIR = Path(__file__).parent
-MAX_IPS = int(os.getenv("MAX_IPS", "1"))
+MAX_IPS = int(os.getenv("MAX_IPS", "2"))
 HEADLESS = os.getenv("HEADLESS", "true").lower() == "true"
 BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")
 
@@ -82,21 +82,21 @@ CCTV_NAME_MAPPING = {
 ENABLE_SPEED_TEST = os.getenv("ENABLE_SPEED_TEST", "true").lower() == "true"
 SPEED_TEST_CONCURRENCY = int(os.getenv("SPEED_TEST_CONCURRENCY", "10"))
 SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "2"))      # 非 m3u8 链接的下载测速时长（秒）
-SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "680"))      # 整体测速超时（秒）
+SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "480"))      # 整体测速超时（秒）
 SPEED_TEST_VERBOSE = False                                            # 是否打印详细错误
 
 # -------------------------- TS 分片测速配置（仅对 m3u8 生效）---------------
 TS_SAMPLE_COUNT = int(os.getenv("TS_SAMPLE_COUNT", "3"))              # 每个 m3u8 下载的 TS 分片数量
-TS_DOWNLOAD_TIMEOUT = int(os.getenv("TS_DOWNLOAD_TIMEOUT", "2"))     # 单个分片下载超时（秒）
+TS_DOWNLOAD_TIMEOUT = int(os.getenv("TS_DOWNLOAD_TIMEOUT", "10"))     # 单个分片下载超时（秒）
 
-# -------------------------- 速度过滤 ---------------------------------------
+# -------------------------- 速度过滤（单位：Mbps）--------------------------
 ENABLE_SPEED_FACTOR_FILTER = True
 MIN_SPEED_FACTOR = float(os.getenv("MIN_SPEED_FACTOR", "0.5"))        # 最小下载速率（Mbps）
 
 # -------------------------- 分辨率筛选（只对 m3u8 生效）----------------------
 ENABLE_RESOLUTION_FILTER = True
-MIN_RESOLUTION_WIDTH = 1920
-MIN_RESOLUTION_HEIGHT = 1080
+MIN_RESOLUTION_WIDTH = 1280
+MIN_RESOLUTION_HEIGHT = 720
 
 # 无符合分辨率时 → 仍然保留并按速度排序（True=开启，推荐）
 FALLBACK_TO_SPEED_WHEN_NO_RESOLUTION = True
@@ -120,8 +120,7 @@ RESOLUTION_PATTERN = re.compile(r'(\d+)x(\d+)')
 CHINESE_ONLY_PATTERN = re.compile(r'[^\u4e00-\u9fff]')
 
 SCREENSHOT_DIR = OUTPUT_DIR / "debug_screenshots"
-if ENABLE_SCREENSHOTS:
-    SCREENSHOT_DIR.mkdir(exist_ok=True)
+SCREENSHOT_DIR.mkdir(exist_ok=True)  # 始终创建，用于调试截图
 
 def build_classifier():
     compiled = []
@@ -319,7 +318,7 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
             speed_mbps, width, height = await test_speed_ts(url)
             if speed_mbps is None:
                 return None
-            # 速度过滤
+            # 速度过滤（单位 Mbps）
             if ENABLE_SPEED_FACTOR_FILTER and speed_mbps < MIN_SPEED_FACTOR:
                 return None
             # 分辨率判断
@@ -429,13 +428,58 @@ async def extract_from_ip(page, row, ip_text: str) -> List[Tuple[str, str, str]]
         entries.append((group, final_name, link))
     return entries
 
+# ====================== 等待 IP 元素的辅助函数（增强稳定性）===============
+
+async def wait_for_ip_elements(page, max_retries=2, timeout=120000):
+    """
+    等待页面上出现包含 IP 地址的元素。
+    如果超时，尝试重新点击开始按钮并重试。
+    每次失败都会截图保存。
+    """
+    for attempt in range(max_retries):
+        try:
+            # 使用 wait_for_function 更精确地检查 IP 元素
+            await page.wait_for_function("""
+                () => {
+                    const elements = document.querySelectorAll('div.item-title');
+                    for (let el of elements) {
+                        if (el.innerText.match(/\\d+\\.\\d+\\.\\d+\\.\\d+/)) return true;
+                    }
+                    return false;
+                }
+            """, timeout=timeout)
+            print(f"✅ IP 元素已出现 (尝试 {attempt+1})")
+            return True
+        except Exception as e:
+            print(f"⏳ 等待 IP 元素超时 (尝试 {attempt+1}/{max_retries})")
+            # 截图保存现场
+            screenshot_path = SCREENSHOT_DIR / f"timeout_attempt_{attempt+1}.png"
+            await page.screenshot(path=screenshot_path, full_page=True)
+            print(f"📸 已保存截图: {screenshot_path}")
+
+            if attempt == max_retries - 1:
+                raise  # 最后一次失败，向上抛出异常
+
+            # 尝试重新点击开始按钮
+            print("🔄 尝试重新点击开始按钮...")
+            if START_SELECTOR:
+                btn = page.locator(START_SELECTOR).first
+                await robust_click(btn, description="开始按钮")
+                await asyncio.sleep(DELAY_AFTER_CLICK * 2)  # 多等一会
+            else:
+                # 如果没有开始按钮，尝试刷新页面？
+                print("⚠️ 未找到开始按钮选择器，无法重试")
+                raise
+
+    return False  # 不会执行到这里
+
 # ====================== 主流程 ================================
 
 async def _main():
     global ENABLE_SPEED_TEST
     print(f"[{time.strftime('%H:%M:%S')}] 🚀 脚本开始")
 
-    # 检查 aiohttp 是否可用（一般已安装）
+    # 检查 aiohttp 是否可用
     try:
         import aiohttp
     except ImportError:
@@ -448,25 +492,34 @@ async def _main():
         page = await context.new_page()
 
         await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT, wait_until="networkidle")
+        print("✅ 页面加载完成")
 
         if ENGINE_SELECTOR:
             elem = page.locator(ENGINE_SELECTOR).first
             if await elem.count() > 0:
                 await robust_click(elem, description="引擎搜索")
                 await asyncio.sleep(DELAY_AFTER_CLICK)
+                print("✅ 点击了引擎搜索")
+            else:
+                print("⚠️ 未找到引擎搜索按钮，可能已处于正确页面")
 
         if MCAST_SELECTOR:
             tab = page.locator(MCAST_SELECTOR).first
             await tab.wait_for(state="attached", timeout=15000)
             await robust_click(tab, description="组播提取")
             await asyncio.sleep(DELAY_AFTER_CLICK)
+            print("✅ 点击了组播提取标签")
 
         if START_SELECTOR:
             btn = page.locator(START_SELECTOR).first
             await robust_click(btn, description="开始按钮")
             await asyncio.sleep(DELAY_AFTER_CLICK)
+            print("✅ 点击了开始按钮")
 
-        await page.locator("div.item-title:text-matches('\\d+\\.\\d+\\.\\d+\\.\\d+')").first.wait_for(state="attached", timeout=60000)
+        # 等待 IP 元素出现（增强版）
+        print("⏳ 等待 IP 元素加载...")
+        await wait_for_ip_elements(page, max_retries=2, timeout=120000)
+
         rows = page.locator("div.ios-list-item").filter(has_text="频道:")
         total_ips = await rows.count()
         process_cnt = min(total_ips, MAX_IPS) if MAX_IPS else total_ips
@@ -478,6 +531,7 @@ async def _main():
             ip = await row.locator("div.item-title").first.inner_text()
             ip = ip.strip()
             if not IP_PATTERN.match(ip):
+                print(f"⚠️ 跳过无效 IP: {ip}")
                 continue
             raw.extend(await extract_from_ip(page, row, ip))
             if i < process_cnt - 1:
@@ -493,6 +547,8 @@ async def _main():
                     continue
                 seen.add(k)
             channel_map[(g, n)].append(u)
+
+        print(f"📊 去重后共有 {len(channel_map)} 个频道，{sum(len(v) for v in channel_map.values())} 条链接")
 
         # 测速 + 分辨率过滤
         if ENABLE_SPEED_TEST and channel_map:
@@ -539,7 +595,7 @@ async def main_with_timeout():
     try:
         await asyncio.wait_for(_main(), timeout=SCRIPT_TIMEOUT)
     except asyncio.TimeoutError:
-        print("❌ 脚本超时退出")
+        print("❌ 脚本整体超时退出")
         sys.exit(1)
 
 if __name__ == "__main__":
