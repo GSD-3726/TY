@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具 - 【打开速度优先·极简配置版】
-优先：首包延迟（秒开） → 1080P+ → 网速
+IPTV 组播提取工具 - 【秒开优先 + 测速缓存版】
+优先：首包延迟 → 1080P+ → 网速
+新增：已测速过的优质链接直接跳过，不再重复测速
 """
 
 import asyncio
@@ -9,6 +10,7 @@ import os
 import re
 import sys
 import time
+import json
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Set
@@ -35,22 +37,22 @@ except ImportError:
 # 👇 只改这里，其他全部别动 👇
 # ======================================================================================
 
-# 1. 目标网站（一般不用改）
+# 1. 目标网站
 TARGET_URL = "https://iptv.809899.xyz"
 
-# 2. 浏览器模式：电脑运行用 true，服务器/盒子运行必须用 true
+# 2. 无头模式（服务器/盒子必须 True，电脑可 True）
 HEADLESS = True
 
 # 3. 一次抓多少个IP（越大源越多，但越慢）
-MAX_IPS = 3
+MAX_IPS = 20
 
 # 4. 【打开速度核心】首包超时：超过这个秒数直接丢弃（越小越严格）
-FIRST_PACKET_TIMEOUT = 2.0
+FIRST_PACKET_TIMEOUT = 2
 
 # 5. 最小速度（Mbps）：低于这个速度不要
 MIN_SPEED_FACTOR = 2.0
 
-# 6. 分辨率：必须 1080P+（不想开就改成 False）
+# 6. 分辨率：必须 1080P+
 ENABLE_RESOLUTION_FILTER = True
 MIN_RESOLUTION_WIDTH  = 1920
 MIN_RESOLUTION_HEIGHT = 1080
@@ -58,15 +60,19 @@ MIN_RESOLUTION_HEIGHT = 1080
 # 7. 每个频道保留最快几条（越少越快，建议 3~5）
 MAX_LINKS_PER_CHANNEL = 5
 
-# 8. 测速并发：越大越快，电脑差就改 10
-SPEED_TEST_CONCURRENCY = 15
+# 8. 测速并发：电脑差就改 10
+SPEED_TEST_CONCURRENCY = 20
 
 # 9. 输出文件名
 OUTPUT_M3U_FILENAME = "iptv_fast_channels.m3u"
 OUTPUT_TXT_FILENAME = "iptv_fast_channels.txt"
 
+# 10. 测速缓存（开启后重复链接不再测速）
+ENABLE_SPEED_CACHE = True
+CACHE_FILE = "speed_cache.json"
+
 # ======================================================================================
-# ================================== 【以下代码请勿修改】===============================
+# ================================== 以下代码请勿修改 ================================
 # ======================================================================================
 
 PAGE_LOAD_TIMEOUT = 60000
@@ -113,6 +119,27 @@ CETV_PATTERN = re.compile(r'(cetv)[-\s]?(\d)', re.IGNORECASE)
 CHINESE_ONLY_PATTERN = re.compile(r'[^\u4e00-\u9fff]')
 SCREENSHOT_DIR = OUTPUT_DIR / "debug_screenshots"
 SCREENSHOT_DIR.mkdir(exist_ok=True)
+
+# ------------------------------
+# 缓存读写
+# ------------------------------
+def load_cache():
+    if not ENABLE_SPEED_CACHE:
+        return {}
+    try:
+        with open(CACHE_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except:
+        return {}
+
+def save_cache(cache):
+    if not ENABLE_SPEED_CACHE:
+        return
+    try:
+        with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(cache, f, ensure_ascii=False, indent=2)
+    except:
+        pass
 
 def build_classifier():
     compiled = []
@@ -221,30 +248,87 @@ async def test_speed_fast(url,g,n,sem):
             return url,g,n,sp,lat,rok
         except: return None
 
+# ------------------------------
+# 带缓存的测速入口
+# ------------------------------
 async def run_speed_test(cm):
-    total=sum(len(v) for v in cm.values())
-    print(f"🚀 测速（优先秒开）共 {total} 条")
-    sem=asyncio.Semaphore(SPEED_TEST_CONCURRENCY)
-    tasks=[test_speed_fast(u,g,n,sem) for (g,n),us in cm.items() for u in us]
-    res,fin,p=[],0,set()
-    for t in asyncio.as_completed(tasks):
-        r=await t
-        if r: res.append(r)
-        fin+=1
-        pp=int(fin/len(tasks)*100)
+    cache = load_cache()
+    total_links = sum(len(v) for v in cm.values())
+    print(f"🚀 开始测速（带缓存），总计 {total_links} 条链接")
+
+    need_test = []
+    cached_ok = []
+
+    for (g, n), urls in cm.items():
+        for u in urls:
+            key = u
+            if key in cache:
+                # 缓存里是达标才存的
+                cached_ok.append((u, g, n))
+            else:
+                need_test.append((u, g, n))
+
+    print(f"📦 缓存命中：{len(cached_ok)} 条（跳过测速）")
+    print(f"⚡ 需要新测速：{len(need_test)} 条")
+
+    # 新测速
+    sem = asyncio.Semaphore(SPEED_TEST_CONCURRENCY)
+    tasks = [test_speed_fast(u, g, n, sem) for u, g, n in need_test]
+    new_ok = []
+    finished = 0
+    progress = set()
+
+    for task in asyncio.as_completed(tasks):
+        res = await task
+        if res:
+            new_ok.append(res)
+        finished += 1
+        pct = int(finished / len(tasks) * 100) if tasks else 100
         for s in [10,20,30,40,50,60,70,80,90,100]:
-            if pp>=s and s not in p: print(f"测速进度：{s}%");p.add(s)
-    sm=defaultdict(list)
-    for r in res:
-        u,g,n,sp,lt,ok=r
-        sm[(g,n)].append((u,sp,lt))
-    out=defaultdict(list)
-    for k,its in sm.items():
-        its.sort(key=lambda x:(x[2],-x[1]))
-        out[k]=[u for u,_,_ in its[:MAX_LINKS_PER_CHANNEL]]
-    print(f"✅ 测速完成，保留 {sum(len(v) for v in out.values())} 条秒开源")
+            if pct >= s and s not in progress:
+                print(f"测速进度：{s}%")
+                progress.add(s)
+
+    # 写入缓存
+    for r in new_ok:
+        url, g, n, sp, lt, ok = r
+        cache[url] = {
+            "group": g,
+            "name": n,
+            "speed": round(sp, 2),
+            "latency": round(lt, 3),
+            "ts": time.time()
+        }
+    save_cache(cache)
+
+    # 合并结果
+    all_items = []
+    for u, g, n in cached_ok:
+        # 从缓存取速度用于排序
+        sp = cache[u].get("speed", 99.9)
+        lt = cache[u].get("latency", 0.1)
+        all_items.append((u, g, n, sp, lt))
+    for r in new_ok:
+        u, g, n, sp, lt, _ = r
+        all_items.append((u, g, n, sp, lt))
+
+    # 按频道分组
+    out = defaultdict(list)
+    item_map = defaultdict(list)
+    for u, g, n, sp, lt in all_items:
+        item_map[(g, n)].append((u, sp, lt))
+
+    for key, items in item_map.items():
+        items.sort(key=lambda x: (x[2], -x[1]))
+        out[key] = [u for u, _, _ in items[:MAX_LINKS_PER_CHANNEL]]
+
+    total_out = sum(len(v) for v in out.values())
+    print(f"✅ 测速完成，最终保留：{total_out} 条优质秒开源")
     return out
 
+# ------------------------------
+# 页面提取
+# ------------------------------
 async def extract_from_ip(page,row,ip):
     e=[]
     print(f"\n📌 处理IP：{ip}")
@@ -289,7 +373,7 @@ async def wait_for_ip_elements(page):
     print("⚠️ 未获取到IP，继续执行")
 
 async def _main():
-    print(f"[{time.strftime('%H:%M:%S')}] 🚀 启动【秒开优先】IPTV抓取")
+    print(f"[{time.strftime('%H:%M:%S')}] 🚀 启动【秒开优先+缓存版】IPTV抓取")
     async with async_playwright() as p:
         b=await getattr(p,BROWSER_TYPE).launch(headless=HEADLESS,args=["--no-sandbox"])
         ctx=await b.new_context(viewport={"width":1920,"height":1080})
@@ -339,9 +423,8 @@ async def _main():
                 f.write(f"{g},#genre#\n")
                 for n,u in grouped[g]: f.write(f"{n},{u}\n")
                 f.write("\n")
-        print(f"\n🎉 完成！输出：")
-        print(OUTPUT_M3U_FILENAME)
-        print(OUTPUT_TXT_FILENAME)
+        print(f"\n🎉 全部完成！")
+        print(f"输出：{OUTPUT_M3U_FILENAME} / {OUTPUT_TXT_FILENAME}")
         await b.close()
 
 async def main_with_timeout():
