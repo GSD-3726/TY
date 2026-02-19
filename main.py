@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具 —— 全配置置顶版（30分钟超时 + 1Mbps最低带宽限制）
-所有配置项均在文件开头，方便修改。
+IPTV 组播提取工具 —— 全配置置顶版（已修复 subprocess 未定义问题）
 """
 
+# ==================== 必须的导入（放在最前面）====================
 import asyncio
 import os
 import re
+import subprocess          # 关键修复：确保 subprocess 被导入
 import shutil
 import sys
 import time
@@ -88,7 +89,7 @@ SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "480"))          # 测�
 KEEP_ON_SPEED_FAIL = False                                                 # 测速失败时是否保留链接（False=丢弃）
 SPEED_TEST_VERBOSE = False                                                 # 是否输出每个链接的详细日志
 
-# -------------------------- 带宽限制（新增）-------------------------------
+# -------------------------- 带宽限制 ---------------------------------------
 ENABLE_BITRATE_FILTER = True                  # 是否启用最低带宽过滤
 MIN_BITRATE_KBPS = 1000                        # 最低带宽（千比特/秒），低于此值丢弃（1 Mbps = 1000 kbps）
 
@@ -426,7 +427,7 @@ async def _main():
 
     print(f"[{time.strftime('%H:%M:%S')}] 🚀 脚本开始运行")
 
-    # 检查浏览器
+    # 检查浏览器（已确保 subprocess 可用）
     try:
         import playwright
     except ImportError:
