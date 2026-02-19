@@ -47,7 +47,7 @@ HEADLESS = True
 MAX_IPS = 20
 
 # 4. 【打开速度核心】首包超时：超过这个秒数直接丢弃（越小越严格）
-FIRST_PACKET_TIMEOUT = 5
+FIRST_PACKET_TIMEOUT = 10
 
 # 5. 最小速度（Mbps）：低于这个速度不要
 MIN_SPEED_FACTOR = 1.5
