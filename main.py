@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 IPTV 组播提取工具 —— 全配置自动化版（GitHub Actions 优化 + 负载控制 + 央视名称统一映射）
-所有配置项均在文件顶部集中管理，修改配置即可适配任何网站或命名习惯。
 优化版：更稳、边界更安全、无逻辑变更
 """
 
@@ -10,6 +9,7 @@ import re
 import subprocess
 import sys
 import shutil
+import time
 from collections import defaultdict
 from pathlib import Path
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
@@ -122,8 +122,10 @@ LAUNCH_ARGS = {
 }
 
 def ensure_browser_installed():
+    """确保 Playwright 浏览器已安装，并打印进度"""
     try:
         import playwright
+        print("✅ Playwright 已安装")
     except ImportError:
         print("❌ Playwright 未安装，请先执行: pip install playwright")
         sys.exit(1)
@@ -138,6 +140,8 @@ def ensure_browser_installed():
             check=True
         )
         print("✅ 浏览器驱动安装完成")
+    else:
+        print(f"✅ {BROWSER_TYPE} 浏览器驱动已就绪")
 
 # ====================== 优化：分类器预编译 ======================
 def build_classifier():
@@ -309,16 +313,32 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
             print(f"   ✅ [{group}] {name[:30]} 速度: {speed:.2f}x, 分辨率: {res_str}")
         return (url, group, name, speed)
 
-# ---------- 主流程 ----------
-async def main():
+# ---------- 带超时的主流程 ----------
+async def main_with_timeout():
+    """带全局超时保护的 main 函数"""
+    try:
+        await asyncio.wait_for(_main(), timeout=600)  # 10 分钟超时
+    except asyncio.TimeoutError:
+        print("❌ 脚本运行超时（10分钟），强制退出")
+        sys.exit(1)
+
+async def _main():
+    """实际的主逻辑"""
     global ENABLE_SPEED_TEST
+
+    # 脚本开始标记
+    print(f"[{time.strftime('%H:%M:%S')}] 🚀 脚本开始运行")
+
     ensure_browser_installed()
 
     if ENABLE_SPEED_TEST:
         if shutil.which('ffmpeg') is None:
             print("⚠️ 系统中未找到 ffmpeg，测速功能已自动禁用。")
             ENABLE_SPEED_TEST = False
+        else:
+            print("✅ ffmpeg 已找到")
 
+    print(f"[{time.strftime('%H:%M:%S')}] 启动 Playwright {BROWSER_TYPE} 浏览器...")
     async with async_playwright() as p:
         browser = await getattr(p, BROWSER_TYPE).launch(**LAUNCH_ARGS)
         context = await browser.new_context(
@@ -326,10 +346,17 @@ async def main():
             viewport={"width": 1920, "height": 1080}
         )
         page = await context.new_page()
+        print(f"[{time.strftime('%H:%M:%S')}] 浏览器启动完成")
 
-        print("🌐 正在打开页面...")
-        await page.goto(TARGET_URL, timeout=60000)
-        await page.wait_for_load_state("networkidle", timeout=10000)
+        print(f"[{time.strftime('%H:%M:%S')}] 🌐 正在打开页面: {TARGET_URL}")
+        try:
+            await page.goto(TARGET_URL, timeout=60000)
+            await page.wait_for_load_state("networkidle", timeout=10000)
+            print(f"[{time.strftime('%H:%M:%S')}] ✅ 页面加载完成")
+        except Exception as e:
+            print(f"❌ 页面加载失败: {e}")
+            raise
+
         if ENABLE_SCREENSHOTS:
             await page.screenshot(path=SCREENSHOT_DIR / "01_initial.png")
             print("📸 已保存初始页面截图")
@@ -338,6 +365,7 @@ async def main():
         if ENGINE_SELECTOR:
             element = page.locator(ENGINE_SELECTOR).first
             if await element.count() > 0:
+                print(f"[{time.strftime('%H:%M:%S')}] 点击引擎搜索按钮...")
                 await robust_click(element, description="引擎搜索按钮")
                 await asyncio.sleep(DELAY_AFTER_CLICK)
             else:
@@ -348,6 +376,7 @@ async def main():
         if MCAST_SELECTOR:
             mcast_tab = page.locator(MCAST_SELECTOR).first
             await mcast_tab.wait_for(state="attached", timeout=15000)
+            print(f"[{time.strftime('%H:%M:%S')}] 点击组播提取标签...")
             await robust_click(mcast_tab, description="组播提取标签")
             await asyncio.sleep(DELAY_AFTER_CLICK)
         await page.wait_for_timeout(500)
@@ -356,6 +385,7 @@ async def main():
         if START_SELECTOR:
             start_btn = page.locator(START_SELECTOR).first
             if await start_btn.count() > 0:
+                print(f"[{time.strftime('%H:%M:%S')}] 点击开始按钮...")
                 await robust_click(start_btn, description="开始按钮")
                 await asyncio.sleep(DELAY_AFTER_CLICK)
             else:
@@ -366,11 +396,11 @@ async def main():
             raise Exception("❌ 开始按钮未配置")
 
         # 4. 等待扫描结果
-        print("⏳ 等待扫描结果（最多60秒）...")
+        print(f"[{time.strftime('%H:%M:%S')}] ⏳ 等待扫描结果（最多60秒）...")
         ip_locator = page.locator("div.item-title:text-matches('\\d+\\.\\d+\\.\\d+\\.\\d+')").first
         try:
             await ip_locator.wait_for(state="attached", timeout=60000)
-            print("✅ 扫描完成")
+            print(f"[{time.strftime('%H:%M:%S')}] ✅ 扫描完成")
         except PlaywrightTimeoutError:
             if ENABLE_SCREENSHOTS:
                 await page.screenshot(path=SCREENSHOT_DIR / "03_scan_timeout.png")
@@ -391,7 +421,7 @@ async def main():
             ip_text = await row.locator("div.item-title").first.inner_text()
             ip_text = ip_text.strip()
 
-            # ====================== 优化：标准 IPv4 正则 ======================
+            # 标准 IPv4 正则
             if not re.match(r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', ip_text):
                 print(f"\n📌 [{i+1}/{process_count}] {ip_text} (非IP，跳过)")
                 continue
@@ -424,7 +454,7 @@ async def main():
                         print("   ✅ 模态框已打开")
                     except PlaywrightTimeoutError:
                         print("   ❌ 模态框仍未出现，跳过此IP")
-                        # ====================== 优化：安全关闭弹窗 ======================
+                        # 安全关闭弹窗
                         if await modal.is_visible():
                             await page.keyboard.press("Escape")
                             await asyncio.sleep(0.2)
@@ -470,7 +500,6 @@ async def main():
                 else:
                     final_name = raw_name
 
-                # ====================== 优化：空名称直接跳过 ======================
                 if not final_name:
                     continue
 
@@ -515,7 +544,7 @@ async def main():
                 for url in urls:
                     tasks.append(test_speed(url, group, name, semaphore))
 
-            # ====================== 优化：10% 一档更平滑 ======================
+            # 进度 10% 一档
             completed = 0
             next_progress = 10
             results = []
@@ -612,4 +641,4 @@ async def main():
         await browser.close()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main_with_timeout())
