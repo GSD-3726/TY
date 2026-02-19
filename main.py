@@ -24,7 +24,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 # ---------------------------- 基础设置 ------------------------------------
 TARGET_URL = os.getenv("TARGET_URL", "https://iptv.809899.xyz")
 OUTPUT_DIR = Path(__file__).parent
-MAX_IPS = int(os.getenv("MAX_IPS", "5"))
+MAX_IPS = int(os.getenv("MAX_IPS", "10"))
 HEADLESS = os.getenv("HEADLESS", "true").lower() == "true"
 BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")
 
@@ -80,9 +80,9 @@ CCTV_NAME_MAPPING = {
 
 # -------------------------- 测速核心配置 ----------------------------------
 ENABLE_SPEED_TEST = os.getenv("ENABLE_SPEED_TEST", "true").lower() == "true"
-SPEED_TEST_CONCURRENCY = int(os.getenv("SPEED_TEST_CONCURRENCY", "10"))
-SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "2"))      # 非 m3u8 链接的下载测速时长（秒）
-SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "480"))      # 整体测速超时（秒）
+SPEED_TEST_CONCURRENCY = int(os.getenv("SPEED_TEST_CONCURRENCY", "5"))
+SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "3"))      # 非 m3u8 链接的下载测速时长（秒）
+SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "1080"))      # 整体测速超时（秒）
 SPEED_TEST_VERBOSE = False                                            # 是否打印详细错误
 
 # -------------------------- TS 分片测速配置（仅对 m3u8 生效）---------------
@@ -91,7 +91,7 @@ TS_DOWNLOAD_TIMEOUT = int(os.getenv("TS_DOWNLOAD_TIMEOUT", "10"))     # 单个�
 
 # -------------------------- 速度过滤（单位：Mbps）--------------------------
 ENABLE_SPEED_FACTOR_FILTER = True
-MIN_SPEED_FACTOR = float(os.getenv("MIN_SPEED_FACTOR", "1.0"))        # 最小下载速率（Mbps）
+MIN_SPEED_FACTOR = float(os.getenv("MIN_SPEED_FACTOR", "1.5"))        # 最小下载速率（Mbps）
 
 # -------------------------- 分辨率筛选（只对 m3u8 生效）----------------------
 ENABLE_RESOLUTION_FILTER = True
