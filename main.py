@@ -20,7 +20,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 # ---------------------------- 基础设置 ------------------------------------
 TARGET_URL = "https://iptv.809899.xyz"          # 目标网页
 OUTPUT_DIR = Path(__file__).parent              # 输出目录（仓库根目录）
-MAX_IPS = 10                                    # 只处理前 N 个 IP（0=全部）
+MAX_IPS = 5                                    # 只处理前 N 个 IP（0=全部）
 HEADLESS = True                                 # 无头模式（CI 必须为 True）
 BROWSER_TYPE = "chromium"                      # 可选 chromium / firefox / webkit
 
