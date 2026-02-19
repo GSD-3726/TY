@@ -13,30 +13,28 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
-      - name: 设置 Python 3.11
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: 安装系统依赖 + Python 库
+      - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y ffmpeg
-          pip install -U pip
           pip install aiohttp playwright
           python -m playwright install chromium --with-deps
 
-      - name: 运行 IPTV 3TS 测速更新
+      - name: Run IPTV update
         run: python main.py
+        continue-on-error: true
 
-      - name: 提交并推送更新
+      - name: Commit and push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add iptv_channels.m3u iptv_channels.txt
+          git add *.m3u *.txt
           git diff --quiet && exit 0
-          git commit -m "📺 自动更新 IPTV 频道源 $(date +'%Y-%m-%d %H:%M:%S')"
+          git commit -m "📺 Auto update $(date +'%Y-%m-%d %H:%M')"
           git push
