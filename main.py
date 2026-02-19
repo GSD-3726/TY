@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具 —— 全配置置顶版（速度倍数过滤，低于 1.0x 丢弃）
+IPTV 组播提取工具 —— 全配置置顶版（修复 ffmpeg 日志级别导致测速失败）
 """
 
 # ==================== 必须的导入 ====================
@@ -34,7 +34,7 @@ PAGE_LOAD_TIMEOUT = int(os.getenv("PAGE_LOAD_TIMEOUT", "60000"))          # 页�
 # ------------------------ 页面交互配置 ------------------------------------
 PAGE_CONFIG = {
     "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
-    "multicast_tab": ["酒店提取"],
+    "multicast_tab": ["组播提取"],
     "start_button": ["开始播放", "开始搜索", "开始提取"],
 }
 
@@ -90,7 +90,7 @@ SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "2"))          # 每�
 SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "480"))          # 测速总超时（秒）
 SPEED_TEST_VERBOSE = False
 
-# -------------------------- 速度倍数过滤（代替比特率过滤）-----------------
+# -------------------------- 速度倍数过滤 ----------------------------------
 ENABLE_SPEED_FACTOR_FILTER = True          # 是否启用速度倍数过滤
 MIN_SPEED_FACTOR = 0.5                      # 最低速度倍数（低于此值丢弃）
 
@@ -188,27 +188,29 @@ async def robust_click(locator, timeout=10000, description="元素"):
             print(f"❌ {description} 所有点击方式均失败: {e2}")
             return False
 
-# ====================== 测速函数（速度倍数过滤）================
-
+# ====================== 【已优化】精准真实测速函数 ======================
 async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semaphore) -> Optional[Tuple[str, str, str, float]]:
     """单个链接测速，返回 (url, group, name, speed) 或 None（失败或速度低于阈值）"""
     async with semaphore:
         if SPEED_TEST_VERBOSE:
             print(f"   ⏳ 测速: [{group}] {name[:30]}...")
+
         cmd = [
             'ffmpeg',
             '-i', url,
             '-t', str(SPEED_TEST_DURATION),
             '-f', 'null',
             '-',
-            '-loglevel', 'error',
+            '-loglevel', 'warning',
             '-stats'
         ]
+
         process = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
+
         try:
             stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=SPEED_TEST_DURATION + 5)
         except asyncio.TimeoutError:
@@ -230,25 +232,40 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
         stderr_text = stderr.decode('utf-8', errors='ignore')
         lines = stderr_text.splitlines()
 
-        # 提取速度倍数
-        speed = None
+        # 真实速度 KB/s
+        speed_kb = 0.0
+        size_match = re.search(r'total size:\s*(\d+)', stderr_text.lower())
+        if size_match:
+            size_bytes = int(size_match.group(1))
+            cost = max(SPEED_TEST_DURATION, 0.5)
+            speed_kb = size_bytes / cost / 1024
+
+        # 兜底 speed=x
+        speed_x = None
         for line in reversed(lines):
             match = SPEED_PATTERN.search(line)
             if match:
-                speed = float(match.group(1))
+                speed_x = float(match.group(1))
                 break
-        if speed is None:
+
+        # 最终速度
+        if speed_kb > 0:
+            speed = speed_kb
+        else:
+            speed = (speed_x or 0) * 100
+
+        if speed is None or speed <= 0:
             if SPEED_TEST_VERBOSE:
                 print(f"   ❌ [{group}] {name[:30]} 无法解析速度")
             return None
 
-        # 速度倍数过滤（低于阈值丢弃）
-        if ENABLE_SPEED_FACTOR_FILTER and speed < MIN_SPEED_FACTOR:
+        # 速度过滤
+        if ENABLE_SPEED_FACTOR_FILTER and speed < 50:
             if SPEED_TEST_VERBOSE:
-                print(f"   ❌ [{group}] {name[:30]} 速度 {speed:.2f}x 低于 {MIN_SPEED_FACTOR}x，丢弃")
+                print(f"   ❌ [{group}] {name[:30]} 速度过低 {speed:.0f} KB/s，丢弃")
             return None
 
-        # 提取分辨率
+        # 分辨率过滤
         if ENABLE_RESOLUTION_FILTER:
             width = height = None
             for line in lines:
@@ -264,7 +281,8 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
                 return None
 
         if SPEED_TEST_VERBOSE:
-            print(f"   ✅ [{group}] {name[:30]} 速度: {speed:.2f}x")
+            print(f"   ✅ [{group}] {name[:30]} 速度: {speed:.0f} KB/s")
+
         return (url, group, name, speed)
 
 async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
@@ -273,7 +291,7 @@ async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict
     if ENABLE_RESOLUTION_FILTER:
         filter_info.append(f"分辨率≥{MIN_RESOLUTION_WIDTH}x{MIN_RESOLUTION_HEIGHT}")
     if ENABLE_SPEED_FACTOR_FILTER:
-        filter_info.append(f"速度≥{MIN_SPEED_FACTOR}x")
+        filter_info.append(f"速度≥50KB/s")
     filter_str = "，".join(filter_info)
     print(f"🚀 开始测速（并发 {SPEED_TEST_CONCURRENCY}，时长 {SPEED_TEST_DURATION}s，{filter_str}，共 {total_links} 个链接）...")
 
@@ -307,7 +325,6 @@ async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict
                 task.cancel()
             break
 
-    # 按速度排序并截取
     speed_map = defaultdict(list)
     for res in results:
         if res is None:
@@ -326,7 +343,6 @@ async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict
     return new_channel_urls
 
 # ====================== IP 提取逻辑 ================================
-
 async def extract_from_ip(page, row, ip_text: str) -> List[Tuple[str, str, str]]:
     entries = []
     print(f"\n📌 处理 IP: {ip_text}")
@@ -407,7 +423,6 @@ async def extract_from_ip(page, row, ip_text: str) -> List[Tuple[str, str, str]]
     return entries
 
 # ====================== 主流程 ================================
-
 async def _main():
     global ENABLE_SPEED_TEST
 
@@ -579,7 +594,7 @@ async def _main():
                 if group_name not in grouped:
                     continue
                 f.write(f"{group_name},#genre#\n")
-                for name, url in grouped[group_name]:
+                for name, url in grouped.get(group_name, []):
                     f.write(f"{name},{url}\n")
                 f.write("\n")
         print(f"📄 TXT: {txt_path}")
