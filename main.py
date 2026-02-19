@@ -17,7 +17,7 @@ from playwright.async_api import async_playwright
 TARGET_URL = "https://iptv.809899.xyz"          # 数据源网址
 OUTPUT_DIR = Path(__file__).parent               # 输出文件目录（当前目录）
 
-MAX_IPS = 6                                      # 最多抓取几个IP源（GitHub弱机别太高）
+MAX_IPS = 10                                      # 最多抓取几个IP源（GitHub弱机别太高）
 HEADLESS = True                                  # 无头模式（服务器必须True）
 BROWSER = "chromium"                             # 使用的浏览器
 
@@ -51,7 +51,7 @@ ENABLE_DEDUPLICATION = True                      # 是否去重（强烈建议�
 # ============================================================================
 TEST_TIMEOUT = 5.0                               # 单条链接测速超时（秒）
 CONCURRENCY = 3                                   # 并发测速数（免费机 3~4 最稳）
-MAX_DELAY = 50                                  # 最大允许延迟（毫秒），超过直接丢弃
+MAX_DELAY = 500                                  # 最大允许延迟（毫秒），超过直接丢弃
 MIN_SUCCESS_FRAMES = 3                           # 最少成功读几帧（1=最快最稳）
 MIN_WIDTH = 1920                                  # 最低分辨率宽
 MIN_HEIGHT = 1080                                 # 最低分辨率高
