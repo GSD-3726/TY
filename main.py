@@ -13,23 +13,45 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Set
 from urllib.parse import urljoin
 
-import aiohttp  # 用于异步 HTTP 请求
-
+import aiohttp
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
+
+# 尝试导入 tqdm 进度条库，若失败则使用简单回退
+try:
+    from tqdm import tqdm
+    TQDM_AVAILABLE = True
+except ImportError:
+    TQDM_AVAILABLE = False
+    # 简易进度条替代
+    class tqdm:
+        def __init__(self, *args, **kwargs):
+            self.total = kwargs.get('total', 0)
+            self.desc = kwargs.get('desc', '')
+            self.unit = kwargs.get('unit', 'it')
+            self.n = 0
+        def update(self, n=1):
+            self.n += n
+            print(f"\r{self.desc}: {self.n}/{self.total} {self.unit}", end='')
+        def close(self):
+            print()
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            self.close()
 
 # ============================================================================
 # 全部配置区域（只改这里）
 # ============================================================================
 
 # ---------------------------- 基础设置 ------------------------------------
-TARGET_URL = os.getenv("TARGET_URL", "https://iptv.809899.xyz")
-OUTPUT_DIR = Path(__file__).parent
-MAX_IPS = int(os.getenv("MAX_IPS", "10"))
-HEADLESS = os.getenv("HEADLESS", "true").lower() == "true"
-BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")
+TARGET_URL = os.getenv("TARGET_URL", "https://iptv.809899.xyz")          # 目标网站
+OUTPUT_DIR = Path(__file__).parent                                        # 输出目录（脚本所在目录）
+MAX_IPS = int(os.getenv("MAX_IPS", "10"))                                 # 最多处理多少个 IP
+HEADLESS = os.getenv("HEADLESS", "true").lower() == "true"                # 是否无头模式
+BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")                      # 浏览器类型
 
 # ------------------------ 页面加载超时 ------------------------------------
-PAGE_LOAD_TIMEOUT = int(os.getenv("PAGE_LOAD_TIMEOUT", "60000"))
+PAGE_LOAD_TIMEOUT = int(os.getenv("PAGE_LOAD_TIMEOUT", "60000"))          # 页面加载超时（毫秒）
 
 # ------------------------ 页面交互配置 ------------------------------------
 PAGE_CONFIG = {
@@ -59,14 +81,14 @@ GROUP_ORDER = [
 ]
 
 # ------------------------ 播放列表生成设置 --------------------------------
-MAX_LINKS_PER_CHANNEL = int(os.getenv("MAX_LINKS_PER_CHANNEL", "10"))
-OUTPUT_M3U_FILENAME = os.getenv("OUTPUT_M3U", "iptv_channels.m3u")
-OUTPUT_TXT_FILENAME = os.getenv("OUTPUT_TXT", "iptv_channels.txt")
+MAX_LINKS_PER_CHANNEL = int(os.getenv("MAX_LINKS_PER_CHANNEL", "10"))    # 每个频道最多保留多少条链接
+OUTPUT_M3U_FILENAME = os.getenv("OUTPUT_M3U", "iptv_channels.m3u")       # 输出的 m3u 文件名
+OUTPUT_TXT_FILENAME = os.getenv("OUTPUT_TXT", "iptv_channels.txt")       # 输出的 txt 文件名
 
 # -------------------------- 功能开关 -------------------------------------
-ENABLE_CHINESE_CLEAN = True
-ENABLE_DEDUPLICATION = True
-ENABLE_SCREENSHOTS = False
+ENABLE_CHINESE_CLEAN = True          # 是否清理非中文字符（用于卫视频道）
+ENABLE_DEDUPLICATION = True           # 是否对链接去重
+ENABLE_SCREENSHOTS = False            # 是否保存调试截图
 
 # -------------------------- 央视频道名称映射 -----------------------------
 CCTV_USE_MAPPING = True
@@ -78,36 +100,40 @@ CCTV_NAME_MAPPING = {
     "17": "农业农村",
 }
 
-# -------------------------- 测速核心配置 ----------------------------------
-ENABLE_SPEED_TEST = os.getenv("ENABLE_SPEED_TEST", "true").lower() == "true"
-SPEED_TEST_CONCURRENCY = int(os.getenv("SPEED_TEST_CONCURRENCY", "5"))
-SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "3"))      # 非 m3u8 链接的下载测速时长（秒）
-SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "1080"))      # 整体测速超时（秒）
-SPEED_TEST_VERBOSE = False                                            # 是否打印详细错误
+# ====================== 测速相关配置（重点可调参数）=======================
 
-# -------------------------- TS 分片测速配置（仅对 m3u8 生效）---------------
-TS_SAMPLE_COUNT = int(os.getenv("TS_SAMPLE_COUNT", "3"))              # 每个 m3u8 下载的 TS 分片数量
-TS_DOWNLOAD_TIMEOUT = int(os.getenv("TS_DOWNLOAD_TIMEOUT", "10"))     # 单个分片下载超时（秒）
+# 1. 测速开关及并发控制
+ENABLE_SPEED_TEST = os.getenv("ENABLE_SPEED_TEST", "true").lower() == "true"   # 是否启用测速
+SPEED_TEST_CONCURRENCY = int(os.getenv("SPEED_TEST_CONCURRENCY", "10"))        # 同时测速的最大链接数
+SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "2480"))               # 整体测速超时（秒）
+SPEED_TEST_VERBOSE = False                                                      # 是否打印详细错误信息
 
-# -------------------------- 速度过滤（单位：Mbps）--------------------------
+# 2. 测速时长（仅对非 m3u8 链接生效）
+SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "2"))                # 下载测速时长（秒）
+
+# 3. TS 分片测速配置（仅对 m3u8 链接生效）
+TS_SAMPLE_COUNT = int(os.getenv("TS_SAMPLE_COUNT", "3"))                        # 每个 m3u8 下载的 TS 分片数量
+TS_DOWNLOAD_TIMEOUT = int(os.getenv("TS_DOWNLOAD_TIMEOUT", "1"))               # 单个分片下载超时（秒）
+
+# 4. 速度过滤阈值（单位：Mbps）
 ENABLE_SPEED_FACTOR_FILTER = True
-MIN_SPEED_FACTOR = float(os.getenv("MIN_SPEED_FACTOR", "1.5"))        # 最小下载速率（Mbps）
+MIN_SPEED_FACTOR = float(os.getenv("MIN_SPEED_FACTOR", "1.5"))                  # 最小下载速率（Mbps），低于此值将被过滤
 
-# -------------------------- 分辨率筛选（只对 m3u8 生效）----------------------
+# 5. 分辨率筛选（只对能提取到分辨率的 m3u8 生效）
 ENABLE_RESOLUTION_FILTER = True
-MIN_RESOLUTION_WIDTH = 1920
-MIN_RESOLUTION_HEIGHT = 1080
+MIN_RESOLUTION_WIDTH = 1920      # 最小宽度
+MIN_RESOLUTION_HEIGHT = 1080     # 最小高度
 
-# 无符合分辨率时 → 仍然保留并按速度排序（True=开启，推荐）
+# 当没有符合分辨率的链接时，是否仍然保留速度最快的链接（True=保留）
 FALLBACK_TO_SPEED_WHEN_NO_RESOLUTION = True
 
-# -------------------------- 负载控制 --------------------------------------
-DELAY_BETWEEN_IPS = float(os.getenv("DELAY_BETWEEN_IPS", "3.0"))
-DELAY_AFTER_CLICK = float(os.getenv("DELAY_AFTER_CLICK", "0.5"))
-MAX_CHANNELS_PER_IP = int(os.getenv("MAX_CHANNELS_PER_IP", "0"))
+# ====================== 负载控制 ======================
+DELAY_BETWEEN_IPS = float(os.getenv("DELAY_BETWEEN_IPS", "3.0"))    # 处理两个 IP 之间的延迟（秒）
+DELAY_AFTER_CLICK = float(os.getenv("DELAY_AFTER_CLICK", "0.5"))    # 点击后的短暂等待
+MAX_CHANNELS_PER_IP = int(os.getenv("MAX_CHANNELS_PER_IP", "0"))    # 每个 IP 最多提取的频道数（0 表示不限制）
 
-# -------------------------- 脚本全局超时 ----------------------------------
-SCRIPT_TIMEOUT = int(os.getenv("SCRIPT_TIMEOUT", "1800"))
+# ====================== 脚本全局超时 ======================
+SCRIPT_TIMEOUT = int(os.getenv("SCRIPT_TIMEOUT", "1800"))           # 脚本整体最大运行时间（秒）
 
 # ============================================================================
 # 以下为核心代码，非必要请勿修改
@@ -120,7 +146,7 @@ RESOLUTION_PATTERN = re.compile(r'(\d+)x(\d+)')
 CHINESE_ONLY_PATTERN = re.compile(r'[^\u4e00-\u9fff]')
 
 SCREENSHOT_DIR = OUTPUT_DIR / "debug_screenshots"
-SCREENSHOT_DIR.mkdir(exist_ok=True)  # 始终创建，用于调试截图
+SCREENSHOT_DIR.mkdir(exist_ok=True)
 
 def build_classifier():
     compiled = []
@@ -183,10 +209,9 @@ async def robust_click(locator, timeout=10000, description="元素"):
         except Exception:
             return False
 
-# ====================== 纯 HTTP 测速函数（无 ffmpeg）=======================
+# ====================== 纯 HTTP 测速函数 =======================
 
 async def fetch_url(session: aiohttp.ClientSession, url: str, timeout: int) -> Optional[bytes]:
-    """下载 URL 内容，超时则返回 None"""
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
             if resp.status == 200:
@@ -196,24 +221,18 @@ async def fetch_url(session: aiohttp.ClientSession, url: str, timeout: int) -> O
     return None
 
 async def resolve_m3u8_playlist(session: aiohttp.ClientSession, url: str, timeout: int) -> Tuple[Optional[int], Optional[int], List[str]]:
-    """
-    递归解析 m3u8 playlist，返回 (宽度, 高度, ts_urls 列表)
-    处理多码率 variant，选择分辨率最高的子流
-    """
     content = await fetch_url(session, url, timeout)
     if not content:
         return None, None, []
     lines = content.decode('utf-8', errors='ignore').splitlines()
     base_url = url[:url.rfind('/')+1] if '/' in url else url
 
-    # 检查是否是 variant playlist
     best_w, best_h = 0, 0
     best_uri = None
     i = 0
     while i < len(lines):
         line = lines[i].strip()
         if line.startswith('#EXT-X-STREAM-INF:'):
-            # 提取分辨率
             res_match = re.search(r'RESOLUTION=(\d+)x(\d+)', line)
             w, h = 0, 0
             if res_match:
@@ -228,11 +247,9 @@ async def resolve_m3u8_playlist(session: aiohttp.ClientSession, url: str, timeou
             i += 1
 
     if best_uri:
-        # 有更优的子流，递归解析
         next_url = urljoin(base_url, best_uri)
         return await resolve_m3u8_playlist(session, next_url, timeout)
 
-    # 否则是普通 playlist，收集 ts 片段
     ts_urls = []
     for line in lines:
         line = line.strip()
@@ -241,22 +258,16 @@ async def resolve_m3u8_playlist(session: aiohttp.ClientSession, url: str, timeou
     return best_w, best_h, ts_urls
 
 async def test_speed_ts(url: str) -> Tuple[Optional[float], Optional[int], Optional[int]]:
-    """
-    对 m3u8 链接进行 TS 分片测速
-    返回 (平均下载速率 Mbps, 宽度, 高度)
-    """
     try:
         async with aiohttp.ClientSession() as session:
             width, height, ts_urls = await resolve_m3u8_playlist(session, url, TS_DOWNLOAD_TIMEOUT)
             if not ts_urls:
                 return None, None, None
 
-            # 取前 TS_SAMPLE_COUNT 个片段
             sample_urls = ts_urls[:TS_SAMPLE_COUNT]
             if not sample_urls:
                 return None, None, None
 
-            # 顺序下载并计时
             total_bytes = 0
             total_time = 0.0
             for u in sample_urls:
@@ -269,7 +280,7 @@ async def test_speed_ts(url: str) -> Tuple[Optional[float], Optional[int], Optio
             if total_time == 0 or total_bytes == 0:
                 return None, None, None
 
-            speed_mbps = (total_bytes / total_time) * 8 / 1_000_000  # 转换为 Mbps
+            speed_mbps = (total_bytes / total_time) * 8 / 1_000_000
             return speed_mbps, width, height
     except Exception as e:
         if SPEED_TEST_VERBOSE:
@@ -277,14 +288,11 @@ async def test_speed_ts(url: str) -> Tuple[Optional[float], Optional[int], Optio
         return None, None, None
 
 async def test_speed_direct(url: str, duration: int) -> Optional[float]:
-    """
-    直接下载测速：在 duration 秒内尽可能下载数据，返回平均速率（Mbps）
-    """
     try:
         async with aiohttp.ClientSession() as session:
             start = time.monotonic()
             total_bytes = 0
-            timeout = aiohttp.ClientTimeout(total=duration + 2)  # 略宽松
+            timeout = aiohttp.ClientTimeout(total=duration + 2)
             async with session.get(url, timeout=timeout) as resp:
                 if resp.status != 200:
                     return None
@@ -307,10 +315,6 @@ async def test_speed_direct(url: str, duration: int) -> Optional[float]:
         return None
 
 async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semaphore) -> Optional[Tuple[str, str, str, float, bool]]:
-    """
-    统一的测速入口，根据链接类型选择测速方法
-    返回 (url, group, name, speed_mbps, resolution_ok)
-    """
     async with semaphore:
         is_m3u8 = url.lower().endswith(".m3u8") or "m3u8" in url.lower()
 
@@ -318,10 +322,8 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
             speed_mbps, width, height = await test_speed_ts(url)
             if speed_mbps is None:
                 return None
-            # 速度过滤（单位 Mbps）
             if ENABLE_SPEED_FACTOR_FILTER and speed_mbps < MIN_SPEED_FACTOR:
                 return None
-            # 分辨率判断
             resolution_ok = True
             if ENABLE_RESOLUTION_FILTER:
                 if width is None or height is None:
@@ -335,12 +337,10 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
                 return None
             if ENABLE_SPEED_FACTOR_FILTER and speed_mbps < MIN_SPEED_FACTOR:
                 return None
-            # 非 m3u8 无法获取分辨率，根据配置决定是否保留
             resolution_ok = FALLBACK_TO_SPEED_WHEN_NO_RESOLUTION if ENABLE_RESOLUTION_FILTER else True
             return (url, group, name, speed_mbps, resolution_ok)
 
 async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
-    """并发执行测速，并按速度排序和分辨率过滤"""
     total = sum(len(v) for v in channel_urls.values())
     print(f"🚀 开始测速 + 分辨率过滤，共 {total} 条链接")
 
@@ -351,12 +351,14 @@ async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict
             tasks.append(test_speed(u, g, n, sem))
 
     results = []
-    for task in asyncio.as_completed(tasks):
-        res = await task
-        if res:
-            results.append(res)
+    # 使用进度条显示测速进度
+    with tqdm(total=len(tasks), desc="测速进度", unit="条") as pbar:
+        for task in asyncio.as_completed(tasks):
+            res = await task
+            if res:
+                results.append(res)
+            pbar.update(1)
 
-    # 按频道分组
     speed_map = defaultdict(list)
     for r in results:
         url, g, n, s, ok_res = r
@@ -364,23 +366,18 @@ async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict
 
     out = defaultdict(list)
     for key, items in speed_map.items():
-        # 全部按速度从高到低排序
         items.sort(key=lambda x: x[1], reverse=True)
-
-        # 优先取分辨率合格
         qualified = [u for u, s, ok in items if ok]
         if qualified:
             final = qualified[:MAX_LINKS_PER_CHANNEL]
         else:
-            # 无合格 → 仍然取速度最快的
             final = [u for u, s, ok in items][:MAX_LINKS_PER_CHANNEL]
-
         out[key] = final
 
     print(f"✅ 测速完成，最终保留 {sum(len(v) for v in out.values())} 条")
     return out
 
-# ====================== IP 提取逻辑（保持不变）===========================
+# ====================== IP 提取逻辑 ===============================
 
 async def extract_from_ip(page, row, ip_text: str) -> List[Tuple[str, str, str]]:
     entries = []
@@ -428,17 +425,11 @@ async def extract_from_ip(page, row, ip_text: str) -> List[Tuple[str, str, str]]
         entries.append((group, final_name, link))
     return entries
 
-# ====================== 等待 IP 元素的辅助函数（增强稳定性）===============
+# ====================== 等待 IP 元素的辅助函数 ======================
 
 async def wait_for_ip_elements(page, max_retries=2, timeout=120000):
-    """
-    等待页面上出现包含 IP 地址的元素。
-    如果超时，尝试重新点击开始按钮并重试。
-    每次失败都会截图保存。
-    """
     for attempt in range(max_retries):
         try:
-            # 使用 wait_for_function 更精确地检查 IP 元素
             await page.wait_for_function("""
                 () => {
                     const elements = document.querySelectorAll('div.item-title');
@@ -450,36 +441,29 @@ async def wait_for_ip_elements(page, max_retries=2, timeout=120000):
             """, timeout=timeout)
             print(f"✅ IP 元素已出现 (尝试 {attempt+1})")
             return True
-        except Exception as e:
+        except Exception:
             print(f"⏳ 等待 IP 元素超时 (尝试 {attempt+1}/{max_retries})")
-            # 截图保存现场
             screenshot_path = SCREENSHOT_DIR / f"timeout_attempt_{attempt+1}.png"
             await page.screenshot(path=screenshot_path, full_page=True)
             print(f"📸 已保存截图: {screenshot_path}")
-
             if attempt == max_retries - 1:
-                raise  # 最后一次失败，向上抛出异常
-
-            # 尝试重新点击开始按钮
+                raise
             print("🔄 尝试重新点击开始按钮...")
             if START_SELECTOR:
                 btn = page.locator(START_SELECTOR).first
                 await robust_click(btn, description="开始按钮")
-                await asyncio.sleep(DELAY_AFTER_CLICK * 2)  # 多等一会
+                await asyncio.sleep(DELAY_AFTER_CLICK * 2)
             else:
-                # 如果没有开始按钮，尝试刷新页面？
                 print("⚠️ 未找到开始按钮选择器，无法重试")
                 raise
+    return False
 
-    return False  # 不会执行到这里
-
-# ====================== 主流程 ================================
+# ====================== 主流程 ===============================
 
 async def _main():
     global ENABLE_SPEED_TEST
     print(f"[{time.strftime('%H:%M:%S')}] 🚀 脚本开始")
 
-    # 检查 aiohttp 是否可用
     try:
         import aiohttp
     except ImportError:
@@ -516,7 +500,6 @@ async def _main():
             await asyncio.sleep(DELAY_AFTER_CLICK)
             print("✅ 点击了开始按钮")
 
-        # 等待 IP 元素出现（增强版）
         print("⏳ 等待 IP 元素加载...")
         await wait_for_ip_elements(page, max_retries=2, timeout=120000)
 
@@ -537,7 +520,6 @@ async def _main():
             if i < process_cnt - 1:
                 await asyncio.sleep(DELAY_BETWEEN_IPS)
 
-        # 去重
         channel_map = defaultdict(list)
         seen = set()
         for g, n, u in raw:
@@ -550,11 +532,9 @@ async def _main():
 
         print(f"📊 去重后共有 {len(channel_map)} 个频道，{sum(len(v) for v in channel_map.values())} 条链接")
 
-        # 测速 + 分辨率过滤
         if ENABLE_SPEED_TEST and channel_map:
             channel_map = await run_speed_test(channel_map)
 
-        # 最终输出
         final = []
         for (g, n), urls in channel_map.items():
             for u in urls:
@@ -564,7 +544,6 @@ async def _main():
         for g, n, u in final:
             grouped[g].append((n, u))
 
-        # 央视排序
         cctv_g = next((g for g in grouped if "央视" in g), None)
         if cctv_g:
             def ckey(x):
@@ -572,7 +551,6 @@ async def _main():
                 return int(m.group(1)) if m else 999
             grouped[cctv_g].sort(key=ckey)
 
-        # 写入文件
         with open(OUTPUT_DIR / OUTPUT_M3U_FILENAME, "w", encoding="utf-8") as f:
             f.write("#EXTM3U\n")
             for g in GROUP_ORDER:
