@@ -21,14 +21,15 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 安装依赖（FFmpeg + Playwright）
+      - name: 安装系统依赖 + Python 库
         run: |
           sudo apt update
           sudo apt install -y ffmpeg
-          pip install -r requirements.txt || pip install playwright
+          pip install -U pip
+          pip install aiohttp playwright
           python -m playwright install chromium --with-deps
 
-      - name: 运行组播提取脚本
+      - name: 运行 IPTV 3TS 测速更新
         run: python main.py
 
       - name: 提交并推送更新
@@ -37,6 +38,5 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add iptv_channels.m3u iptv_channels.txt
           git diff --quiet && exit 0
-          git commit -m "📺 自动更新 IPTV 频道源 $(date +'%Y-%m-%d %H:%M:%S') [skip ci]"
+          git commit -m "📺 自动更新 IPTV 频道源 $(date +'%Y-%m-%d %H:%M:%S')"
           git push
-
