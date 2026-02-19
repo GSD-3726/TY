@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具 —— 全配置置顶版（修复页面加载超时）
+IPTV 组播提取工具 —— 全配置置顶版（速度倍数过滤，低于 1.0x 丢弃）
 """
 
 # ==================== 必须的导入 ====================
@@ -24,7 +24,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 # ---------------------------- 基础设置 ------------------------------------
 TARGET_URL = os.getenv("TARGET_URL", "https://iptv.809899.xyz")          # 目标网页
 OUTPUT_DIR = Path(__file__).parent                                        # 输出目录
-MAX_IPS = int(os.getenv("MAX_IPS", "10"))                                  # 只处理前 N 个 IP（0=全部）
+MAX_IPS = int(os.getenv("MAX_IPS", "5"))                                  # 只处理前 N 个 IP（0=全部）
 HEADLESS = os.getenv("HEADLESS", "true").lower() == "true"                # 无头模式（CI 必须为 True）
 BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")                      # 可选 chromium / firefox / webkit
 
@@ -85,15 +85,14 @@ CCTV_NAME_MAPPING = {
 
 # -------------------------- 测速设置 --------------------------------------
 ENABLE_SPEED_TEST = os.getenv("ENABLE_SPEED_TEST", "true").lower() == "true"
-SPEED_TEST_CONCURRENCY = int(os.getenv("SPEED_TEST_CONCURRENCY", "10"))
-SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "2"))
-SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "2200"))
-KEEP_ON_SPEED_FAIL = False
+SPEED_TEST_CONCURRENCY = int(os.getenv("SPEED_TEST_CONCURRENCY", "10"))   # 并发测速数
+SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "2"))          # 每个链接测速时长（秒）
+SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "480"))          # 测速总超时（秒）
 SPEED_TEST_VERBOSE = False
 
-# -------------------------- 带宽限制 ---------------------------------------
-ENABLE_BITRATE_FILTER = True
-MIN_BITRATE_KBPS = 1000
+# -------------------------- 速度倍数过滤（代替比特率过滤）-----------------
+ENABLE_SPEED_FACTOR_FILTER = True          # 是否启用速度倍数过滤
+MIN_SPEED_FACTOR = 1.0                      # 最低速度倍数（低于此值丢弃）
 
 # -------------------------- 分辨率筛选设置 --------------------------------
 ENABLE_RESOLUTION_FILTER = True
@@ -118,7 +117,6 @@ CCTV_PATTERN = re.compile(r'(cctv)[-\s]?(\d{1,3})', re.IGNORECASE)
 CETV_PATTERN = re.compile(r'(cetv)[-\s]?(\d)', re.IGNORECASE)
 SPEED_PATTERN = re.compile(r'speed=\s*([\d.]+)x')
 RESOLUTION_PATTERN = re.compile(r'(\d+)x(\d+)')
-BITRATE_PATTERN = re.compile(r'bitrate:\s*(\d+)\s*kb/s')
 CHINESE_ONLY_PATTERN = re.compile(r'[^\u4e00-\u9fff]')
 
 SCREENSHOT_DIR = OUTPUT_DIR / "debug_screenshots"
@@ -190,9 +188,10 @@ async def robust_click(locator, timeout=10000, description="元素"):
             print(f"❌ {description} 所有点击方式均失败: {e2}")
             return False
 
-# ====================== 测速函数（修复 ProcessLookupError）================
+# ====================== 测速函数（速度倍数过滤）================
 
 async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semaphore) -> Optional[Tuple[str, str, str, float]]:
+    """单个链接测速，返回 (url, group, name, speed) 或 None（失败或速度低于阈值）"""
     async with semaphore:
         if SPEED_TEST_VERBOSE:
             print(f"   ⏳ 测速: [{group}] {name[:30]}...")
@@ -243,22 +242,11 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
                 print(f"   ❌ [{group}] {name[:30]} 无法解析速度")
             return None
 
-        # 提取比特率（带宽过滤）
-        bitrate_kbps = None
-        if ENABLE_BITRATE_FILTER:
-            for line in lines:
-                match = BITRATE_PATTERN.search(line)
-                if match:
-                    bitrate_kbps = int(match.group(1))
-                    break
-            if bitrate_kbps is None:
-                if SPEED_TEST_VERBOSE:
-                    print(f"   ❌ [{group}] {name[:30]} 无法获取比特率，丢弃")
-                return None
-            if bitrate_kbps < MIN_BITRATE_KBPS:
-                if SPEED_TEST_VERBOSE:
-                    print(f"   ❌ [{group}] {name[:30]} 比特率 {bitrate_kbps} kbps 低于 {MIN_BITRATE_KBPS} kbps，丢弃")
-                return None
+        # 速度倍数过滤（低于阈值丢弃）
+        if ENABLE_SPEED_FACTOR_FILTER and speed < MIN_SPEED_FACTOR:
+            if SPEED_TEST_VERBOSE:
+                print(f"   ❌ [{group}] {name[:30]} 速度 {speed:.2f}x 低于 {MIN_SPEED_FACTOR}x，丢弃")
+            return None
 
         # 提取分辨率
         if ENABLE_RESOLUTION_FILTER:
@@ -276,8 +264,7 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
                 return None
 
         if SPEED_TEST_VERBOSE:
-            bit_str = f", 比特率: {bitrate_kbps} kbps" if bitrate_kbps else ""
-            print(f"   ✅ [{group}] {name[:30]} 速度: {speed:.2f}x{bit_str}")
+            print(f"   ✅ [{group}] {name[:30]} 速度: {speed:.2f}x")
         return (url, group, name, speed)
 
 async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
@@ -285,8 +272,8 @@ async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict
     filter_info = []
     if ENABLE_RESOLUTION_FILTER:
         filter_info.append(f"分辨率≥{MIN_RESOLUTION_WIDTH}x{MIN_RESOLUTION_HEIGHT}")
-    if ENABLE_BITRATE_FILTER:
-        filter_info.append(f"比特率≥{MIN_BITRATE_KBPS} kbps")
+    if ENABLE_SPEED_FACTOR_FILTER:
+        filter_info.append(f"速度≥{MIN_SPEED_FACTOR}x")
     filter_str = "，".join(filter_info)
     print(f"🚀 开始测速（并发 {SPEED_TEST_CONCURRENCY}，时长 {SPEED_TEST_DURATION}s，{filter_str}，共 {total_links} 个链接）...")
 
@@ -320,6 +307,7 @@ async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict
                 task.cancel()
             break
 
+    # 按速度排序并截取
     speed_map = defaultdict(list)
     for res in results:
         if res is None:
@@ -461,7 +449,6 @@ async def _main():
         print("✅ 浏览器启动完成")
 
         print(f"🌐 正在打开页面: {TARGET_URL}")
-        # 使用统一的超时，并等待 networkidle 状态
         await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT, wait_until="networkidle")
         print("✅ 页面加载完成")
 
@@ -523,6 +510,7 @@ async def _main():
 
         print(f"\n📊 原始条目数：{len(raw_entries)}")
 
+        # 去重
         channel_urls = defaultdict(list)
         seen: Set[Tuple] = set() if ENABLE_DEDUPLICATION else None
         for group, name, url in raw_entries:
@@ -533,9 +521,11 @@ async def _main():
                 seen.add(key)
             channel_urls[(group, name)].append(url)
 
+        # 测速
         if ENABLE_SPEED_TEST and channel_urls:
             channel_urls = await run_speed_test(channel_urls)
         else:
+            # 直接截取
             new_urls = defaultdict(list)
             for key, urls in channel_urls.items():
                 for url in (urls[:MAX_LINKS_PER_CHANNEL] if MAX_LINKS_PER_CHANNEL > 0 else urls):
@@ -549,10 +539,12 @@ async def _main():
 
         print(f"✅ 每个频道最多保留 {MAX_LINKS_PER_CHANNEL} 个链接，剩余 {len(final_entries)} 条")
 
+        # 分组排序
         grouped = defaultdict(list)
         for group, name, url in final_entries:
             grouped[group].append((name, url))
 
+        # 央视排序
         cctv_group = next((g for g in grouped if "央视" in g or "cctv" in g.lower()), None)
         if cctv_group:
             def cctv_key(item):
@@ -571,6 +563,7 @@ async def _main():
             if g != cctv_group:
                 grouped[g].sort(key=lambda x: x[0])
 
+        # 输出 M3U
         m3u_path = OUTPUT_DIR / OUTPUT_M3U_FILENAME
         with open(m3u_path, "w", encoding="utf-8", newline="") as f:
             f.write("#EXTM3U\n")
@@ -579,6 +572,7 @@ async def _main():
                     f.write(f'#EXTINF:-1 group-title="{group_name}",{name}\n{url}\n')
         print(f"📀 M3U: {m3u_path}")
 
+        # 输出 TXT
         txt_path = OUTPUT_DIR / OUTPUT_TXT_FILENAME
         with open(txt_path, "w", encoding="utf-8", newline="") as f:
             for group_name in GROUP_ORDER:
