@@ -24,7 +24,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 # ---------------------------- 基础设置 ------------------------------------
 TARGET_URL = os.getenv("TARGET_URL", "https://iptv.809899.xyz")          # 目标网页
 OUTPUT_DIR = Path(__file__).parent                                        # 输出目录
-MAX_IPS = int(os.getenv("MAX_IPS", "5"))                                  # 只处理前 N 个 IP（0=全部）
+MAX_IPS = int(os.getenv("MAX_IPS", "1"))                                  # 只处理前 N 个 IP（0=全部）
 HEADLESS = os.getenv("HEADLESS", "true").lower() == "true"                # 无头模式（CI 必须为 True）
 BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")                      # 可选 chromium / firefox / webkit
 
@@ -34,7 +34,7 @@ PAGE_LOAD_TIMEOUT = int(os.getenv("PAGE_LOAD_TIMEOUT", "60000"))          # 页�
 # ------------------------ 页面交互配置 ------------------------------------
 PAGE_CONFIG = {
     "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
-    "multicast_tab": ["组播提取"],
+    "multicast_tab": ["酒店提取"],
     "start_button": ["开始播放", "开始搜索", "开始提取"],
 }
 
