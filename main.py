@@ -47,10 +47,10 @@ HEADLESS = True
 MAX_IPS = 20
 
 # 4. 【打开速度核心】首包超时：超过这个秒数直接丢弃（越小越严格）
-FIRST_PACKET_TIMEOUT = 2
+FIRST_PACKET_TIMEOUT = 5
 
 # 5. 最小速度（Mbps）：低于这个速度不要
-MIN_SPEED_FACTOR = 2.0
+MIN_SPEED_FACTOR = 1.5
 
 # 6. 分辨率：必须 1080P+
 ENABLE_RESOLUTION_FILTER = True
@@ -61,7 +61,7 @@ MIN_RESOLUTION_HEIGHT = 1080
 MAX_LINKS_PER_CHANNEL = 5
 
 # 8. 测速并发：电脑差就改 10
-SPEED_TEST_CONCURRENCY = 20
+SPEED_TEST_CONCURRENCY = 15
 
 # 9. 输出文件名
 OUTPUT_M3U_FILENAME = "iptv_channels.m3u"
