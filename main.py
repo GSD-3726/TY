@@ -24,7 +24,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 # ---------------------------- 基础设置 ------------------------------------
 TARGET_URL = os.getenv("TARGET_URL", "https://iptv.809899.xyz")          # 目标网页
 OUTPUT_DIR = Path(__file__).parent                                        # 输出目录
-MAX_IPS = int(os.getenv("MAX_IPS", "5"))                                  # 只处理前 N 个 IP（0=全部）
+MAX_IPS = int(os.getenv("MAX_IPS", "10"))                                  # 只处理前 N 个 IP（0=全部）
 HEADLESS = os.getenv("HEADLESS", "true").lower() == "true"                # 无头模式（CI 必须为 True）
 BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")                      # 可选 chromium / firefox / webkit
 
@@ -85,9 +85,9 @@ CCTV_NAME_MAPPING = {
 
 # -------------------------- 测速设置 --------------------------------------
 ENABLE_SPEED_TEST = os.getenv("ENABLE_SPEED_TEST", "true").lower() == "true"
-SPEED_TEST_CONCURRENCY = int(os.getenv("SPEED_TEST_CONCURRENCY", "5"))
-SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "3"))
-SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "480"))
+SPEED_TEST_CONCURRENCY = int(os.getenv("SPEED_TEST_CONCURRENCY", "10"))
+SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "2"))
+SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "2200"))
 KEEP_ON_SPEED_FAIL = False
 SPEED_TEST_VERBOSE = False
 
