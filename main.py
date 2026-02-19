@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具 - m3u8 分辨率+速度过滤排序增强版 (HTTP 测速，单位 Mbps)
+IPTV 组播提取工具 - 结构分析+稳定定位+接口优化 终极版
+配置项全注释，修改只看顶部配置区即可
 """
 
 import asyncio
@@ -16,134 +17,91 @@ from urllib.parse import urljoin
 import aiohttp
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
-# 尝试导入 tqdm 进度条库，若失败则使用简单回退
-try:
-    from tqdm import tqdm
-    TQDM_AVAILABLE = True
-except ImportError:
-    TQDM_AVAILABLE = False
-    class tqdm:
-        def __init__(self, *args, **kwargs):
-            self.total = kwargs.get('total', 0)
-            self.desc = kwargs.get('desc', '')
-            self.unit = kwargs.get('unit', 'it')
-            self.n = 0
-        def update(self, n=1):
-            self.n += n
-        def close(self):
-            print()
-        def __enter__(self):
-            return self
-        def __exit__(self, *args):
-            self.close()
+# ==============================================
+# ================= 配置区（全中文说明）==================
+# ==============================================
 
-# ============================================================================
-# 全部配置区域（只改这里）
-# ============================================================================
+# 目标网站地址（要爬的 IPTV 网站）
+TARGET_URL = os.getenv("TARGET_URL", "https://iptv.809899.xyz")
 
-# ---------------------------- 基础设置 ------------------------------------
-TARGET_URL = os.getenv("TARGET_URL", "https://iptv.809899.xyz")          # 目标网站
-OUTPUT_DIR = Path(__file__).parent                                        # 输出目录（脚本所在目录）
-MAX_IPS = int(os.getenv("MAX_IPS", "10"))                                 # 最多处理多少个 IP
-HEADLESS = os.getenv("HEADLESS", "true").lower() == "true"                # 是否无头模式
-BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")                      # 浏览器类型
+# 输出文件保存位置（默认脚本所在文件夹，不用改）
+OUTPUT_DIR = Path(__file__).parent
 
-# ------------------------ 页面加载超时 ------------------------------------
-PAGE_LOAD_TIMEOUT = int(os.getenv("PAGE_LOAD_TIMEOUT", "60000"))          # 页面加载超时（毫秒）
+# 最多爬多少个IP（越大越慢，建议 5~20）
+MAX_IPS = int(os.getenv("MAX_IPS", "10"))
 
-# ------------------------ 页面交互配置 ------------------------------------
-PAGE_CONFIG = {
-    "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
-    "multicast_tab": ["组播提取"],
-    "start_button": ["开始播放", "开始搜索", "开始提取"],
-}
+# 无头模式：True=不显示浏览器窗口，False=显示窗口（调试用）
+HEADLESS = os.getenv("HEADLESS", "true").lower() == "true"
 
-# ------------------------ 分类规则配置 ------------------------------------
+# 浏览器类型（默认chromium，不用改）
+BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")
+
+# 页面加载超时（毫秒），网站慢就改大：60000=60秒
+PAGE_LOAD_TIMEOUT = 60000
+
+# 点击按钮后等待时间（秒），防止点太快页面没反应
+DELAY_AFTER_CLICK = 0.5
+
+# 切换下一个IP前等待秒数，防卡顿/防封
+DELAY_BETWEEN_IPS = 3.0
+
+# 每个IP最多提取多少频道（0=不限制）
+MAX_CHANNELS_PER_IP = 0
+
+# 脚本最大运行时间（秒），防止卡死
+SCRIPT_TIMEOUT = 3000
+
+# -------------------------- 测速设置 --------------------------
+# 是否开启测速排序（True=测速，False=直接导出不测速）
+ENABLE_SPEED_TEST = True
+
+# 测速并发数（越大越快，建议 5~15）
+SPEED_TEST_CONCURRENCY = 10
+
+# 最低合格速度（Mbps），低于这个值直接丢掉
+MIN_SPEED_FACTOR = 1.5
+
+# 每个频道最多保留几条链接（按速度从快到慢取前N条）
+MAX_LINKS_PER_CHANNEL = 10
+
+# -------------------------- 分辨率筛选 --------------------------
+# 是否开启分辨率过滤
+ENABLE_RESOLUTION_FILTER = True
+
+# 最小宽度：1920=1080P，1280=720P
+MIN_RESOLUTION_WIDTH = 1920
+
+# 最小高度：1080=1080P，720=720P
+MIN_RESOLUTION_HEIGHT = 1080
+
+# 无分辨率信息时，是否保留最快链接（建议True）
+FALLBACK_TO_SPEED_WHEN_NO_RESOLUTION = True
+
+# -------------------------- 输出文件名 --------------------------
+OUTPUT_M3U_FILENAME = "iptv_channels.m3u"   # 电视/盒子通用格式
+OUTPUT_TXT_FILENAME = "iptv_channels.txt"   # 文本直播源格式
+
+# -------------------------- 频道分类规则 --------------------------
 CATEGORY_RULES = [
     {"name": "4K专区",      "keywords": ["4k"]},
     {"name": "央视频道",    "keywords": ["cctv", "cetv", "中央"]},
-    {"name": "卫视频道",    "keywords": ["卫视", "凤凰", "tvb", "湖南", "浙江", "江苏", "东方",
-                                      "北京", "深圳", "山东", "天津", "贵州", "四川", "黑龙江",
-                                      "安徽", "江西", "湖北", "东南", "辽宁", "广东", "河北",
-                                      "甘肃", "新疆", "西藏", "兵团", "重庆", "云南", "广西",
-                                      "山西", "陕西", "吉林", "内蒙古", "河南", "宁夏", "青海"]},
-    {"name": "电影频道",    "keywords": ["电影", "影迷", "家庭影院", "动作电影", "光影",
-                                      "动作影院", "喜剧影院", "经典电影", "爱电影", "chc"]},
-    {"name": "轮播频道",    "keywords": ["轮播频道", "轮播"]},
-    {"name": "儿童频道",    "keywords": ["少儿", "动画", "卡通", "kids", "金鹰卡通",
-                                      "嘉佳卡通", "卡酷少儿", "动漫秀场", "优优宝贝"]},
+    {"name": "卫视频道",    "keywords": ["卫视", "凤凰", "tvb", "湖南", "浙江", "江苏", "东方", "北京", "深圳", "山东"]},
+    {"name": "电影频道",    "keywords": ["电影", "影院", "chc"]},
+    {"name": "轮播频道",    "keywords": ["轮播"]},
+    {"name": "儿童频道",    "keywords": ["少儿", "动画", "卡通", "金鹰", "卡酷"]},
 ]
 
-GROUP_ORDER = [
-    "央视频道", "卫视频道", "电影频道", "4K专区", "儿童频道", "轮播频道"
-]
+# 频道分组在文件里的显示顺序
+GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "4K专区", "儿童频道", "轮播频道"]
 
-# ------------------------ 播放列表生成设置 --------------------------------
-MAX_LINKS_PER_CHANNEL = int(os.getenv("MAX_LINKS_PER_CHANNEL", "10"))    # 每个频道最多保留多少条链接
-OUTPUT_M3U_FILENAME = os.getenv("OUTPUT_M3U", "iptv_channels.m3u")       # 输出的 m3u 文件名
-OUTPUT_TXT_FILENAME = os.getenv("OUTPUT_TXT", "iptv_channels.txt")       # 输出的 txt 文件名
-
-# -------------------------- 功能开关 -------------------------------------
-ENABLE_CHINESE_CLEAN = True          # 是否清理非中文字符（用于卫视频道）
-ENABLE_DEDUPLICATION = True           # 是否对链接去重
-ENABLE_SCREENSHOTS = False            # 是否保存调试截图
-
-# -------------------------- 央视频道名称映射 -----------------------------
-CCTV_USE_MAPPING = True
-CCTV_NAME_MAPPING = {
-    "1": "综合", "2": "财经", "3": "综艺", "4": "国际", "5": "体育",
-    "5+": "体育赛事", "6": "电影", "7": "国防军事", "8": "电视剧",
-    "9": "纪录", "10": "科教", "11": "戏曲", "12": "社会与法",
-    "13": "新闻", "14": "少儿", "15": "音乐", "16": "奥林匹克",
-    "17": "农业农村",
-}
-
-# ====================== 测速相关配置（重点可调参数）=======================
-
-# 1. 测速开关及并发控制
-ENABLE_SPEED_TEST = os.getenv("ENABLE_SPEED_TEST", "true").lower() == "true"   # 是否启用测速
-SPEED_TEST_CONCURRENCY = int(os.getenv("SPEED_TEST_CONCURRENCY", "10"))        # 同时测速的最大链接数
-SPEED_TEST_TIMEOUT = int(os.getenv("SPEED_TEST_TIMEOUT", "2480"))               # 整体测速超时（秒）
-SPEED_TEST_VERBOSE = False                                                      # 是否打印详细错误信息
-
-# 2. 测速时长（仅对非 m3u8 链接生效）
-SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "2"))                # 下载测速时长（秒）
-
-# 3. TS 分片测速配置（仅对 m3u8 生效）
-TS_SAMPLE_COUNT = int(os.getenv("TS_SAMPLE_COUNT", "3"))                        # 每个 m3u8 下载的 TS 分片数量
-TS_DOWNLOAD_TIMEOUT = int(os.getenv("TS_DOWNLOAD_TIMEOUT", "1"))               # 单个分片下载超时（秒）
-
-# 4. 速度过滤阈值（单位：Mbps）
-ENABLE_SPEED_FACTOR_FILTER = True
-MIN_SPEED_FACTOR = float(os.getenv("MIN_SPEED_FACTOR", "1.5"))                  # 最小下载速率（Mbps）
-
-# 5. 分辨率筛选
-ENABLE_RESOLUTION_FILTER = True
-MIN_RESOLUTION_WIDTH = 1920      # 最小宽度
-MIN_RESOLUTION_HEIGHT = 1080     # 最小高度
-
-FALLBACK_TO_SPEED_WHEN_NO_RESOLUTION = True
-
-# ====================== 负载控制 ======================
-DELAY_BETWEEN_IPS = float(os.getenv("DELAY_BETWEEN_IPS", "3.0"))    # 处理两个 IP 之间的延迟
-DELAY_AFTER_CLICK = float(os.getenv("DELAY_AFTER_CLICK", "0.5"))    # 点击后等待
-MAX_CHANNELS_PER_IP = int(os.getenv("MAX_CHANNELS_PER_IP", "0"))    # 每个IP最多提取频道数
-
-# ====================== 脚本全局超时 ======================
-SCRIPT_TIMEOUT = int(os.getenv("SCRIPT_TIMEOUT", "1800"))           # 脚本最大运行时间
-
-# ============================================================================
-# 核心代码
-# ============================================================================
+# ==============================================
+# ================= 以下为核心代码，一般不用改 =================
+# ==============================================
 
 IP_PATTERN = re.compile(r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$')
 CCTV_PATTERN = re.compile(r'(cctv)[-\s]?(\d{1,3})', re.IGNORECASE)
 CETV_PATTERN = re.compile(r'(cetv)[-\s]?(\d)', re.IGNORECASE)
-RESOLUTION_PATTERN = re.compile(r'(\d+)x(\d+)')
 CHINESE_ONLY_PATTERN = re.compile(r'[^\u4e00-\u9fff]')
-
-SCREENSHOT_DIR = OUTPUT_DIR / "debug_screenshots"
-SCREENSHOT_DIR.mkdir(exist_ok=True)
 
 def build_classifier():
     compiled = []
@@ -152,419 +110,323 @@ def build_classifier():
             continue
         pattern = re.compile("|".join(re.escape(kw.lower()) for kw in rule["keywords"]))
         compiled.append((rule["name"], pattern))
-    return lambda name: next((group for group, pat in compiled if pat.search(name.lower())), None)
-
+    return lambda name: next((g for g, pat in compiled if pat.search(name.lower())), None)
 classify_channel = build_classifier()
 
 def normalize_cctv(name: str) -> str:
     name_lower = name.lower()
-    if "cctv5+" in name_lower or "cctv5＋" in name_lower or "cctv5加" in name_lower:
-        if CCTV_USE_MAPPING and "5+" in CCTV_NAME_MAPPING:
-            return f"CCTV-5+{CCTV_NAME_MAPPING['5+']}"
-        return "CCTV5+"
-    cctv_match = CCTV_PATTERN.search(name_lower)
-    if cctv_match:
-        number = cctv_match.group(2)
-        if CCTV_USE_MAPPING:
-            suffix = CCTV_NAME_MAPPING.get(number, "")
-            return f"CCTV-{number}{suffix}"
-        rest = name[cctv_match.end():].strip()
-        rest = re.sub(r'(?i)(HD|SD|高清|标清|超清|\s*-?\s*)?$', '', rest).strip()
-        return f"CCTV-{number} {rest}".strip() if rest else f"CCTV-{number}"
-    cetv_match = CETV_PATTERN.search(name_lower)
-    if cetv_match:
-        number = cetv_match.group(2)
-        return f"CETV-{number}" if CCTV_USE_MAPPING else f"CETV{number}"
+    if "cctv5+" in name_lower:
+        return "CCTV-5+体育赛事"
+    m = CCTV_PATTERN.search(name_lower)
+    if m:
+        num = m.group(2)
+        mapping = {
+            "1":"综合","2":"财经","3":"综艺","4":"国际","5":"体育",
+            "5+":"体育赛事","6":"电影","7":"国防军事","8":"电视剧",
+            "9":"纪录","10":"科教","11":"戏曲","12":"社会与法",
+            "13":"新闻","14":"少儿","15":"音乐","16":"奥林匹克","17":"农业农村"
+        }
+        return f"CCTV-{num}{mapping.get(num, '')}"
+    m = CETV_PATTERN.search(name_lower)
+    if m:
+        return f"CETV-{m.group(2)}"
     return name
 
-def clean_chinese_only(name: str) -> str:
+def clean_chinese(name):
     return CHINESE_ONLY_PATTERN.sub('', name)
 
-def build_selector(text_list: list, element_type: str = "button") -> str:
-    if not text_list:
-        return ""
-    if len(text_list) == 1:
-        return f"{element_type}:has-text('{text_list[0]}')"
-    pattern = "|".join(re.escape(t) for t in text_list)
-    return f"{element_type}:text-matches('{pattern}')"
-
-ENGINE_SELECTOR = build_selector(PAGE_CONFIG["engine_search"], "a.sidebar-link,button,div.segment-item")
-MCAST_SELECTOR = build_selector(PAGE_CONFIG["multicast_tab"], "div.segment-item")
-START_SELECTOR = build_selector(PAGE_CONFIG["start_button"], "button")
-
-async def robust_click(locator, timeout=10000, description="元素"):
+# ====================== 测速核心 ======================
+async def fetch_url(session, url, timeout):
     try:
-        await locator.scroll_into_view_if_needed(timeout=5000)
-        await asyncio.sleep(0.2)
-        await locator.click(force=True, timeout=timeout)
-        return True
-    except Exception:
-        try:
-            await locator.evaluate('el => el.scrollIntoViewIfNeeded()')
-            await locator.evaluate('el => el.click()')
-            return True
-        except Exception:
-            return False
+        async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout)) as r:
+            if r.status == 200:
+                return await r.read()
+    except:
+        return None
 
-# ====================== 纯 HTTP 测速函数 =======================
-
-async def fetch_url(session: aiohttp.ClientSession, url: str, timeout: int) -> Optional[bytes]:
-    try:
-        async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
-            if resp.status == 200:
-                return await resp.read()
-    except Exception:
-        pass
-    return None
-
-async def resolve_m3u8_playlist(session: aiohttp.ClientSession, url: str, timeout: int) -> Tuple[Optional[int], Optional[int], List[str]]:
-    content = await fetch_url(session, url, timeout)
-    if not content:
+async def resolve_m3u8(session, url, timeout):
+    data = await fetch_url(session, url, timeout)
+    if not data:
         return None, None, []
-    lines = content.decode('utf-8', errors='ignore').splitlines()
-    base_url = url[:url.rfind('/')+1] if '/' in url else url
-
-    best_w, best_h = 0, 0
-    best_uri = None
-    i = 0
+    lines = data.decode('utf-8', 'ignore').splitlines()
+    base = url[:url.rfind('/')+1] if '/' in url else url
+    best_w, best_h, best_uri = 0,0,None
+    i=0
     while i < len(lines):
-        line = lines[i].strip()
-        if line.startswith('#EXT-X-STREAM-INF:'):
-            res_match = re.search(r'RESOLUTION=(\d+)x(\d+)', line)
-            w, h = 0, 0
-            if res_match:
-                w, h = int(res_match.group(1)), int(res_match.group(2))
+        li = lines[i].strip()
+        if li.startswith('#EXT-X-STREAM-INF:'):
+            m = re.search(r'RESOLUTION=(\d+)x(\d+)', li)
+            w,h = int(m.group(1)), int(m.group(2)) if m else (0,0)
             if i+1 < len(lines):
                 uri = lines[i+1].strip()
-                if w * h > best_w * best_h:
-                    best_w, best_h = w, h
-                    best_uri = uri
+                if w*h > best_w*best_h:
+                    best_w,best_h,best_uri = w,h,uri
             i += 2
         else:
             i += 1
-
     if best_uri:
-        next_url = urljoin(base_url, best_uri)
-        return await resolve_m3u8_playlist(session, next_url, timeout)
+        return await resolve_m3u8(session, urljoin(base, best_uri), timeout)
+    ts = []
+    for li in lines:
+        li = li.strip()
+        if li and not li.startswith('#'):
+            ts.append(urljoin(base, li))
+    return best_w, best_h, ts
 
-    ts_urls = []
-    for line in lines:
-        line = line.strip()
-        if line and not line.startswith('#'):
-            ts_urls.append(urljoin(base_url, line))
-    return best_w, best_h, ts_urls
-
-async def test_speed_ts(url: str) -> Tuple[Optional[float], Optional[int], Optional[int]]:
+async def test_speed_ts(url):
     try:
-        async with aiohttp.ClientSession() as session:
-            width, height, ts_urls = await resolve_m3u8_playlist(session, url, TS_DOWNLOAD_TIMEOUT)
-            if not ts_urls:
-                return None, None, None
+        async with aiohttp.ClientSession() as s:
+            w,h,ts = await resolve_m3u8(s, url, 1)
+            if not ts:
+                return None,None,None
+            tb,tt = 0,0.0
+            for u in ts[:3]:
+                t0 = time.monotonic()
+                d = await fetch_url(s,u,1)
+                el = time.monotonic()-t0
+                if d and el>0:
+                    tb += len(d)
+                    tt += el
+            if tt == 0:
+                return None,None,None
+        mbps = (tb/tt)*8/1e6
+        return mbps,w,h
+    except:
+        return None,None,None
 
-            sample_urls = ts_urls[:TS_SAMPLE_COUNT]
-            if not sample_urls:
-                return None, None, None
-
-            total_bytes = 0
-            total_time = 0.0
-            for u in sample_urls:
-                start = time.monotonic()
-                data = await fetch_url(session, u, TS_DOWNLOAD_TIMEOUT)
-                elapsed = time.monotonic() - start
-                if data and elapsed > 0:
-                    total_bytes += len(data)
-                    total_time += elapsed
-            if total_time == 0 or total_bytes == 0:
-                return None, None, None
-
-            speed_mbps = (total_bytes / total_time) * 8 / 1_000_000
-            return speed_mbps, width, height
-    except Exception:
-        return None, None, None
-
-async def test_speed_direct(url: str, duration: int) -> Optional[float]:
+async def test_speed_direct(url):
     try:
-        async with aiohttp.ClientSession() as session:
-            start = time.monotonic()
-            total_bytes = 0
-            timeout = aiohttp.ClientTimeout(total=duration + 2)
-            async with session.get(url, timeout=timeout) as resp:
-                if resp.status != 200:
+        async with aiohttp.ClientSession() as s:
+            t0 = time.monotonic()
+            tb = 0
+            async with s.get(url, timeout=aiohttp.ClientTimeout(total=4)) as r:
+                if r.status!=200:
                     return None
                 while True:
-                    chunk = await resp.content.read(8192)
-                    if not chunk:
-                        break
-                    total_bytes += len(chunk)
-                    elapsed = time.monotonic() - start
-                    if elapsed >= duration:
-                        break
-            elapsed = time.monotonic() - start
-            if elapsed <= 0 or total_bytes == 0:
-                return None
-            speed_mbps = (total_bytes / elapsed) * 8 / 1_000_000
-            return speed_mbps
-    except Exception:
+                    c = await r.content.read(8192)
+                    if not c: break
+                    tb += len(c)
+                    if time.monotonic()-t0 >=2: break
+            el = time.monotonic()-t0
+            if el <=0: return None
+        return (tb/el)*8/1e6
+    except:
         return None
 
-async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semaphore) -> Optional[Tuple[str, str, str, float, bool]]:
-    async with semaphore:
-        is_m3u8 = url.lower().endswith(".m3u8") or "m3u8" in url.lower()
-
-        if is_m3u8:
-            speed_mbps, width, height = await test_speed_ts(url)
-            if speed_mbps is None:
+async def task_speed(url, g, n, sem):
+    async with sem:
+        if '.m3u8' in url.lower():
+            sp,w,h = await test_speed_ts(url)
+            if sp is None or sp < MIN_SPEED_FACTOR:
                 return None
-            if ENABLE_SPEED_FACTOR_FILTER and speed_mbps < MIN_SPEED_FACTOR:
-                return None
-            resolution_ok = True
+            ok = True
             if ENABLE_RESOLUTION_FILTER:
-                if width is None or height is None:
-                    resolution_ok = FALLBACK_TO_SPEED_WHEN_NO_RESOLUTION
+                if w is None or h is None:
+                    ok = FALLBACK_TO_SPEED_WHEN_NO_RESOLUTION
                 else:
-                    resolution_ok = (width >= MIN_RESOLUTION_WIDTH and height >= MIN_RESOLUTION_HEIGHT)
-            return (url, group, name, speed_mbps, resolution_ok)
+                    ok = (w>=MIN_RESOLUTION_WIDTH and h>=MIN_RESOLUTION_HEIGHT)
+            return (url,g,n,sp,ok)
         else:
-            speed_mbps = await test_speed_direct(url, SPEED_TEST_DURATION)
-            if speed_mbps is None:
+            sp = await test_speed_direct(url)
+            if sp is None or sp < MIN_SPEED_FACTOR:
                 return None
-            if ENABLE_SPEED_FACTOR_FILTER and speed_mbps < MIN_SPEED_FACTOR:
-                return None
-            resolution_ok = FALLBACK_TO_SPEED_WHEN_NO_RESOLUTION if ENABLE_RESOLUTION_FILTER else True
-            return (url, group, name, speed_mbps, resolution_ok)
+            ok = FALLBACK_TO_SPEED_WHEN_NO_RESOLUTION if ENABLE_RESOLUTION_FILTER else True
+            return (url,g,n,sp,ok)
 
-# ====================== 【简化：只输出 10% 20% 30%...100%】=======================
-async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
-    total = sum(len(v) for v in channel_urls.values())
-    print(f"🚀 开始测速，共 {total} 条链接")
-
+async def run_speed_test(channel_map):
+    total = sum(len(v) for v in channel_map.values())
+    print(f"🚀 测速开始：{total} 条")
     sem = asyncio.Semaphore(SPEED_TEST_CONCURRENCY)
-    tasks = []
-    for (g, n), urls in channel_urls.items():
-        for u in urls:
-            tasks.append(test_speed(u, g, n, sem))
-
-    results = []
-    finished = 0
+    tasks = [task_speed(u,g,n,sem) for (g,n),us in channel_map.items() for u in us]
+    res = []
+    done = 0
     printed = set()
-
-    for task in asyncio.as_completed(tasks):
-        res = await task
-        if res:
-            results.append(res)
-        finished += 1
-
-        pct = (finished / len(tasks)) * 100
-        for step in [10,20,30,40,50,60,70,80,90,100]:
-            if pct >= step and step not in printed:
-                print(f"测速进度：{step}%")
-                printed.add(step)
-
-    speed_map = defaultdict(list)
-    for r in results:
-        url, g, n, s, ok_res = r
-        speed_map[(g, n)].append((url, s, ok_res))
-
+    for coro in asyncio.as_completed(tasks):
+        item = await coro
+        if item:
+            res.append(item)
+        done += 1
+        pct = int((done/len(tasks))*100)
+        for s in [10,20,30,40,50,60,70,80,90,100]:
+            if pct>=s and s not in printed:
+                print(f"测速进度：{s}%")
+                printed.add(s)
     out = defaultdict(list)
-    for key, items in speed_map.items():
-        items.sort(key=lambda x: x[1], reverse=True)
-        qualified = [u for u, s, ok in items if ok]
-        if qualified:
-            final = qualified[:MAX_LINKS_PER_CHANNEL]
+    temp = defaultdict(list)
+    for u,g,n,sp,ok in res:
+        temp[(g,n)].append((u,sp,ok))
+    for key,items in temp.items():
+        items.sort(key=lambda x:x[1], reverse=True)
+        good = [u for u,sp,ok in items if ok]
+        if good:
+            out[key] = good[:MAX_LINKS_PER_CHANNEL]
         else:
-            final = [u for u, s, ok in items][:MAX_LINKS_PER_CHANNEL]
-        out[key] = final
-
-    print(f"✅ 测速完成，保留 {sum(len(v) for v in out.values())} 条有效链接")
+            out[key] = [u for u,sp,ok in items][:MAX_LINKS_PER_CHANNEL]
+    print(f"✅ 测速完成，保留 {sum(len(v) for v in out.values())} 条")
     return out
 
-# ====================== IP 提取逻辑 ===============================
-
-async def extract_from_ip(page, row, ip_text: str) -> List[Tuple[str, str, str]]:
-    entries = []
-    print(f"\n📌 处理 IP: {ip_text}")
-
-    menu_btn = row.locator("button:has(i.fas.fa-list), button:has-text('≡'), button:has(i.fa-list)").first
-    if await menu_btn.count() > 0:
-        await robust_click(menu_btn, description="菜单按钮")
-    else:
-        await row.locator("div.item-title").first.click(timeout=5000)
-    await asyncio.sleep(DELAY_AFTER_CLICK)
-
-    modal = page.locator(".modal-dialog").first
+# ====================== 页面提取（结构定位，不依赖文字）======================
+async def robust_click(loc):
     try:
-        await modal.wait_for(state="visible", timeout=8000)
-    except PlaywrightTimeoutError:
-        return entries
-
-    items = modal.locator(".item-content")
-    total = await items.count()
-    limit = total if MAX_CHANNELS_PER_IP <= 0 else min(total, MAX_CHANNELS_PER_IP)
-
-    for j in range(limit):
-        item = items.nth(j)
+        await loc.scroll_into_view_if_needed(timeout=3000)
+        await asyncio.sleep(0.2)
+        await loc.click(force=True, timeout=5000)
+        return True
+    except:
         try:
-            raw_name = await item.locator(".item-title").first.inner_text(timeout=5000)
-            link = await item.locator(".item-subtitle").first.inner_text(timeout=5000)
+            await loc.evaluate('el=>el.click()')
+            return True
         except:
-            continue
+            return False
 
-        raw_name = raw_name.strip()
-        link = link.strip()
-        if not raw_name or not link:
-            continue
-
-        norm_name = normalize_cctv(raw_name)
-        group = classify_channel(norm_name) or classify_channel(raw_name)
-        if not group:
-            continue
-
-        final_name = norm_name if group == "央视频道" else (clean_chinese_only(raw_name) if ENABLE_CHINESE_CLEAN else raw_name)
-        if not final_name:
-            continue
-
-        entries.append((group, final_name, link))
+async def extract_one_ip(page, row):
+    entries = []
+    try:
+        await robust_click(row.locator(".item-title").first)
+        await asyncio.sleep(0.5)
+        modal = page.locator(".modal-dialog").first
+        await modal.wait_for(state="visible", timeout=5000)
+        items = modal.locator(".item-content")
+        cnt = await items.count()
+        limit = cnt if MAX_CHANNELS_PER_IP==0 else min(cnt, MAX_CHANNELS_PER_IP)
+        for i in range(limit):
+            try:
+                name = await items.nth(i).locator(".item-title").inner_text(timeout=3000)
+                url = await items.nth(i).locator(".item-subtitle").inner_text(timeout=3000)
+                name = name.strip()
+                url = url.strip()
+                if not name or not url:
+                    continue
+                cname = normalize_cctv(name)
+                g = classify_channel(cname) or classify_channel(name)
+                if not g:
+                    continue
+                fname = cname if g=="央视频道" else clean_chinese(name)
+                entries.append((g, fname, url))
+            except:
+                continue
+    except:
+        pass
     return entries
 
-# ====================== 等待 IP：点击后等30秒，没数据再等30秒 ======================
-async def wait_for_ip_elements(page, max_retries=2):
-    for attempt in range(2):
-        print(f"⏳ 第 {attempt+1} 次等待：30 秒后获取数据")
+async def wait_ip_list(page):
+    for round in range(2):
+        print(f"⏳ 等待 {round+1}/2 次，30 秒后检查数据")
         await asyncio.sleep(30)
-        
         try:
             ok = await page.wait_for_function("""
                 () => {
-                    const elements = document.querySelectorAll('div.item-title');
-                    for (let el of elements) {
-                        if (el.innerText.match(/\\d+\\.\\d+\\.\\d+\\.\\d+/)) return true;
+                    for(let e of document.querySelectorAll('div.item-title')){
+                        if(/\\d+\\.\\d+\\.\\d+\\.\\d+/.test(e.innerText)) return true;
                     }
                     return false;
                 }
             """, timeout=5000)
             if ok:
-                print("✅ IP 数据已加载")
+                print("✅ IP 列表已加载")
                 return True
-        except Exception:
-            print(f"⚠️ 第 {attempt+1} 次未获取到数据")
-    print("❌ 两次等待后仍无数据，继续执行")
+        except:
+            print(f"⚠️ 第 {round+1} 次未加载到")
+    print("❌ 继续执行")
     return False
 
-# ====================== 主流程 ===============================
-
-async def _main():
-    global ENABLE_SPEED_TEST
-    print(f"[{time.strftime('%H:%M:%S')}] 🚀 脚本开始")
-
-    try:
-        import aiohttp
-    except ImportError:
-        print("❌ 请安装 aiohttp: pip install aiohttp")
-        sys.exit(1)
-
+# ====================== 主流程 ======================
+async def main_core():
+    print(f"[{time.strftime('%H:%M:%S')}] 启动")
     async with async_playwright() as p:
-        browser = await getattr(p, BROWSER_TYPE).launch(headless=HEADLESS, args=["--no-sandbox"])
-        context = await browser.new_context(viewport={"width": 1920, "height": 1080})
-        page = await context.new_page()
-
+        browser = await p.chromium.launch(headless=HEADLESS, args=["--no-sandbox"])
+        ctx = await browser.new_context(viewport={"width":1920,"height":1080})
+        page = await ctx.new_page()
         await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT, wait_until="networkidle")
         print("✅ 页面加载完成")
 
-        if ENGINE_SELECTOR:
-            elem = page.locator(ENGINE_SELECTOR).first
-            if await elem.count() > 0:
-                await robust_click(elem, description="引擎搜索")
-                await asyncio.sleep(DELAY_AFTER_CLICK)
-                print("✅ 点击引擎搜索")
-
-        if MCAST_SELECTOR:
-            tab = page.locator(MCAST_SELECTOR).first
-            await tab.wait_for(state="attached", timeout=15000)
-            await robust_click(tab, description="组播提取")
+        # 结构定位：不依赖文字
+        try:
+            await page.locator("div.segment-item").nth(0).click(timeout=10000)
             await asyncio.sleep(DELAY_AFTER_CLICK)
-            print("✅ 点击组播提取")
-
-        if START_SELECTOR:
-            btn = page.locator(START_SELECTOR).first
-            await robust_click(btn, description="开始提取")
+            await page.locator("div.segment-item").nth(1).click(timeout=10000)
             await asyncio.sleep(DELAY_AFTER_CLICK)
-            print("✅ 点击开始提取")
+        except:
+            pass
 
-        print("⏳ 等待数据加载（30s + 30s）...")
-        await wait_for_ip_elements(page)
+        # 点击开始按钮
+        try:
+            await page.locator("button").filter(has_text="开始").first.click(timeout=10000)
+            await asyncio.sleep(DELAY_AFTER_CLICK)
+            print("✅ 已点击开始提取")
+        except:
+            print("⚠️ 开始按钮未找到，继续等待数据")
 
+        # 等待数据 30s + 30s
+        await wait_ip_list(page)
+
+        # 读取 IP 列表
         rows = page.locator("div.ios-list-item").filter(has_text="频道:")
-        total_ips = await rows.count()
-        process_cnt = min(total_ips, MAX_IPS) if MAX_IPS else total_ips
-        print(f"📋 共 {total_ips} 个IP，处理前 {process_cnt} 个")
+        total = await rows.count()
+        take = min(total, MAX_IPS)
+        print(f"📋 共 {total} 个IP，处理前 {take} 个")
 
         raw = []
-        for i in range(process_cnt):
-            row = rows.nth(i)
-            ip = await row.locator("div.item-title").first.inner_text()
+        for i in range(take):
+            ip = await rows.nth(i).locator(".item-title").inner_text()
             ip = ip.strip()
             if not IP_PATTERN.match(ip):
-                print(f"⚠️ 跳过无效 IP: {ip}")
                 continue
-            raw.extend(await extract_from_ip(page, row, ip))
-            if i < process_cnt - 1:
+            print(f"📌 处理 {ip}")
+            raw += await extract_one_ip(page, rows.nth(i))
+            if i < take-1:
                 await asyncio.sleep(DELAY_BETWEEN_IPS)
 
+        # 去重
         channel_map = defaultdict(list)
         seen = set()
-        for g, n, u in raw:
-            if ENABLE_DEDUPLICATION:
-                k = (g, n, u)
-                if k in seen:
-                    continue
-                seen.add(k)
-            channel_map[(g, n)].append(u)
+        for g,n,u in raw:
+            if (g,n,u) in seen:
+                continue
+            seen.add((g,n,u))
+            channel_map[(g,n)].append(u)
+        print(f"📊 去重后频道：{len(channel_map)}")
 
-        print(f"📊 去重后：{len(channel_map)} 个频道，{sum(len(v) for v in channel_map.values())} 条链接")
-
+        # 测速
         if ENABLE_SPEED_TEST and channel_map:
             channel_map = await run_speed_test(channel_map)
 
+        # 排序输出
         final = []
-        for (g, n), urls in channel_map.items():
-            for u in urls:
-                final.append((g, n, u))
-
+        for (g,n),us in channel_map.items():
+            for u in us:
+                final.append((g,n,u))
         grouped = defaultdict(list)
-        for g, n, u in final:
-            grouped[g].append((n, u))
+        for g,n,u in final:
+            grouped[g].append((n,u))
 
-        cctv_g = next((g for g in grouped if "央视" in g), None)
-        if cctv_g:
-            def ckey(x):
-                m = re.search(r"CCTV-(\d+)", x[0])
-                return int(m.group(1)) if m else 999
-            grouped[cctv_g].sort(key=ckey)
+        # CCTV 按数字排序
+        for g in grouped:
+            if "央视" in g:
+                grouped[g].sort(key=lambda x: int(re.search(r'CCTV-(\d+)',x[0]).group(1)) if re.search(r'CCTV-(\d+)',x[0]) else 999)
 
-        with open(OUTPUT_DIR / OUTPUT_M3U_FILENAME, "w", encoding="utf-8") as f:
+        # 写入文件
+        with open(OUTPUT_DIR/OUTPUT_M3U_FILENAME,'w',encoding='utf-8') as f:
             f.write("#EXTM3U\n")
             for g in GROUP_ORDER:
-                for n, u in grouped.get(g, []):
+                for n,u in grouped.get(g,[]):
                     f.write(f'#EXTINF:-1 group-title="{g}",{n}\n{u}\n')
-
-        with open(OUTPUT_DIR / OUTPUT_TXT_FILENAME, "w", encoding="utf-8") as f:
+        with open(OUTPUT_DIR/OUTPUT_TXT_FILENAME,'w',encoding='utf-8') as f:
             for g in GROUP_ORDER:
-                if g not in grouped:
-                    continue
-                f.write(f"{g},#genre#\n")
-                for n, u in grouped.get(g, []):
-                    f.write(f"{n},{u}\n")
-                f.write("\n")
+                if g in grouped:
+                    f.write(f"{g},#genre#\n")
+                    for n,u in grouped[g]:
+                        f.write(f"{n},{u}\n")
+                    f.write("\n")
 
-        print(f"\n🎉 完成！共导出 {len(final)} 条有效链接")
+        print(f"\n🎉 完成！导出 {len(final)} 条链接")
         await browser.close()
 
-async def main_with_timeout():
+async def main():
     try:
-        await asyncio.wait_for(_main(), timeout=SCRIPT_TIMEOUT)
+        await asyncio.wait_for(main_core(), SCRIPT_TIMEOUT)
     except asyncio.TimeoutError:
-        print("❌ 脚本整体超时退出")
-        sys.exit(1)
+        print("❌ 脚本超时退出")
 
 if __name__ == "__main__":
-    asyncio.run(main_with_timeout())
+    asyncio.run(main())
