@@ -1,49 +1,39 @@
-name: IPTV 播放列表自动更新
+name: IPTV自动更新
 
 on:
   schedule:
-    - cron: '0 */2 * * *'  # 每2小时更新一次
-  workflow_dispatch:       # 允许手动点一下运行
+    - cron: '0 0,6,12,18 * * *'
+  workflow_dispatch:
 
 jobs:
-  build:
+  update:
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
-      - name: 检出代码
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
+      - uses: actions/checkout@v4
 
-      - name: 设置 Python
+      - name: 设置Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: 安装系统依赖
+      - name: 安装依赖
         run: |
           sudo apt update
-          sudo apt install -y libopencv-dev python3-opencv libatk-bridge2.0-0 libgtk-3-0 libx11-xcb1 libxcb-dri3-0 libdrm2 libgbm1 libasound2
-
-      - name: 安装 Python 库
-        run: |
-          pip install --upgrade pip
+          sudo apt install -y python3-opencv libopencv-dev
           pip install playwright opencv-python
-
-      - name: 安装浏览器
-        run: |
           python -m playwright install chromium --with-deps
 
-      - name: 运行 IPTV 提取脚本
+      - name: 运行脚本
         run: python main.py
 
-      - name: 提交更新到仓库
+      - name: 提交更新
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add iptv_channels.m3u iptv_channels.txt
           git diff --quiet && exit 0
-          git commit -m "自动更新 IPTV 源 [skip ci]"
+          git commit -m "自动更新IPTV源 [skip ci]"
           git push
