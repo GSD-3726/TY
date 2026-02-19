@@ -8,6 +8,7 @@ import asyncio
 import re
 import subprocess
 import sys
+import shutil
 from collections import defaultdict
 from pathlib import Path
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
@@ -92,6 +93,12 @@ CCTV_NAME_MAPPING = {
     "17": "农业农村",
     # 如需补充，请按格式添加
 }
+
+# -------------------------- 测速设置（新增）--------------------------------
+ENABLE_SPEED_TEST = True                      # 是否启用 ffmpeg 测速
+SPEED_TEST_CONCURRENCY = 5                    # 并发测速数（避免过大压力）
+SPEED_TEST_DURATION = 3                        # 每个链接测速时长（秒）
+KEEP_ON_SPEED_FAIL = False                     # 测速失败时是否保留链接（False=丢弃，True=保留但排在最后）
 
 # -------------------------- 负载控制（减轻服务器压力）----------------------
 DELAY_BETWEEN_IPS = 3.0                      # 处理完一个 IP 后等待秒数
@@ -239,9 +246,54 @@ async def robust_click(locator, timeout=10000, description="元素"):
             print(f"❌ {description} 所有点击方式均失败: {e2}")
             return False
 
+# ---------- 新增：ffmpeg 测速函数 ----------
+async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semaphore):
+    """使用 ffmpeg 测试单个链接的下载速度，返回 (url, group, name, speed) 或 None"""
+    async with semaphore:
+        cmd = [
+            'ffmpeg',
+            '-i', url,
+            '-t', str(SPEED_TEST_DURATION),
+            '-f', 'null',
+            '-',
+            '-loglevel', 'error',
+            '-stats'
+        ]
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        try:
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=SPEED_TEST_DURATION + 5)
+        except asyncio.TimeoutError:
+            process.kill()
+            await process.wait()
+            return None
+        if process.returncode != 0:
+            return None
+        # 解析 stderr 获取 speed=...x
+        stderr_text = stderr.decode('utf-8', errors='ignore')
+        lines = stderr_text.splitlines()
+        speed = None
+        for line in reversed(lines):
+            match = re.search(r'speed=\s*([\d.]+)x', line)
+            if match:
+                speed = float(match.group(1))
+                break
+        if speed is None:
+            return None
+        return (url, group, name, speed)
+
 # ---------- 主流程 ----------
 async def main():
     ensure_browser_installed()
+
+    # 检查 ffmpeg 是否可用（如果启用了测速）
+    if ENABLE_SPEED_TEST:
+        if shutil.which('ffmpeg') is None:
+            print("⚠️ 系统中未找到 ffmpeg，测速功能已自动禁用。")
+            ENABLE_SPEED_TEST = False
 
     async with async_playwright() as p:
         browser = await getattr(p, BROWSER_TYPE).launch(**LAUNCH_ARGS)
@@ -402,7 +454,7 @@ async def main():
 
         print(f"\n📊 原始条目数：{len(raw_entries)}")
 
-        # ----- 6. 分组、去重、限制链接数量 -----
+        # ----- 6. 分组、去重 -----
         channel_urls = defaultdict(list)
         seen_set = set() if ENABLE_DEDUPLICATION else None
 
@@ -414,18 +466,57 @@ async def main():
                 seen_set.add(key)
             channel_urls[(group, name)].append(url)
 
+        # ----- 7. 测速（新增）-----
+        if ENABLE_SPEED_TEST:
+            print("🚀 开始测速（并发数 {}，每个链接 {} 秒）...".format(SPEED_TEST_CONCURRENCY, SPEED_TEST_DURATION))
+            semaphore = asyncio.Semaphore(SPEED_TEST_CONCURRENCY)
+            tasks = []
+            # 为每个链接创建测速任务
+            for (group, name), urls in channel_urls.items():
+                for url in urls:
+                    tasks.append(test_speed(url, group, name, semaphore))
+            # 并发执行
+            results = await asyncio.gather(*tasks)
+            # 按频道分组结果
+            speed_map = defaultdict(list)
+            for res in results:
+                if res is None:
+                    continue
+                url, group, name, speed = res
+                speed_map[(group, name)].append((url, speed))
+            # 每个频道按速度排序，取前 MAX_LINKS_PER_CHANNEL 个
+            new_channel_urls = defaultdict(list)
+            for (group, name), items in speed_map.items():
+                items.sort(key=lambda x: x[1], reverse=True)
+                for url, speed in items[:MAX_LINKS_PER_CHANNEL] if MAX_LINKS_PER_CHANNEL > 0 else items:
+                    new_channel_urls[(group, name)].append(url)
+                # 可选：如果希望保留测速失败的链接（KEEP_ON_SPEED_FAIL = True），
+                # 则需要将原 channel_urls 中未出现在 speed_map 中的链接也加入，但速度视为最慢
+                # 这里为简单起见，不实现该选项，因为测速失败通常意味着链接不可用。
+            channel_urls = new_channel_urls
+            print(f"✅ 测速完成，剩余 {sum(len(v) for v in channel_urls.values())} 个链接")
+        else:
+            # 未启用测速：简单截取前 MAX_LINKS_PER_CHANNEL 个
+            new_channel_urls = defaultdict(list)
+            for (group, name), urls in channel_urls.items():
+                for url in urls[:MAX_LINKS_PER_CHANNEL] if MAX_LINKS_PER_CHANNEL > 0 else urls:
+                    new_channel_urls[(group, name)].append(url)
+            channel_urls = new_channel_urls
+
+        # 生成 limited_entries
         limited_entries = []
         for (group, name), urls in channel_urls.items():
-            for url in urls[:MAX_LINKS_PER_CHANNEL] if MAX_LINKS_PER_CHANNEL > 0 else urls:
+            for url in urls:
                 limited_entries.append((group, name, url))
 
         print(f"✅ 每个频道最多保留 {MAX_LINKS_PER_CHANNEL} 个链接，剩余 {len(limited_entries)} 条")
 
+        # 按组归类
         grouped = defaultdict(list)
         for group, name, url in limited_entries:
             grouped[group].append((name, url))
 
-        # ----- 7. 各组内排序 -----
+        # ----- 8. 各组内排序 -----
         # 央视频道按数字排序（从标准化名称中提取数字）
         CCTV_GROUP = next((g for g in grouped.keys() if "央视" in g or "cctv" in g.lower()), None)
         if CCTV_GROUP:
@@ -449,7 +540,7 @@ async def main():
             if g != CCTV_GROUP:
                 grouped[g].sort(key=lambda x: x[0])
 
-        # ----- 8. 生成播放列表 -----
+        # ----- 9. 生成播放列表 -----
         m3u_path = OUTPUT_DIR / OUTPUT_M3U_FILENAME
         with open(m3u_path, "w", encoding="utf-8") as f:
             f.write("#EXTM3U\n")
