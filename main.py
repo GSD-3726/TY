@@ -351,7 +351,7 @@ async def main_core():
 
         # 点击开始按钮
         try:
-            await page.locator("button").filter(has_text="开始").first.click(timeout=10000)
+            await page.locator("button").filter(has_text="开始提取").first.click(timeout=10000)
             await asyncio.sleep(DELAY_AFTER_CLICK)
             print("✅ 已点击开始提取")
         except:
