@@ -287,6 +287,7 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
 
 # ---------- 主流程 ----------
 async def main():
+    global ENABLE_SPEED_TEST  # 修复 UnboundLocalError
     ensure_browser_installed()
 
     # 检查 ffmpeg 是否可用（如果启用了测速）
