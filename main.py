@@ -22,7 +22,6 @@ try:
     TQDM_AVAILABLE = True
 except ImportError:
     TQDM_AVAILABLE = False
-    # 简易进度条替代
     class tqdm:
         def __init__(self, *args, **kwargs):
             self.total = kwargs.get('total', 0)
@@ -31,7 +30,6 @@ except ImportError:
             self.n = 0
         def update(self, n=1):
             self.n += n
-            print(f"\r{self.desc}: {self.n}/{self.total} {self.unit}", end='')
         def close(self):
             print()
         def __enter__(self):
@@ -111,32 +109,31 @@ SPEED_TEST_VERBOSE = False                                                      
 # 2. 测速时长（仅对非 m3u8 链接生效）
 SPEED_TEST_DURATION = int(os.getenv("SPEED_TEST_DURATION", "2"))                # 下载测速时长（秒）
 
-# 3. TS 分片测速配置（仅对 m3u8 链接生效）
+# 3. TS 分片测速配置（仅对 m3u8 生效）
 TS_SAMPLE_COUNT = int(os.getenv("TS_SAMPLE_COUNT", "3"))                        # 每个 m3u8 下载的 TS 分片数量
 TS_DOWNLOAD_TIMEOUT = int(os.getenv("TS_DOWNLOAD_TIMEOUT", "1"))               # 单个分片下载超时（秒）
 
 # 4. 速度过滤阈值（单位：Mbps）
 ENABLE_SPEED_FACTOR_FILTER = True
-MIN_SPEED_FACTOR = float(os.getenv("MIN_SPEED_FACTOR", "1.5"))                  # 最小下载速率（Mbps），低于此值将被过滤
+MIN_SPEED_FACTOR = float(os.getenv("MIN_SPEED_FACTOR", "1.5"))                  # 最小下载速率（Mbps）
 
-# 5. 分辨率筛选（只对能提取到分辨率的 m3u8 生效）
+# 5. 分辨率筛选
 ENABLE_RESOLUTION_FILTER = True
 MIN_RESOLUTION_WIDTH = 1920      # 最小宽度
 MIN_RESOLUTION_HEIGHT = 1080     # 最小高度
 
-# 当没有符合分辨率的链接时，是否仍然保留速度最快的链接（True=保留）
 FALLBACK_TO_SPEED_WHEN_NO_RESOLUTION = True
 
 # ====================== 负载控制 ======================
-DELAY_BETWEEN_IPS = float(os.getenv("DELAY_BETWEEN_IPS", "3.0"))    # 处理两个 IP 之间的延迟（秒）
-DELAY_AFTER_CLICK = float(os.getenv("DELAY_AFTER_CLICK", "0.5"))    # 点击后的短暂等待
-MAX_CHANNELS_PER_IP = int(os.getenv("MAX_CHANNELS_PER_IP", "0"))    # 每个 IP 最多提取的频道数（0 表示不限制）
+DELAY_BETWEEN_IPS = float(os.getenv("DELAY_BETWEEN_IPS", "3.0"))    # 处理两个 IP 之间的延迟
+DELAY_AFTER_CLICK = float(os.getenv("DELAY_AFTER_CLICK", "0.5"))    # 点击后等待
+MAX_CHANNELS_PER_IP = int(os.getenv("MAX_CHANNELS_PER_IP", "0"))    # 每个IP最多提取频道数
 
 # ====================== 脚本全局超时 ======================
-SCRIPT_TIMEOUT = int(os.getenv("SCRIPT_TIMEOUT", "1800"))           # 脚本整体最大运行时间（秒）
+SCRIPT_TIMEOUT = int(os.getenv("SCRIPT_TIMEOUT", "1800"))           # 脚本最大运行时间
 
 # ============================================================================
-# 以下为核心代码，非必要请勿修改
+# 核心代码
 # ============================================================================
 
 IP_PATTERN = re.compile(r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$')
@@ -282,9 +279,7 @@ async def test_speed_ts(url: str) -> Tuple[Optional[float], Optional[int], Optio
 
             speed_mbps = (total_bytes / total_time) * 8 / 1_000_000
             return speed_mbps, width, height
-    except Exception as e:
-        if SPEED_TEST_VERBOSE:
-            print(f"TS测速异常 {url}: {e}")
+    except Exception:
         return None, None, None
 
 async def test_speed_direct(url: str, duration: int) -> Optional[float]:
@@ -309,9 +304,7 @@ async def test_speed_direct(url: str, duration: int) -> Optional[float]:
                 return None
             speed_mbps = (total_bytes / elapsed) * 8 / 1_000_000
             return speed_mbps
-    except Exception as e:
-        if SPEED_TEST_VERBOSE:
-            print(f"直接测速异常 {url}: {e}")
+    except Exception:
         return None
 
 async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semaphore) -> Optional[Tuple[str, str, str, float, bool]]:
@@ -340,9 +333,10 @@ async def test_speed(url: str, group: str, name: str, semaphore: asyncio.Semapho
             resolution_ok = FALLBACK_TO_SPEED_WHEN_NO_RESOLUTION if ENABLE_RESOLUTION_FILTER else True
             return (url, group, name, speed_mbps, resolution_ok)
 
+# ====================== 【简化：只输出 10% 20% 30%...100%】=======================
 async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
     total = sum(len(v) for v in channel_urls.values())
-    print(f"🚀 开始测速 + 分辨率过滤，共 {total} 条链接")
+    print(f"🚀 开始测速，共 {total} 条链接")
 
     sem = asyncio.Semaphore(SPEED_TEST_CONCURRENCY)
     tasks = []
@@ -351,13 +345,20 @@ async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict
             tasks.append(test_speed(u, g, n, sem))
 
     results = []
-    # 使用进度条显示测速进度
-    with tqdm(total=len(tasks), desc="测速进度", unit="条") as pbar:
-        for task in asyncio.as_completed(tasks):
-            res = await task
-            if res:
-                results.append(res)
-            pbar.update(1)
+    finished = 0
+    printed = set()
+
+    for task in asyncio.as_completed(tasks):
+        res = await task
+        if res:
+            results.append(res)
+        finished += 1
+
+        pct = (finished / len(tasks)) * 100
+        for step in [10,20,30,40,50,60,70,80,90,100]:
+            if pct >= step and step not in printed:
+                print(f"测速进度：{step}%")
+                printed.add(step)
 
     speed_map = defaultdict(list)
     for r in results:
@@ -374,7 +375,7 @@ async def run_speed_test(channel_urls: Dict[Tuple[str, str], List[str]]) -> Dict
             final = [u for u, s, ok in items][:MAX_LINKS_PER_CHANNEL]
         out[key] = final
 
-    print(f"✅ 测速完成，最终保留 {sum(len(v) for v in out.values())} 条")
+    print(f"✅ 测速完成，保留 {sum(len(v) for v in out.values())} 条有效链接")
     return out
 
 # ====================== IP 提取逻辑 ===============================
@@ -425,12 +426,14 @@ async def extract_from_ip(page, row, ip_text: str) -> List[Tuple[str, str, str]]
         entries.append((group, final_name, link))
     return entries
 
-# ====================== 等待 IP 元素的辅助函数 ======================
-
-async def wait_for_ip_elements(page, max_retries=2, timeout=120000):
-    for attempt in range(max_retries):
+# ====================== 等待 IP：点击后等30秒，没数据再等30秒 ======================
+async def wait_for_ip_elements(page, max_retries=2):
+    for attempt in range(2):
+        print(f"⏳ 第 {attempt+1} 次等待：30 秒后获取数据")
+        await asyncio.sleep(30)
+        
         try:
-            await page.wait_for_function("""
+            ok = await page.wait_for_function("""
                 () => {
                     const elements = document.querySelectorAll('div.item-title');
                     for (let el of elements) {
@@ -438,24 +441,13 @@ async def wait_for_ip_elements(page, max_retries=2, timeout=120000):
                     }
                     return false;
                 }
-            """, timeout=timeout)
-            print(f"✅ IP 元素已出现 (尝试 {attempt+1})")
-            return True
+            """, timeout=5000)
+            if ok:
+                print("✅ IP 数据已加载")
+                return True
         except Exception:
-            print(f"⏳ 等待 IP 元素超时 (尝试 {attempt+1}/{max_retries})")
-            screenshot_path = SCREENSHOT_DIR / f"timeout_attempt_{attempt+1}.png"
-            await page.screenshot(path=screenshot_path, full_page=True)
-            print(f"📸 已保存截图: {screenshot_path}")
-            if attempt == max_retries - 1:
-                raise
-            print("🔄 尝试重新点击开始按钮...")
-            if START_SELECTOR:
-                btn = page.locator(START_SELECTOR).first
-                await robust_click(btn, description="开始按钮")
-                await asyncio.sleep(DELAY_AFTER_CLICK * 2)
-            else:
-                print("⚠️ 未找到开始按钮选择器，无法重试")
-                raise
+            print(f"⚠️ 第 {attempt+1} 次未获取到数据")
+    print("❌ 两次等待后仍无数据，继续执行")
     return False
 
 # ====================== 主流程 ===============================
@@ -483,25 +475,23 @@ async def _main():
             if await elem.count() > 0:
                 await robust_click(elem, description="引擎搜索")
                 await asyncio.sleep(DELAY_AFTER_CLICK)
-                print("✅ 点击了引擎搜索")
-            else:
-                print("⚠️ 未找到引擎搜索按钮，可能已处于正确页面")
+                print("✅ 点击引擎搜索")
 
         if MCAST_SELECTOR:
             tab = page.locator(MCAST_SELECTOR).first
             await tab.wait_for(state="attached", timeout=15000)
             await robust_click(tab, description="组播提取")
             await asyncio.sleep(DELAY_AFTER_CLICK)
-            print("✅ 点击了组播提取标签")
+            print("✅ 点击组播提取")
 
         if START_SELECTOR:
             btn = page.locator(START_SELECTOR).first
-            await robust_click(btn, description="开始按钮")
+            await robust_click(btn, description="开始提取")
             await asyncio.sleep(DELAY_AFTER_CLICK)
-            print("✅ 点击了开始按钮")
+            print("✅ 点击开始提取")
 
-        print("⏳ 等待 IP 元素加载...")
-        await wait_for_ip_elements(page, max_retries=2, timeout=120000)
+        print("⏳ 等待数据加载（30s + 30s）...")
+        await wait_for_ip_elements(page)
 
         rows = page.locator("div.ios-list-item").filter(has_text="频道:")
         total_ips = await rows.count()
@@ -530,7 +520,7 @@ async def _main():
                 seen.add(k)
             channel_map[(g, n)].append(u)
 
-        print(f"📊 去重后共有 {len(channel_map)} 个频道，{sum(len(v) for v in channel_map.values())} 条链接")
+        print(f"📊 去重后：{len(channel_map)} 个频道，{sum(len(v) for v in channel_map.values())} 条链接")
 
         if ENABLE_SPEED_TEST and channel_map:
             channel_map = await run_speed_test(channel_map)
@@ -562,7 +552,7 @@ async def _main():
                 if g not in grouped:
                     continue
                 f.write(f"{g},#genre#\n")
-                for n, u in grouped[g]:
+                for n, u in grouped.get(g, []):
                     f.write(f"{n},{u}\n")
                 f.write("\n")
 
