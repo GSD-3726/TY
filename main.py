@@ -26,7 +26,7 @@ except ImportError:
         def __init__(self, *args, **kwargs):
             self.total = kwargs.get('total', 0)
             self.desc = kwargs.get('desc', '')
-            self.unit = kwargs.get('unit', 'it')
+            self.unit = kwargs.get('it', 'it')
             self.n = 0
         def update(self, n=1):
             self.n += n
@@ -52,11 +52,14 @@ PAGE_LOAD_TIMEOUT       = 60000                        # 页面加载超时（�
 OUTPUT_M3U_FILENAME     = "iptv_channels.m3u"          # 输出m3u文件名
 OUTPUT_TXT_FILENAME     = "iptv_channels.txt"          # 输出txt文件名
 
+# 每个频道最多保留几条链接
+MAX_LINKS_PER_CHANNEL   = 10                           # ← 修复：移到全局配置里
+
 # 测速总开关
 ENABLE_SPEED_TEST       = True                         # 是否启用测速
 
 # 测速并发与超时
-SPEED_TEST_CONCURRENCY  = 15                        # 同时测速数量
+SPEED_TEST_CONCURRENCY  = 15                           # 同时测速数量
 SPEED_TEST_TIMEOUT      = 2480                         # 测速整体超时（秒）
 SPEED_TEST_VERBOSE      = False                        # 是否打印详细错误
 
@@ -134,7 +137,7 @@ CCTV_NAME_MAPPING = {
 # 核心代码（以下全部不用改）
 # ============================================================================
 
-IP_PATTERN = re.compile(r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$')
+IP_PATTERN = re.compile(r'^(?:(?:25[0-5]|2-4[0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2-4[0-9]|[01]?[0-9][0-9]?)$')
 CCTV_PATTERN = re.compile(r'(cctv)[-\s]?(\d{1,3})', re.IGNORECASE)
 CETV_PATTERN = re.compile(r'(cetv)[-\s]?(\d)', re.IGNORECASE)
 RESOLUTION_PATTERN = re.compile(r'(\d+)x(\d+)')
