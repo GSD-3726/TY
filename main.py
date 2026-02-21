@@ -70,7 +70,7 @@ TS_DOWNLOAD_TIMEOUT     = 2                            # 单个ts下载超时(�
 
 # 速度过滤（Mbps）
 ENABLE_SPEED_FACTOR_FILTER = True                     # 启用最低速度限制
-MIN_SPEED_FACTOR        = 1.5                          # 最小速度要求
+MIN_SPEED_FACTOR        = 2.0                          # 最小速度要求
 
 # 分辨率过滤
 ENABLE_RESOLUTION_FILTER = True                        # 启用分辨率过滤
