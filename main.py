@@ -26,20 +26,20 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 TARGET_URL              = "https://iptv.809899.xyz"
 HEADLESS                = True
 BROWSER_TYPE            = "chromium"
-MAX_IPS                 = 5
+MAX_IPS                 = 8
 PAGE_LOAD_TIMEOUT       = 120000
 
 # 输出文件
-OUTPUT_M3U_FILENAME     = "iptv.m3u"
-OUTPUT_TXT_FILENAME     = "iptv.txt"
+OUTPUT_M3U_FILENAME     = "iptv_channels.m3u"
+OUTPUT_TXT_FILENAME     = "iptv_channels.txt"
 MAX_LINKS_PER_CHANNEL   = 3
 
 # 测速总开关
 ENABLE_SPEED_TEST       = True
 
 # 测速并发（越低越稳）
-SPEED_TEST_CONCURRENCY  = 2
-SPEED_TEST_TIMEOUT      = 180
+SPEED_TEST_CONCURRENCY  = 10
+SPEED_TEST_TIMEOUT      = 980
 SPEED_TEST_VERBOSE      = False
 
 # 测速强度
