@@ -29,7 +29,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 
 # 1. 网站与浏览器设置 --------------------------------------------------------
 TARGET_URL = "https://iptv.809899.xyz"          # 目标网站地址
-HEADLESS = False                                  # 【建议】先设为 False，看浏览器是否正常点击
+HEADLESS = True                                  # 【建议】先设为 False，看浏览器是否正常点击
 BROWSER_TYPE = "chromium"                        # 浏览器类型
 MAX_SOURCES = 1                                  # 最多处理前N个源（避免耗时太长）
 PAGE_LOAD_TIMEOUT = 180000                       # 页面加载超时(毫秒)
