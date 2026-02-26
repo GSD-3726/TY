@@ -372,8 +372,7 @@ async def run_speed_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[
 
     # 2. 准备数据结构
     result_map = defaultdict(list)  # 最终结果 {(group, name): [(url, speed), ...]}
-    tasks = []                      # 需要进行测速的任务列表
-    task_metadata = []              # 测速任务对应的元数据 (group, name, url)
+    pending_tasks = []              # 需要进行测速的元数据列表 (group, name, url)
 
     # 3. 分流：缓存命中 vs 需要测速
     for (group, name), urls in channel_map.items():
@@ -398,29 +397,29 @@ async def run_speed_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[
                     if passed_filter:
                         result_map[(group, name)].append((url, speed))
             else:
-                # --- 缓存未命中，加入测速队列 ---
-                tasks.append(test_speed_task(url, sem, session))
-                task_metadata.append((group, name, url))
+                # --- 缓存未命中，加入待测试队列 ---
+                pending_tasks.append((group, name, url))
 
-    logger.info(f"缓存命中 {len([item for sublist in result_map.values() for item in sublist])} 条，待测速 {len(tasks)} 条")
+    logger.info(f"缓存命中 {len([item for sublist in result_map.values() for item in sublist])} 条，待测速 {len(pending_tasks)} 条")
 
     # 4. 执行并发测速（仅针对未命中缓存的链接）
-    if tasks:
+    if pending_tasks:
         conn = aiohttp.TCPConnector(ssl=ENABLE_SSL_VERIFY)
         async with aiohttp.ClientSession(connector=conn) as session:
             sem = asyncio.Semaphore(SPEED_TEST_CONCURRENCY)
-            # 重新创建任务（因为session需要在context内）
-            # 修正：上面的tasks列表创建时session还没定义，这里需要重新生成tasks
+            
+            # 构建协程任务列表
             tasks = []
-            for (group, name, url) in task_metadata:
+            for (group, name, url) in pending_tasks:
                 tasks.append(test_speed_task(url, sem, session))
             
+            # 等待所有测速完成
             speed_test_results = await asyncio.gather(*tasks)
 
             # 5. 处理测速结果并更新缓存
             for i, res in enumerate(speed_test_results):
                 url, ok, speed, resolution = res
-                group, name, _ = task_metadata[i]
+                group, name, _ = pending_tasks[i]
                 
                 # 记录到新缓存（无论是否达标，都记录以避免下次重测）
                 new_cache_entries[url] = {
