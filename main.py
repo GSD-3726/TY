@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
 """
-IPTV 组播/域名源提取工具 - 修复点击弹窗版
-修改说明：
-1. 移除了对列表图标的依赖，直接点击整行
-2. 强化了模态框(弹窗)的等待和提取逻辑
-3. 增加了关闭弹窗的步骤，防止遮挡
-4. 保留所有中文说明和实时日志功能
+IPTV 组播/域名源提取工具 - 终极调试版
+新增：强制点击开始、智能等待、自动截图、HTML 日志
 """
 
 import asyncio
@@ -16,82 +12,40 @@ import sys
 import time
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
-from urllib.parse import urljoin
-import functools
 
 import aiohttp
-from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
+from playwright.async_api import async_playwright
 
 # ============================================================================
-# ======================== 【配置区 · 全中文说明】 =============================
+# ======================== 【配置区】 =========================================
 # ============================================================================
 
-# 1. 网站与浏览器设置 --------------------------------------------------------
-TARGET_URL = "https://iptv.809899.xyz"          # 目标网站地址
-HEADLESS = True                                  # 【建议】先设为 False，看浏览器是否正常点击
-BROWSER_TYPE = "chromium"                        # 浏览器类型
-MAX_SOURCES = 1                                  # 最多处理前N个源（避免耗时太长）
-PAGE_LOAD_TIMEOUT = 180000                       # 页面加载超时(毫秒)
+TARGET_URL = "https://iptv.809899.xyz"
+HEADLESS = True  # 服务器保持 True
+MAX_WAIT_TIME = 120  # 最多等待数据加载多少秒
+MAX_SOURCES = 10
 
-# 2. 输出文件设置 ------------------------------------------------------------
-OUTPUT_M3U_FILENAME = "iptv_channels.m3u"        # 生成的M3U文件名
-OUTPUT_TXT_FILENAME = "iptv_channels.txt"        # 生成的TXT文件名
-MAX_LINKS_PER_CHANNEL = 5                         # 每个频道保留几个链接
+OUTPUT_M3U = "iptv_channels.m3u"
+OUTPUT_TXT = "iptv_channels.txt"
 
-# 3. 测速总开关 --------------------------------------------------------------
-ENABLE_SPEED_TEST = True                          # 是否进行速度测试 (False会快很多)
-SPEED_TEST_CONCURRENCY = 5                        # 同时测速的协程数
-MIN_STABLE_SPEED = 0.5                             # 最低要求速度(Mbps)
-
-# 4. 页面操作延迟 ------------------------------------------------------------
-DELAY_BETWEEN_SOURCES = 0.8                       # 处理完一个源后等待秒数
-DELAY_AFTER_CLICK = 0.5                           # 点击后等待弹窗加载
-
-# 5. 数据清洗 ----------------------------------------------------------------
-ENABLE_CHINESE_CLEAN = False                       # 是否只保留中文名 (建议False，防止误删)
-ENABLE_DEDUPLICATION = True                         # 是否去重
-CCTV_USE_MAPPING = True                             # 是否格式化CCTV名称
-
-# ============================================================================
-# ============================ 频道分类规则 ==================================
-# ============================================================================
-
-OUTPUT_DIR = Path(__file__).parent
-
-# 页面元素点击关键词
+# 页面文字配置 (尽量多列几个同义词)
 PAGE_CONFIG = {
-    "engine_search": ["引索搜索", "引擎搜索", "关键词搜索", "直播搜索"],
-    "multicast_tab": ["组播提取", "酒店提取"],
-    "start_button": ["开始播放", "开始搜索", "开始提取"],
+    "tab_names": ["组播提取", "酒店提取", "直播源", "组播源扫描"],
+    "start_names": ["开始播放", "开始搜索", "开始提取", "开始", "扫描", "一键获取"],
 }
 
-# 频道分类规则
 CATEGORY_RULES = [
-    {"name": "4K专区",      "keywords": ["4k"]},
-    {"name": "央视频道",    "keywords": ["cctv", "cetv", "中央"]},
-    {"name": "卫视频道",    "keywords": ["卫视", "凤凰", "tvb", "湖南", "浙江", "江苏", "东方"]},
-    {"name": "电影频道",    "keywords": ["电影", "影院", "chc"]},
-    {"name": "其他频道",    "keywords": []}, # 兜底
+    {"name": "央视频道", "keywords": ["cctv", "cetv", "中央"]},
+    {"name": "卫视频道", "keywords": ["卫视", "凤凰", "tvb", "湖南", "浙江", "江苏", "东方"]},
+    {"name": "其他频道", "keywords": []},
 ]
-
-GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "4K专区", "其他频道"]
-
-# CCTV名称映射
-CCTV_NAME_MAPPING = {
-    "1": "综合", "2": "财经", "3": "综艺", "4": "国际", "5": "体育",
-    "5+": "体育赛事", "6": "电影", "7": "国防军事", "8": "电视剧",
-    "9": "纪录", "10": "科教", "11": "戏曲", "12": "社会与法",
-    "13": "新闻", "14": "少儿", "15": "音乐", "16": "奥林匹克",
-    "17": "农业农村",
-}
+GROUP_ORDER = ["央视频道", "卫视频道", "其他频道"]
 
 # ============================================================================
-# ============================= 日志配置 (实时版) =============================
+# ============================= 日志与初始化 =================================
 # ============================================================================
 
 class UnbufferedStreamHandler(logging.StreamHandler):
-    """强制每次输出后立即刷新，解决日志延迟"""
     def emit(self, record):
         super().emit(record)
         self.flush()
@@ -99,19 +53,16 @@ class UnbufferedStreamHandler(logging.StreamHandler):
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        UnbufferedStreamHandler(sys.stdout),
-        logging.FileHandler('iptv_extractor.log', encoding='utf-8')
-    ]
+    handlers=[UnbufferedStreamHandler(sys.stdout), logging.FileHandler('iptv_extractor.log', encoding='utf-8')]
 )
-logger = logging.getLogger('IPTV-Extractor')
+logger = logging.getLogger('IPTV')
+
+# 确保截图目录存在
+Path("debug").mkdir(exist_ok=True)
 
 # ============================================================================
-# ============================= 工具函数 =====================================
+# ============================= 核心工具 =====================================
 # ============================================================================
-
-CCTV_PATTERN = re.compile(r'(cctv)[-\s]?(\d{1,3})', re.IGNORECASE)
-RESOLUTION_PATTERN = re.compile(r'(\d+)x(\d+)')
 
 def build_classifier():
     compiled = []
@@ -132,169 +83,131 @@ def build_classifier():
 
 classify_channel = build_classifier()
 
-def normalize_cctv(name: str) -> str:
-    name_lower = name.lower()
-    if "cctv5+" in name_lower:
-        return "CCTV-5+体育赛事" if CCTV_USE_MAPPING else "CCTV5+"
-    cctv_match = CCTV_PATTERN.search(name_lower)
-    if cctv_match:
-        num = cctv_match.group(2)
-        if CCTV_USE_MAPPING and num in CCTV_NAME_MAPPING:
-            return f"CCTV-{num}{CCTV_NAME_MAPPING[num]}"
-        return f"CCTV-{num}"
-    return name
-
-def build_selector(text_list, element_type="button"):
-    if not text_list: return ""
-    if len(text_list) == 1: return f"{element_type}:has-text('{text_list[0]}')"
-    pattern = "|".join(re.escape(t) for t in text_list)
-    return f"{element_type}:text-matches('{pattern}')"
-
-ENGINE_SELECTOR = build_selector(PAGE_CONFIG["engine_search"], "a,button,div")
-MCAST_SELECTOR = build_selector(PAGE_CONFIG["multicast_tab"], "div,button")
-START_SELECTOR = build_selector(PAGE_CONFIG["start_button"], "button")
-
-# ============================================================================
-# ========================= 核心交互逻辑 (修复区) =============================
-# ============================================================================
-
-async def robust_click(locator, timeout=5000):
-    """强制点击，多种方法尝试"""
+async def take_screenshot(page, name):
+    """保存截图用于调试"""
     try:
-        await locator.scroll_into_view_if_needed(timeout=2000)
-        await asyncio.sleep(0.1)
-        await locator.click(force=True, timeout=timeout)
-        return True
-    except:
+        path = f"debug/{name}.png"
+        await page.screenshot(path=path, full_page=True)
+        logger.info(f"  [调试] 截图已保存: {path}")
+    except Exception as e:
+        logger.debug(f"截图失败: {e}")
+
+async def robust_click(page, text_list, element_type="*", name="按钮"):
+    """尝试点击包含任意指定文本的元素"""
+    for text in text_list:
         try:
-            await locator.evaluate("el => el.click()")
-            return True
-        except:
-            return False
+            # 构造选择器：尝试多种可能
+            selector = f"{element_type}:has-text('{text}')"
+            locator = page.locator(selector).first
+            if await locator.count() > 0:
+                logger.info(f"  尝试点击: {name} ({text})")
+                await locator.scroll_into_view_if_needed(timeout=5000)
+                await locator.click(force=True, timeout=5000)
+                return True
+        except Exception as e:
+            logger.debug(f"点击 {text} 失败: {e}")
+            continue
+    return False
 
-async def close_modal(page):
-    """尝试关闭弹窗，防止遮挡下一个点击"""
-    try:
-        # 尝试按 ESC 键，这是最通用的方法
-        await page.keyboard.press("Escape")
-        await asyncio.sleep(0.2)
-        # 如果有明显的关闭按钮也可以点一下
-        close_btn = page.locator(".modal-header button, .btn-close, [aria-label='Close']").first
-        if await close_btn.count() > 0:
-            await close_btn.click(timeout=1000)
-    except:
-        pass
+async def wait_and_find_rows(page):
+    """
+    【核心】智能等待数据加载
+    循环检查页面，直到找到列表或超时
+    """
+    logger.info("等待数据加载中 (最多120秒)...")
+    
+    start_time = time.time()
+    
+    while time.time() - start_time < MAX_WAIT_TIME:
+        # 1. 先截图看看当前状态
+        await take_screenshot(page, "current_state")
+        
+        # 2. 尝试多种选择器查找列表项
+        # 优先级 1: 特定的 class
+        rows = page.locator("div.ios-list-item")
+        count = await rows.count()
+        if count > 0:
+            logger.info(f"成功！通过 ios-list-item 找到 {count} 个源")
+            return rows
+
+        # 优先级 2: 找包含 IP 格式的文本行 (通用)
+        # 这里我们用 evaluate 检查页面 HTML 里有没有东西
+        has_content = await page.evaluate('''()=>{
+            const bodyText = document.body.innerText;
+            // 检查是否有 IP 或 "频道" 字样
+            return /\\d+\\.\\d+\\.\\d+\\.\\d+|频道:|\\.blog/.test(bodyText);
+        }''')
+        
+        if has_content:
+            logger.info("检测到页面有数据，但选择器没匹配到。尝试通用选择器...")
+            # 尝试所有看起来像列表项的 div
+            all_divs = page.locator("div[class*='item'], div[class*='list']")
+            if await all_divs.count() > 5: # 只要有超过5个类似div，就认为是它了
+                return all_divs
+
+        # 3. 如果还没找到，尝试再点一次“开始”
+        logger.info("  数据未出现，尝试点击开始按钮...")
+        await robust_click(page, PAGE_CONFIG["start_names"], name="开始")
+        
+        await asyncio.sleep(5) # 每轮等5秒
+
+    logger.error("等待超时，页面上依然没有找到数据")
+    return None
+
+# ============================================================================
+# ============================= 提取逻辑 =====================================
+# ============================================================================
 
 async def extract_from_modal(page):
-    """
-    从弹窗中提取真正的链接
-    假设结构：.modal-dialog -> .item-content -> .item-title (频道名) + .item-subtitle (链接)
-    """
+    """从弹窗提取链接"""
     entries = []
     try:
-        # 1. 等待弹窗出现
-        modal = page.locator(".modal-dialog").first
-        await modal.wait_for(state="visible", timeout=8000)
-        await asyncio.sleep(0.5) # 稍作等待，让内容渲染
+        # 等待弹窗
+        modal = page.locator(".modal-dialog, div[role='dialog']").first
+        await modal.wait_for(state="visible", timeout=10000)
+        await asyncio.sleep(1)
         
-        # 2. 获取所有频道项
-        items = modal.locator(".item-content")
+        # 获取所有项
+        items = modal.locator(".item-content, div[class*='item']")
         total = await items.count()
-        
-        if total == 0:
-            # 备选：如果没有 .item-content，试试找所有带 title/subtitle 的 div
-            items = modal.locator("div[class*='item']")
-            total = await items.count()
-
-        logger.info(f"  -> 弹窗加载成功，发现 {total} 个频道")
+        logger.info(f"  -> 弹窗打开，发现 {total} 项")
 
         for i in range(total):
             try:
                 item = items.nth(i)
+                # 简单粗暴：获取这个区域的所有文本，然后正则找链接
+                text_content = await item.inner_text(timeout=2000)
                 
-                # 提取名称
-                name_el = item.locator(".item-title").first
-                # 提取链接 (核心：链接在弹窗的 subtitle 里)
-                link_el = item.locator(".item-subtitle").first
+                # 正则提取 URL
+                # 匹配 http:// 或 https:// 开头的非空白字符
+                url_match = re.search(r'(https?://[^\s]+)', text_content)
                 
-                # 容错：如果取不到，尝试直接取所有文本然后正则找链接
-                name = await name_el.inner_text(timeout=1000)
-                link = await link_el.inner_text(timeout=1000)
+                if url_match:
+                    link = url_match.group(1)
+                    # 尝试提取名字（取链接前面的文本）
+                    # 简单处理：用换行符分割，第一行非链接文本当作名字
+                    name = f"频道{i+1}"
+                    lines = text_content.splitlines()
+                    for line in lines:
+                        line = line.strip()
+                        if line and not line.startswith("http") and len(line) < 50:
+                            name = line
+                            break
                 
-                name = name.strip()
-                link = link.strip()
-                
-                # 简单校验：必须包含链接协议
-                if not name or not link or not ("://" in link):
-                    continue
-                
-                # 分类
-                group = classify_channel(name)
-                if not group:
-                    group = "其他频道"
-                
-                # 名称美化
-                final_name = normalize_cctv(name) if group == "央视频道" else name
-                
-                entries.append((group, final_name, link))
+                    group = classify_channel(name)
+                    entries.append((group, name, link))
             except Exception as e:
-                # 单个频道失败不影响整体
                 continue
-                
     except Exception as e:
-        logger.debug(f"  -> 弹窗提取出错: {e}")
-    
+        logger.debug(f"弹窗提取失败: {e}")
     return entries
 
-# ============================================================================
-# ========================= 测速逻辑 (简化版) =================================
-# ============================================================================
-
-async def fetch_url(session: aiohttp.ClientSession, url: str, timeout: int):
+async def close_modal(page):
     try:
-        async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
-            if resp.status == 200:
-                return await resp.read()
+        await page.keyboard.press("Escape")
+        await asyncio.sleep(0.5)
     except:
         pass
-    return None
-
-async def test_simple_speed(session, url):
-    """简单测速：只看能不能连接，不测太细"""
-    try:
-        content = await fetch_url(session, url, 5)
-        if content:
-            # 简单通过
-            return True, 1.0
-    except:
-        pass
-    return False, 0.0
-
-async def run_speed_test_simple(channel_map):
-    if not ENABLE_SPEED_TEST:
-        return channel_map
-
-    conn = aiohttp.TCPConnector(ssl=False)
-    async with aiohttp.ClientSession(connector=conn) as session:
-        sem = asyncio.Semaphore(SPEED_TEST_CONCURRENCY)
-        
-        async def task(url):
-            async with sem:
-                ok, _ = await test_simple_speed(session, url)
-                return url if ok else None
-
-        final_map = {}
-        total = sum(len(v) for v in channel_map.values())
-        logger.info(f"开始简易测速，共 {total} 条...")
-        
-        for (group, name), urls in channel_map.items():
-            results = await asyncio.gather(*[task(u) for u in urls])
-            valid_urls = [u for u in results if u]
-            if valid_urls:
-                final_map[(group, name)] = valid_urls[:MAX_LINKS_PER_CHANNEL]
-        
-        logger.info(f"测速完成，保留 {sum(len(v) for v in final_map.values())} 条")
-        return final_map
 
 # ============================================================================
 # ============================= 主流程 =======================================
@@ -302,132 +215,115 @@ async def run_speed_test_simple(channel_map):
 
 async def main():
     async with async_playwright() as p:
+        logger.info("启动浏览器...")
         browser = await p.chromium.launch(
             headless=HEADLESS,
-            args=["--no-sandbox", "--disable-dev-shm-usage"]
+            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
         )
         ctx = await browser.new_context(viewport={"width": 1920, "height": 1080})
         page = await ctx.new_page()
 
+        all_entries = []
+
         try:
-            logger.info(f"正在访问 {TARGET_URL} ...")
-            await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT, wait_until="networkidle")
-            
-            # 稍微等待一下页面渲染，或者你可以手动点击一下Tab
+            # 1. 访问页面
+            logger.info(f"访问: {TARGET_URL}")
+            await page.goto(TARGET_URL, timeout=60000, wait_until="domcontentloaded")
+            await asyncio.sleep(3)
+            await take_screenshot(page, "01_after_load")
+
+            # 2. 尝试点击所有可能的 Tab
+            logger.info("尝试切换标签页...")
+            clicked_tab = await robust_click(page, PAGE_CONFIG["tab_names"], element_type="div,button,a", name="标签页")
             await asyncio.sleep(2)
+            await take_screenshot(page, "02_after_tab_click")
 
-            # 尝试自动点击切换 Tab (如果需要)
-            if MCAST_SELECTOR:
-                t = page.locator(MCAST_SELECTOR).first
-                if await t.count() > 0:
-                    logger.info("自动切换到目标标签页...")
-                    await robust_click(t)
-                    await asyncio.sleep(1)
-
-            # 【关键】定位所有列表项
-            # 只认 class="ios-list-item"，这是你提供的HTML里的准确类名
-            rows = page.locator("div.ios-list-item")
-            total_rows = await rows.count()
+            # 3. 【关键】智能等待并查找列表
+            rows = await wait_and_find_rows(page)
             
-            logger.info(f"页面扫描完成，共发现 {total_rows} 个源")
-
-            if total_rows == 0:
-                logger.error("未找到任何源！请检查：1. 是否在正确的页面？ 2. 是否需要手动点击'开始'？")
-                # 如果是无头模式，这里保持浏览器打开方便看
-                if not HEADLESS:
-                    await asyncio.sleep(1000)
+            if not rows:
+                logger.error("彻底失败，未找到任何列表。请查看 debug/ 文件夹下的截图！")
+                # 保存页面 HTML 源码供分析
+                html_content = await page.content()
+                with open("debug/page_source.html", "w", encoding="utf-8") as f:
+                    f.write(html_content)
+                logger.info("页面源码已保存至 debug/page_source.html")
                 return
 
-            process_count = min(total_rows, MAX_SOURCES)
-            all_entries = []
+            # 4. 开始遍历点击
+            total_count = await rows.count()
+            process_count = min(total_count, MAX_SOURCES)
+            logger.info(f"准备处理前 {process_count} 个源...")
 
             for i in range(process_count):
                 row = rows.nth(i)
                 
-                # 1. 获取源的名字 (用于显示进度)
+                # 获取源名称
                 source_name = f"源{i+1}"
                 try:
-                    title_el = row.locator("div.item-title").first
-                    source_name = await title_el.inner_text(timeout=1000)
+                    source_name = await row.locator("div.item-title").first.inner_text(timeout=1000)
                 except:
                     pass
                 
-                logger.info(f"[{i+1}/{process_count}] 正在处理: {source_name}")
+                logger.info(f"[{i+1}/{process_count}] 处理: {source_name}")
 
-                # 2. 【核心修复】直接点击这一行
-                # 不再找按钮，直接点击整行
-                click_ok = await robust_click(row)
+                # 点击行
+                try:
+                    await row.scroll_into_view_if_needed(timeout=3000)
+                    await row.click(force=True, timeout=5000)
+                except:
+                    try:
+                        await row.evaluate("el => el.click()")
+                    except:
+                        logger.warning("  点击失败，跳过")
+                        continue
+
+                await asyncio.sleep(1)
                 
-                if not click_ok:
-                    logger.warning("  -> 点击失败，跳过")
-                    continue
-
-                # 3. 等待弹窗并提取数据
+                # 提取
                 entries = await extract_from_modal(page)
-                
                 if entries:
-                    logger.info(f"  -> 成功获取 {len(entries)} 条链接")
+                    logger.info(f"  -> 收获 {len(entries)} 条")
                     all_entries.extend(entries)
-                else:
-                    logger.info(f"  -> 未获取到链接")
-
-                # 4. 关闭弹窗，准备下一个
-                await close_modal(page)
                 
-                # 间隔
-                await asyncio.sleep(DELAY_BETWEEN_SOURCES)
-
-            # 数据整理
-            logger.info(f"抓取结束，开始整理数据...")
-            
-            # 去重
-            channel_map = defaultdict(list)
-            seen = set()
-            for g, n, u in all_entries:
-                if ENABLE_DEDUPLICATION:
-                    key = (g, n, u)
-                    if key in seen: continue
-                    seen.add(key)
-                channel_map[(g,n)].append(u)
-
-            # 测速 (可选)
-            # channel_map = await run_speed_test_simple(channel_map)
-
-            # 生成文件
-            grouped = defaultdict(list)
-            for (g, n), urls in channel_map.items():
-                for u in urls[:MAX_LINKS_PER_CHANNEL]:
-                    grouped[g].append((n, u))
-
-            # 写 M3U
-            with open(OUTPUT_M3U_FILENAME, "w", encoding="utf-8") as f:
-                f.write("#EXTM3U\n")
-                for g in GROUP_ORDER:
-                    for n, u in grouped.get(g, []):
-                        f.write(f'#EXTINF:-1 group-title="{g}",{n}\n{u}\n')
-
-            # 写 TXT
-            with open(OUTPUT_TXT_FILENAME, "w", encoding="utf-8") as f:
-                for g in GROUP_ORDER:
-                    if g not in grouped: continue
-                    f.write(f"{g},#genre#\n")
-                    for n, u in grouped[g]:
-                        f.write(f"{n},{u}\n")
-                    f.write("\n")
-
-            total_final = sum(len(v) for v in grouped.values())
-            logger.info(f"===== 全部完成 =====")
-            logger.info(f"共导出 {total_final} 条链接")
-            logger.info(f"请查看文件: {OUTPUT_M3U_FILENAME}")
+                # 关闭
+                await close_modal(page)
+                await asyncio.sleep(0.5)
 
         except Exception as e:
-            logger.exception("运行出错")
+            logger.exception("发生严重错误")
         finally:
-            if HEADLESS:
-                await browser.close()
-            else:
-                logger.info("脚本结束，浏览器保持打开状态... (按 Ctrl+C 退出)")
-                await asyncio.sleep(10000) # 保持打开方便调试
+            await browser.close()
+
+        # 5. 生成文件
+        if not all_entries:
+            logger.warning("没有抓取到任何数据")
+            return
+
+        logger.info("整理数据并生成文件...")
+        
+        # 简单去重
+        seen = set()
+        unique = []
+        for g, n, u in all_entries:
+            key = (g, n, u)
+            if key not in seen:
+                seen.add(key)
+                unique.append((g, n, u))
+
+        # 分组
+        grouped = defaultdict(list)
+        for g, n, u in unique:
+            grouped[g].append((n, u))
+
+        # 写 M3U
+        with open(OUTPUT_M3U, "w", encoding="utf-8") as f:
+            f.write("#EXTM3U\n")
+            for g in GROUP_ORDER:
+                for n, u in grouped.get(g, []):
+                    f.write(f'#EXTINF:-1 group-title="{g}",{n}\n{u}\n')
+
+        logger.info(f"完成！共导出 {len(unique)} 条链接到 {OUTPUT_M3U}")
 
 if __name__ == "__main__":
     asyncio.run(main())
