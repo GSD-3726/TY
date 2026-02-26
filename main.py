@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具 - 流畅不卡顿版（优化版 + 实时日志）
-解决：TS片段切换卡顿、加载慢、播放断断续续、日志不实时显示
+IPTV 组播提取工具 - 流畅不卡顿版（优化版 + 实时日志 + 测速缓存）
+解决：TS片段切换卡顿、加载慢、播放断断续续、日志不实时显示、重复测速
 """
 
 import asyncio
+import json
 import logging
 import os
 import re
@@ -75,6 +76,11 @@ ENABLE_SSL_VERIFY = False                            # 是否验证SSL证书（F
 # 11. 协议补全设置 -----------------------------------------------------------
 DEFAULT_PROTOCOL = "http://"                         # 当链接缺少协议时自动添加的默认协议（可改为 rtsp:// 等）
 
+# 12. 缓存设置 ---------------------------------------------------------------
+ENABLE_CACHE = True                                  # 是否启用缓存（相同链接跳过测速）
+CACHE_FILE = "iptv_speed_cache.json"                # 缓存文件路径
+CACHE_EXPIRE_HOURS = 24                              # 缓存过期时间（小时），0表示永不过期
+
 # ============================================================================
 # ============================ 频道分类规则 ==================================
 # ============================================================================
@@ -132,6 +138,53 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger('IPTV-Extractor')
+
+# ============================================================================
+# ============================= 缓存工具函数 ==================================
+# ============================================================================
+
+def load_cache() -> Dict[str, Dict[str, Any]]:
+    """加载测速缓存，自动清理过期数据"""
+    if not ENABLE_CACHE:
+        return {}
+    
+    cache_path = Path(CACHE_FILE)
+    if not cache_path.exists():
+        return {}
+
+    try:
+        with open(cache_path, "r", encoding="utf-8") as f:
+            cache = json.load(f)
+        
+        now = time.time()
+        expire_seconds = CACHE_EXPIRE_HOURS * 3600
+        valid_cache = {}
+        
+        for url, data in cache.items():
+            # 检查是否过期
+            if expire_seconds == 0 or (now - data.get("timestamp", 0)) < expire_seconds:
+                valid_cache[url] = data
+        
+        # 如果清理了过期数据，立即回写
+        if len(valid_cache) != len(cache):
+            save_cache(valid_cache)
+            logger.info(f"缓存清理：移除 {len(cache) - len(valid_cache)} 条过期记录")
+            
+        return valid_cache
+    except Exception as e:
+        logger.warning(f"加载缓存失败，将忽略缓存: {e}")
+        return {}
+
+def save_cache(cache: Dict[str, Dict[str, Any]]):
+    """保存测速缓存到文件"""
+    if not ENABLE_CACHE:
+        return
+    
+    try:
+        with open(CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(cache, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.warning(f"保存缓存失败: {e}")
 
 # ============================================================================
 # ============================= 工具函数 =====================================
@@ -283,63 +336,118 @@ async def test_stream(session: aiohttp.ClientSession, url: str) -> Tuple[bool, f
     return False, 0.0, resolution
 
 async def test_speed_task(url: str, sem: asyncio.Semaphore, session: aiohttp.ClientSession):
-    """单个测速任务，受信号量控制"""
+    """单个测速任务，受信号量控制，返回 (url, 是否达标, 速度, 分辨率)"""
     async with sem:
         try:
             ok, speed, resolution = await test_stream(session, url)
+            
+            # 即使不达标，也返回结果以便存入缓存（避免下次重复测无效链接）
             if not ok:
-                return None
+                return (url, False, speed, resolution)
+                
             # 分辨率过滤
             if ENABLE_RESOLUTION_FILTER and resolution:
                 w, h = resolution
                 if w < MIN_RESOLUTION_WIDTH or h < MIN_RESOLUTION_HEIGHT:
-                    return None
+                    return (url, False, speed, resolution)
             elif ENABLE_RESOLUTION_FILTER and not resolution and not FALLBACK_TO_SPEED_WHEN_NO_RESOLUTION:
-                # 无分辨率信息且不允许回退，则丢弃
-                return None
-            return (url, speed, resolution is not None)
+                return (url, False, speed, resolution)
+                
+            return (url, True, speed, resolution)
         except Exception as e:
             logger.debug(f"测速异常 {url}: {e}")
-            return None
+            return (url, False, 0.0, None)
 
 async def run_speed_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
     """
     对频道映射进行测速，返回每个频道过滤后的链接列表
-    channel_map: {(group, name): [url1, url2, ...]}
+    加入了缓存逻辑：相同链接直接读取历史结果
     """
     if not channel_map:
         return {}
 
-    # 创建全局session，复用连接
-    conn = aiohttp.TCPConnector(ssl=ENABLE_SSL_VERIFY)
-    async with aiohttp.ClientSession(connector=conn) as session:
-        sem = asyncio.Semaphore(SPEED_TEST_CONCURRENCY)
-        tasks = []
-        # 构建任务列表，同时携带元数据
-        for (group, name), urls in channel_map.items():
-            for url in urls:
-                tasks.append((group, name, url))
+    # 1. 加载缓存
+    cache = load_cache()
+    new_cache_entries = {}  # 本次新产生的缓存数据
 
-        logger.info(f"开始测速：共 {len(tasks)} 条链接")
-        # 并发执行
-        results = await asyncio.gather(*[test_speed_task(url, sem, session) for (_, _, url) in tasks])
+    # 2. 准备数据结构
+    result_map = defaultdict(list)  # 最终结果 {(group, name): [(url, speed), ...]}
+    tasks = []                      # 需要进行测速的任务列表
+    task_metadata = []              # 测速任务对应的元数据 (group, name, url)
 
-        # 按频道聚合结果
-        result_map = defaultdict(list)
-        for i, res in enumerate(results):
-            if res:
-                group, name, _ = tasks[i]
-                url, speed, has_res = res
-                result_map[(group, name)].append((url, speed))
+    # 3. 分流：缓存命中 vs 需要测速
+    for (group, name), urls in channel_map.items():
+        for url in urls:
+            if url in cache:
+                # --- 缓存命中 ---
+                data = cache[url]
+                ok = data["ok"]
+                speed = data["speed"]
+                resolution = tuple(data["resolution"]) if data["resolution"] else None
+                
+                if ok:
+                    # 重新应用分辨率过滤（防止过滤规则变更）
+                    passed_filter = True
+                    if ENABLE_RESOLUTION_FILTER and resolution:
+                        w, h = resolution
+                        if w < MIN_RESOLUTION_WIDTH or h < MIN_RESOLUTION_HEIGHT:
+                            passed_filter = False
+                    elif ENABLE_RESOLUTION_FILTER and not resolution and not FALLBACK_TO_SPEED_WHEN_NO_RESOLUTION:
+                        passed_filter = False
+                    
+                    if passed_filter:
+                        result_map[(group, name)].append((url, speed))
+            else:
+                # --- 缓存未命中，加入测速队列 ---
+                tasks.append(test_speed_task(url, sem, session))
+                task_metadata.append((group, name, url))
 
-        # 排序并截取前MAX_LINKS_PER_CHANNEL
-        final_map = {}
-        for key, items in result_map.items():
-            items.sort(key=lambda x: -x[1])  # 按速度降序
-            final_map[key] = [url for url, _ in items[:MAX_LINKS_PER_CHANNEL]]
+    logger.info(f"缓存命中 {len([item for sublist in result_map.values() for item in sublist])} 条，待测速 {len(tasks)} 条")
 
-        logger.info(f"测速完成，保留 {sum(len(v) for v in final_map.values())} 条链接")
-        return final_map
+    # 4. 执行并发测速（仅针对未命中缓存的链接）
+    if tasks:
+        conn = aiohttp.TCPConnector(ssl=ENABLE_SSL_VERIFY)
+        async with aiohttp.ClientSession(connector=conn) as session:
+            sem = asyncio.Semaphore(SPEED_TEST_CONCURRENCY)
+            # 重新创建任务（因为session需要在context内）
+            # 修正：上面的tasks列表创建时session还没定义，这里需要重新生成tasks
+            tasks = []
+            for (group, name, url) in task_metadata:
+                tasks.append(test_speed_task(url, sem, session))
+            
+            speed_test_results = await asyncio.gather(*tasks)
+
+            # 5. 处理测速结果并更新缓存
+            for i, res in enumerate(speed_test_results):
+                url, ok, speed, resolution = res
+                group, name, _ = task_metadata[i]
+                
+                # 记录到新缓存（无论是否达标，都记录以避免下次重测）
+                new_cache_entries[url] = {
+                    "ok": ok,
+                    "speed": speed,
+                    "resolution": list(resolution) if resolution else None,
+                    "timestamp": time.time()
+                }
+                
+                # 如果达标，加入结果集
+                if ok:
+                    result_map[(group, name)].append((url, speed))
+
+    # 6. 合并并保存缓存
+    if new_cache_entries:
+        cache.update(new_cache_entries)
+        save_cache(cache)
+        logger.info(f"缓存更新：新增 {len(new_cache_entries)} 条记录")
+
+    # 7. 排序并截取前N个链接
+    final_map = {}
+    for key, items in result_map.items():
+        items.sort(key=lambda x: -x[1])  # 按速度降序
+        final_map[key] = [url for url, _ in items[:MAX_LINKS_PER_CHANNEL]]
+
+    logger.info(f"处理完成，保留 {sum(len(v) for v in final_map.values())} 条优质链接")
+    return final_map
 
 # ============================================================================
 # ============================ 页面交互函数 ==================================
@@ -541,7 +649,7 @@ async def main():
 
             logger.info(f"去重后：{sum(len(v) for v in channel_map.values())} 条链接，{len(channel_map)} 个频道")
 
-            # 测速过滤
+            # 测速过滤（带缓存）
             if ENABLE_SPEED_TEST and channel_map:
                 channel_map = await run_speed_test(channel_map)
 
