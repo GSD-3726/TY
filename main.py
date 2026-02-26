@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具 - 流畅不卡顿版（优化版）
-解决：TS片段切换卡顿、加载慢、播放断断续续
+IPTV 组播提取工具 - 流畅不卡顿版（优化版 + 实时日志）
+解决：TS片段切换卡顿、加载慢、播放断断续续、日志不实时显示
 """
 
 import asyncio
@@ -40,20 +40,20 @@ ENABLE_SPEED_TEST = True                         # 是否进行速度测试（Fa
 
 # 4. 测速并发控制 ------------------------------------------------------------
 SPEED_TEST_CONCURRENCY = 5                       # 同时测速的协程数（网络带宽大可提高，否则易超时）
-SPEED_TEST_TIMEOUT = 180                        # 每个链接测速总超时（秒）
+SPEED_TEST_TIMEOUT = 10                          # 每个链接测速总超时（秒）
 SPEED_TEST_VERBOSE = False                        # 是否打印详细测速日志
 
 # 5. 测速采样参数 ------------------------------------------------------------
-TS_SAMPLE_COUNT = 4                               # 每个HLS流下载的TS片段数量（越多越准，但耗时）
-TS_DOWNLOAD_TIMEOUT = 6                           # 单个TS片段下载超时（秒）
+TS_SAMPLE_COUNT = 3                               # 每个HLS流下载的TS片段数量（越多越准，但耗时）
+TS_DOWNLOAD_TIMEOUT = 2                           # 单个TS片段下载超时（秒）
 GENERIC_SAMPLE_SIZE = 1024 * 1024                 # 通用测速时下载的样本大小（字节，默认1MB）
 GENERIC_DOWNLOAD_TIMEOUT = 10                     # 通用测速下载超时（秒）
 
 # 6. 流畅度判定标准 ----------------------------------------------------------
-MIN_STABLE_SPEED = 1.5                            # 稳定播放所需最低速度（Mbps）
+MIN_STABLE_SPEED = 1.0                            # 稳定播放所需最低速度（Mbps）
 
 # 7. 分辨率过滤 --------------------------------------------------------------
-ENABLE_RESOLUTION_FILTER = True                    # 是否根据分辨率过滤低清频道
+ENABLE_RESOLUTION_FILTER = False                    # 是否根据分辨率过滤低清频道
 MIN_RESOLUTION_WIDTH = 1280                         # 最小宽度（像素）
 MIN_RESOLUTION_HEIGHT = 720                         # 最小高度（像素）
 FALLBACK_TO_SPEED_WHEN_NO_RESOLUTION = False        # 若无分辨率信息，是否仅根据速度保留（True则保留）
@@ -81,7 +81,7 @@ OUTPUT_DIR = Path(__file__).parent
 # 页面元素选择器配置（基于文本，提高鲁棒性）
 PAGE_CONFIG = {
     "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
-    "multicast_tab": ["组播提取"],
+    "multicast_tab": ["酒店提取"],
     "start_button": ["开始播放", "开始搜索", "开始提取"],
 }
 
@@ -110,15 +110,22 @@ CCTV_NAME_MAPPING = {
 }
 
 # ============================================================================
-# ============================= 日志配置 =====================================
+# ============================= 日志配置 (修改版) =============================
 # ============================================================================
 
+class UnbufferedStreamHandler(logging.StreamHandler):
+    """自定义Handler：强制每次输出后立即刷新缓冲区，解决日志延迟显示问题"""
+    def emit(self, record):
+        super().emit(record)
+        self.flush()
+
+# 配置日志系统
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler('iptv_extractor.log', encoding='utf-8')
+        UnbufferedStreamHandler(sys.stdout),  # 使用自定义的无缓冲Handler输出到屏幕
+        logging.FileHandler('iptv_extractor.log', encoding='utf-8') # 正常输出到文件
     ]
 )
 logger = logging.getLogger('IPTV-Extractor')
@@ -564,5 +571,5 @@ async def main():
             await browser.close()
 
 if __name__ == "__main__":
-    # 直接运行主函数，无强制超时
+    # 直接运行主函数
     asyncio.run(main())
