@@ -19,45 +19,48 @@ jobs:
         with:
           python-version: '3.11'
 
-      # ==========================================
-      # 【优化 1/4】恢复 FFmpeg 测速缓存
-      # 修正 Key 逻辑，确保缓存能被复用
-      # ==========================================
+      # 恢复 FFmpeg 测速缓存
       - name: 恢复 FFmpeg 测速缓存
-        id: cache-iptv
         uses: actions/cache@v4
         with:
-          path: iptv_speed_cache.json  # 对应你 Python 代码里 CACHE_FILE 的文件名
-          key: ${{ runner.os }}-iptv-cache  # 固定 Key 前缀，确保能复用
+          path: iptv_speed_cache.json
+          key: ${{ runner.os }}-iptv-cache-v1
           restore-keys: |
             ${{ runner.os }}-iptv-cache-
 
       - name: Install dependencies
         run: |
           sudo apt update
-          # 【优化 2/4】安装 FFmpeg (必须)
           sudo apt install -y ffmpeg
-          # 【优化 3/4】安装 Python 依赖（补充 requests，移除不必要的 aiohttp）
-          pip install requests playwright
+          pip install playwright
           python -m playwright install chromium --with-deps
 
       - name: Run IPTV update
-        run: python main.py
-        continue-on-error: true  # 即使脚本报错（如网站挂了），也继续执行后面的步骤
+        run: |
+          # 将Python脚本保存为iptv_extractor.py
+          cat << 'EOF' > iptv_extractor.py
+          #!/usr/bin/env python3
+          # 这里粘贴您提供的完整Python代码
+          EOF
+          
+          # 运行脚本
+          python main.py
 
       - name: List generated files
-        run: ls -la *.m3u *.txt *.json 2>/dev/null || echo "未找到生成的文件"
+        run: |
+          echo "生成的文件:"
+          ls -la *.m3u *.txt *.json 2>/dev/null || echo "未找到生成的文件"
+          echo "缓存文件:"
+          ls -la iptv_speed_cache.json 2>/dev/null || echo "未找到缓存文件"
 
-      # ==========================================
-      # 【优化 4/4】提交并推送结果
-      # ==========================================
+      # 提交并推送结果
       - name: Commit and push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 添加所有可能的输出文件 (m3u, txt, 以及缓存json)
-          git add *.m3u *.txt iptv_speed_cache.json 2>/dev/null || true
+          # 添加所有可能的输出文件
+          git add iptv_channels.m3u iptv_channels.txt iptv_speed_cache.json 2>/dev/null || true
           
           # 检查是否有变更
           if git diff --cached --quiet; then
