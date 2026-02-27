@@ -236,7 +236,8 @@ def print_progress_bar(current: int, total: int, success: int, failed: int, last
         filled_length = int(bar_length * percent)
         bar = '█' * filled_length + '░' * (bar_length - filled_length)
         
-        logger.info(f"[{percent_int:3d}%] {bar} ({current}/{total}) | 成功:{success} | 失败:{failed}")
+        # 【关键修改】将“成功:success | 失败:failed”改为“有效:success | 共：current”
+        logger.info(f"[{percent_int:3d}%] {bar} ({current}/{total}) | 有效:{success} | 共：{current}")
         return percent_int
     
     return last_percent
