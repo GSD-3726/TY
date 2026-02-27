@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具 - 最终完整版
-功能列表：
-1. 自动爬取指定网站
-2. FFmpeg 真实解码测速
-3. 本地 JSON 缓存（避免重复测速）
-4. 导出 M3U/TXT 双格式
-5. 自定义更新时间显示位置（顶部/底部）
+IPTV 组播提取工具
 """
 
 import asyncio
@@ -27,64 +21,64 @@ import functools
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 # ============================================================================
-# ======================== 【配置区 · 全中文说明】 =============================
+# ======================== 【配置区 · 全中文详细说明】 =========================
 # ============================================================================
 
-# 1. 网站与浏览器设置 --------------------------------------------------------
-TARGET_URL = "https://iptv.809899.xyz"          # 目标网站地址
-HEADLESS = True                                  # 是否无头模式（True不显示浏览器窗口）
-BROWSER_TYPE = "chromium"                        # 浏览器类型
-MAX_IPS = 20                                     # 最多提取前N个IP地址的频道
-PAGE_LOAD_TIMEOUT = 120000                       # 页面加载超时（毫秒）
+# -------------------------- 1. 基础爬取设置 --------------------------
+TARGET_URL = "https://iptv.809899.xyz"          # 【必填】要爬取的目标网站地址
+HEADLESS = True                                  # 【True/False】是否隐藏浏览器窗口 (True=后台运行, False=显示窗口)
+BROWSER_TYPE = "chromium"                        # 【chromium/firefox/webkit】浏览器内核类型，推荐默认 chromium
+MAX_IPS = 20                                     # 【数字】最多处理前N个IP/地址行 (0表示不限制)
+PAGE_LOAD_TIMEOUT = 120000                       # 【毫秒】页面加载最长等待时间 (120秒)
 
-# 2. 输出文件设置 ------------------------------------------------------------
-OUTPUT_DIR = Path(__file__).parent               # 输出目录（默认为脚本所在目录）
-OUTPUT_M3U_FILENAME = OUTPUT_DIR / "iptv_channels.m3u"
-OUTPUT_TXT_FILENAME = OUTPUT_DIR / "iptv_channels.txt"
-MAX_LINKS_PER_CHANNEL = 10                       # 每个频道保留的最优链接数量
+# -------------------------- 2. 文件输出设置 --------------------------
+OUTPUT_DIR = Path(__file__).parent               # 【路径】结果保存目录 (默认为脚本所在文件夹)
+OUTPUT_M3U_FILENAME = OUTPUT_DIR / "iptv_channels.m3u"  # M3U播放列表文件名
+OUTPUT_TXT_FILENAME = OUTPUT_DIR / "iptv_channels.txt"  # TXT格式文件名
+MAX_LINKS_PER_CHANNEL = 10                       # 【数字】每个频道最多保留多少个最快的源
 
-# 3. FFmpeg测速设置 ----------------------------------------------------------
-ENABLE_FFMPEG_TEST = True                         # 总开关：是否使用FFmpeg测试
-FFMPEG_PATH = "ffmpeg"                            # FFmpeg路径
-FFMPEG_TEST_DURATION = 8                          # 单个流的测试时长（秒）
-FFMPEG_CONCURRENCY = 2                            # FFmpeg并发数 (GitHub建议<=2)
-MIN_AVG_FPS = 20.0                                # 最低平均帧率
-MIN_FRAMES = 50                                    # 最低解码帧数
+# -------------------------- 3. FFmpeg 测速设置 --------------------------
+ENABLE_FFMPEG_TEST = True                         # 【True/False】总开关：是否开启测速 (False直接保存所有链接)
+FFMPEG_PATH = "ffmpeg"                            # 【路径】FFmpeg程序位置 (Windows需写完整路径，如 r"C:\ffmpeg\bin\ffmpeg.exe")
+FFMPEG_TEST_DURATION = 10                          # 【秒】单个链接的测试时长 (越长越准，但越慢)
+FFMPEG_CONCURRENCY = 2                            # 【数字】同时测试的链接数 (GitHub Actions建议<=2，本地电脑建议<=CPU核心数)
+MIN_AVG_FPS = 24.0                                # 【数字】最低平均帧率 (低于此值认为卡顿，丢弃)
+MIN_FRAMES = 240                                    # 【数字】最低解码帧数 (防止只有几秒数据就误判为成功)
 
-# 4. 页面操作延迟 ------------------------------------------------------------
-DELAY_BETWEEN_IPS = 1.0
-DELAY_AFTER_CLICK = 0.5
-MAX_CHANNELS_PER_IP = 0
+# -------------------------- 4. 网页操作延时 --------------------------
+DELAY_BETWEEN_IPS = 1.0                             # 【秒】处理完一个IP后等待多久
+DELAY_AFTER_CLICK = 0.5                             # 【秒】点击按钮后等待弹窗多久
+MAX_CHANNELS_PER_IP = 0                              # 【数字】单个IP最多提取多少个频道 (0表示不限制)
 
-# 5. 数据清洗与去重 ----------------------------------------------------------
-ENABLE_CHINESE_CLEAN = True
-ENABLE_DEDUPLICATION = True
-ENABLE_SCREENSHOTS = False
-CCTV_USE_MAPPING = True
+# -------------------------- 5. 数据清洗 --------------------------
+ENABLE_CHINESE_CLEAN = True                         # 【True/False】是否移除频道名中的非中文字符 (仅对非央视频道)
+ENABLE_DEDUPLICATION = True                          # 【True/False】是否去重 (相同的频道名+链接只保留一个)
+ENABLE_SCREENSHOTS = False                           # 【True/False】是否在关键步骤截图 (用于调试)
+CCTV_USE_MAPPING = True                              # 【True/False】是否将CCTV数字转为中文 (如 "CCTV-1" 变为 "CCTV-1综合")
 
-# 6. 网络与安全设置 ---------------------------------------------------------
-DEFAULT_PROTOCOL = "http://"
+# -------------------------- 6. 网络协议 --------------------------
+DEFAULT_PROTOCOL = "http://"                         # 【http:///https:///rtsp://】当链接缺少协议头时，自动补全
 
-# 7. 缓存设置 ----------------------------------------------------------------
-ENABLE_CACHE = True                                  # 是否启用缓存
-CACHE_FILE = OUTPUT_DIR / "iptv_speed_cache.json"  # 缓存文件位置
-CACHE_EXPIRE_HOURS = 24                              # 缓存过期时间（小时）
+# -------------------------- 7. 缓存设置 --------------------------
+ENABLE_CACHE = True                                  # 【True/False】是否启用缓存 (开启后，测过的链接24小时内不再重测)
+CACHE_FILE = OUTPUT_DIR / "iptv_speed_cache.json"  # 【路径】缓存文件保存位置
+CACHE_EXPIRE_HOURS = 24                              # 【小时】缓存过期时间 (0表示永不过期)
 
-# 8. 更新时间显示位置 --------------------------------------------------------
-TIME_DISPLAY_AT_TOP = False                          # True=放在文件最上面, False=放在文件最后面
+# -------------------------- 8. 更新时间显示 --------------------------
+TIME_DISPLAY_AT_TOP = False                          # 【True/False】更新时间显示位置 (True=文件最上面, False=文件最后面)
 
 # ============================================================================
 # ============================ 频道分类规则 ==================================
 # ============================================================================
 
-# 页面元素选择器配置
+# 页面元素定位关键词 (如果网站改版了，修改这里的文字即可)
 PAGE_CONFIG = {
     "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
     "multicast_tab": ["酒店提取"],
     "start_button": ["开始播放", "开始搜索", "开始提取"],
 }
 
-# 频道分类规则
+# 频道自动分类规则 (按关键词匹配)
 CATEGORY_RULES = [
     {"name": "4K专区",      "keywords": ["4k"]},
     {"name": "央视频道",    "keywords": ["cctv", "cetv", "中央"]},
@@ -94,9 +88,10 @@ CATEGORY_RULES = [
     {"name": "儿童频道",    "keywords": ["少儿", "动画", "卡通"]},
 ]
 
+# 导出文件时的分组排序
 GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "4K专区", "儿童频道", "轮播频道"]
 
-# CCTV频道号映射
+# CCTV 台标映射表
 CCTV_NAME_MAPPING = {
     "1": "综合", "2": "财经", "3": "综艺", "4": "国际", "5": "体育",
     "5+": "体育赛事", "6": "电影", "7": "国防军事", "8": "电视剧",
@@ -124,11 +119,8 @@ logger = logging.getLogger('IPTV-Extractor')
 # ============================================================================
 
 def load_cache() -> Dict[str, Dict[str, Any]]:
-    """加载测速缓存"""
-    if not ENABLE_CACHE:
-        return {}
-    if not CACHE_FILE.exists():
-        return {}
+    if not ENABLE_CACHE: return {}
+    if not CACHE_FILE.exists(): return {}
     try:
         with open(CACHE_FILE, "r", encoding="utf-8") as f:
             cache = json.load(f)
@@ -144,9 +136,7 @@ def load_cache() -> Dict[str, Dict[str, Any]]:
         return {}
 
 def save_cache(cache: Dict[str, Dict[str, Any]]):
-    """保存测速缓存"""
-    if not ENABLE_CACHE:
-        return
+    if not ENABLE_CACHE: return
     try:
         with open(CACHE_FILE, "w", encoding="utf-8") as f:
             json.dump(cache, f, ensure_ascii=False, indent=2)
@@ -213,13 +203,48 @@ def retry_async(max_retries=2, delay=1.0, exceptions=(Exception,)):
     return decorator
 
 # ============================================================================
+# ========================= 进度条打印工具 (2%步进) ==========================
+# ============================================================================
+
+def print_progress_bar(current: int, total: int, success: int, failed: int, last_percent: int) -> int:
+    """
+    打印进度条，每2%刷新一次 (0%, 2%, 4%, ... 100%)
+    """
+    if total == 0: return 0
+    
+    percent = current / total
+    percent_int = int(percent * 100)
+    
+    # 【核心修改】使用取模运算，只有当百分比是2的倍数且大于上次打印时才输出
+    # 同时强制打印 0% 和 100%
+    should_print = (
+        (percent_int % 2 == 0 and percent_int > last_percent) or 
+        current == total or 
+        current == 0
+    )
+    
+    if should_print:
+        # 防止在边界处重复打印 (例如刚好在2%时完成了两个任务)
+        # 如果是100%，即使重复也要打
+        if percent_int == last_percent and current != total:
+            return last_percent
+            
+        bar_length = 20
+        filled_length = int(bar_length * percent)
+        bar = '█' * filled_length + '░' * (bar_length - filled_length)
+        
+        logger.info(f"[{percent_int:3d}%] {bar} ({current}/{total}) | 成功:{success} | 失败:{failed}")
+        return percent_int
+    
+    return last_percent
+
+# ============================================================================
 # ========================= 【核心】FFmpeg测速代码 ============================
 # ============================================================================
 
 async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
-    """使用FFmpeg测试直播源"""
     if not shutil.which(FFMPEG_PATH):
-        logger.error(f"未找到FFmpeg，请检查路径: {FFMPEG_PATH}")
+        logger.error(f"未找到FFmpeg: {FFMPEG_PATH}")
         return {"ok": False, "fps": 0.0, "message": "FFmpeg未安装"}
 
     cmd = [
@@ -252,21 +277,17 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
         avg_fps = float(fps_matches[-1]) if fps_matches else 0.0
         is_smooth = frames >= MIN_FRAMES and avg_fps >= MIN_AVG_FPS
         
-        return {
-            "ok": is_smooth, "fps": avg_fps, "frames": frames,
-            "message": "正常" if is_smooth else f"卡顿 (帧:{frames}/FPS:{avg_fps:.1f})"
-        }
+        return {"ok": is_smooth, "fps": avg_fps, "frames": frames}
     except Exception as e:
         return {"ok": False, "fps": 0.0, "message": f"异常: {str(e)[:50]}"}
 
 async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
-    """并发运行FFmpeg测试，并处理缓存"""
     if not channel_map: return {}
 
     cache = load_cache()
     new_cache_entries = {}
     result_map = defaultdict(list)
-    pending_tasks = []
+    pending_tasks_data = [] 
 
     # 1. 分流
     for (group, name), urls in channel_map.items():
@@ -275,40 +296,70 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
                 if cache[url].get("ok"):
                     result_map[(group, name)].append((url, cache[url].get("fps", 0)))
             else:
-                pending_tasks.append((group, name, url))
+                pending_tasks_data.append((group, name, url))
 
-    logger.info(f"缓存命中 {len([item for sublist in result_map.values() for item in sublist])} 条，需测试 {len(pending_tasks)} 条")
+    total_pending = len(pending_tasks_data)
+    cached_count = len([item for sublist in result_map.values() for item in sublist])
+    logger.info(f"缓存命中 {cached_count} 条，需测速 {total_pending} 条")
 
-    # 2. 并发测试
-    if pending_tasks:
-        sem = asyncio.Semaphore(FFMPEG_CONCURRENCY)
-        async def bound_test(url):
-            async with sem:
-                logger.info(f"正在测速: {url[:60]}...")
-                return await test_stream_with_ffmpeg(url)
+    if total_pending == 0:
+        return finalize_results(result_map)
+
+    # 2. 并发测速
+    sem = asyncio.Semaphore(FFMPEG_CONCURRENCY)
+    
+    async def bound_test(item):
+        group, name, url = item
+        async with sem:
+            result = await test_stream_with_ffmpeg(url)
+            return (group, name, url, result)
+
+    tasks = [bound_test(item) for item in pending_tasks_data]
+    
+    # 进度统计
+    completed = 0
+    success_count = 0
+    failed_count = 0
+    last_printed_percent = -100 # 初始化为负数，确保0%能被打印
+
+    # 打印 0%
+    print_progress_bar(0, total_pending, 0, 0, last_printed_percent)
+
+    # 3. 实时处理
+    for coro in asyncio.as_completed(tasks):
+        group, name, url, res = await coro
+        completed += 1
         
-        tasks = [bound_test(url) for (_, _, url) in pending_tasks]
-        results = await asyncio.gather(*tasks)
+        new_cache_entries[url] = {
+            "ok": res["ok"], "fps": res["fps"], 
+            "frames": res.get("frames", 0), "timestamp": time.time()
+        }
 
-        # 3. 处理结果
-        for i, res in enumerate(results):
-            group, name, url = pending_tasks[i]
-            new_cache_entries[url] = {
-                "ok": res["ok"], "fps": res["fps"], 
-                "frames": res.get("frames", 0), "timestamp": time.time()
-            }
-            if res["ok"]:
-                result_map[(group, name)].append((url, res["fps"]))
+        if res["ok"]:
+            success_count += 1
+            result_map[(group, name)].append((url, res["fps"]))
+        else:
+            failed_count += 1
 
+        # 检查并打印
+        last_printed_percent = print_progress_bar(completed, total_pending, success_count, failed_count, last_printed_percent)
+
+    # 4. 收尾
     if new_cache_entries:
         cache.update(new_cache_entries)
         save_cache(cache)
-        logger.info(f"缓存已更新，新增 {len(new_cache_entries)} 条记录")
+        logger.info(f"缓存更新：新增 {len(new_cache_entries)} 条记录")
 
+    return finalize_results(result_map)
+
+def finalize_results(result_map):
     final_map = {}
     for key, items in result_map.items():
         items.sort(key=lambda x: -x[1])
         final_map[key] = [url for url, _ in items[:MAX_LINKS_PER_CHANNEL]]
+    
+    total_final = sum(len(v) for v in final_map.values())
+    logger.info(f"测速筛选完成，最终保留 {total_final} 条优质链接")
     return final_map
 
 # ============================================================================
@@ -408,7 +459,6 @@ async def wait_data(page):
 # ============================================================================
 
 def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]]):
-    """导出结果，支持时间戳位置切换"""
     now = datetime.datetime.now()
     time_str = now.strftime("%Y-%m-%d %H:%M:%S")
     info_group_name = "📋 信息"
@@ -449,7 +499,7 @@ def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]])
 
     total_links = sum(len(v) for v in grouped.values())
     position_text = "顶部" if TIME_DISPLAY_AT_TOP else "底部"
-    logger.info(f"导出完成！共 {total_links} 条链接，更新时间已放在{position_text}: {time_str}")
+    logger.info(f"导出完成！共 {total_links} 条链接，更新时间已放在{position_text}")
 
 # ============================================================================
 # ============================= 主流程 =======================================
