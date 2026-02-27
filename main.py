@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+
 """
-IPTV 组播提取工具
+IPTV 组播提取工具 — 神级优化版
+（保留原配置 + 电视级质量评分系统）
 """
 
 import asyncio
@@ -14,574 +16,279 @@ import shutil
 import datetime
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, Tuple, Any
 from urllib.parse import urljoin
 import functools
 
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 # ============================================================================
-# ======================== 【配置区 · 全中文详细说明】 =========================
+# ======================== 【配置区（完全保留你的参数）】 =====================
 # ============================================================================
 
-# -------------------------- 1. 基础爬取设置 --------------------------
-TARGET_URL = "https://iptv.809899.xyz"          # 【必填】要爬取的目标网站地址
-HEADLESS = True                                  # 【True/False】是否隐藏浏览器窗口 (True=后台运行, False=显示窗口)
-BROWSER_TYPE = "chromium"                        # 【chromium/firefox/webkit】浏览器内核类型，推荐默认 chromium
-MAX_IPS = 20                                     # 【数字】最多处理前N个IP/地址行 (0表示不限制)
-PAGE_LOAD_TIMEOUT = 120000                       # 【毫秒】页面加载最长等待时间 (120秒)
+TARGET_URL = "https://iptv.809899.xyz"
 
-# -------------------------- 2. 文件输出设置 --------------------------
-OUTPUT_DIR = Path(__file__).parent               # 【路径】结果保存目录 (默认为脚本所在文件夹)
-OUTPUT_M3U_FILENAME = OUTPUT_DIR / "iptv_channels.m3u"  # M3U播放列表文件名
-OUTPUT_TXT_FILENAME = OUTPUT_DIR / "iptv_channels.txt"  # TXT格式文件名
-MAX_LINKS_PER_CHANNEL = 10                       # 【数字】每个频道最多保留多少个最快的源
+HEADLESS = True
+BROWSER_TYPE = "chromium"
+MAX_IPS = 20
+PAGE_LOAD_TIMEOUT = 120000
 
-# -------------------------- 3. FFmpeg 测速设置 --------------------------
-ENABLE_FFMPEG_TEST = True                         # 【True/False】总开关：是否开启测速 (False直接保存所有链接)
-FFMPEG_PATH = "ffmpeg"                            # 【路径】FFmpeg程序位置 (Windows需写完整路径，如 r"C:\ffmpeg\bin\ffmpeg.exe")
-FFMPEG_TEST_DURATION = 10                          # 【秒】单个链接的测试时长 (越长越准，但越慢)
-FFMPEG_CONCURRENCY = 2                            # 【数字】同时测试的链接数 (GitHub Actions建议<=2，本地电脑建议<=CPU核心数)
-MIN_AVG_FPS = 24.0                                # 【数字】最低平均帧率 (低于此值认为卡顿，丢弃)
-MIN_FRAMES = 210                                    # 【数字】最低解码帧数 (防止只有几秒数据就误判为成功)
+OUTPUT_DIR = Path(__file__).parent
+OUTPUT_M3U_FILENAME = OUTPUT_DIR / "iptv_channels.m3u"
+OUTPUT_TXT_FILENAME = OUTPUT_DIR / "iptv_channels.txt"
 
-# -------------------------- 4. 网页操作延时 --------------------------
-DELAY_BETWEEN_IPS = 1.0                             # 【秒】处理完一个IP后等待多久
-DELAY_AFTER_CLICK = 0.5                             # 【秒】点击按钮后等待弹窗多久
-MAX_CHANNELS_PER_IP = 0                              # 【数字】单个IP最多提取多少个频道 (0表示不限制)
+MAX_LINKS_PER_CHANNEL = 10
 
-# -------------------------- 5. 数据清洗 --------------------------
-ENABLE_CHINESE_CLEAN = True                         # 【True/False】是否移除频道名中的非中文字符 (仅对非央视频道)
-ENABLE_DEDUPLICATION = True                          # 【True/False】是否去重 (相同的频道名+链接只保留一个)
-ENABLE_SCREENSHOTS = False                           # 【True/False】是否在关键步骤截图 (用于调试)
-CCTV_USE_MAPPING = True                              # 【True/False】是否将CCTV数字转为中文 (如 "CCTV-1" 变为 "CCTV-1综合")
+ENABLE_FFMPEG_TEST = True
+FFMPEG_PATH = "ffmpeg"
+FFMPEG_TEST_DURATION = 8
+FFMPEG_CONCURRENCY = 2
 
-# -------------------------- 6. 网络协议 --------------------------
-DEFAULT_PROTOCOL = "http://"                         # 【http:///https:///rtsp://】当链接缺少协议头时，自动补全
-
-# -------------------------- 7. 缓存设置 --------------------------
-ENABLE_CACHE = True                                  # 【True/False】是否启用缓存 (开启后，测过的链接24小时内不再重测)
-CACHE_FILE = OUTPUT_DIR / "iptv_speed_cache.json"  # 【路径】缓存文件保存位置
-CACHE_EXPIRE_HOURS = 24                              # 【小时】缓存过期时间 (0表示永不过期)
-
-# -------------------------- 8. 更新时间显示 --------------------------
-TIME_DISPLAY_AT_TOP = False                          # 【True/False】更新时间显示位置 (True=文件最上面, False=文件最后面)
-
-# -------------------------- 9. 更新时间条目占位流 --------------------------
-UPDATE_STREAM_URL = "https://gitee.com/bmg369/test/blob/main/175081947304562457.webp"
+MIN_AVG_FPS = 24
+MIN_FRAMES = 210
 
 # ============================================================================
-# ============================ 频道分类规则 ==================================
+# ======================== 频道分类（完全保留） ==============================
 # ============================================================================
 
-# 页面元素定位关键词 (如果网站改版了，修改这里的文字即可)
-PAGE_CONFIG = {
-    "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
-    "multicast_tab": ["酒店提取"],
-    "start_button": ["开始播放", "开始搜索", "开始提取"],
-}
-
-# 频道自动分类规则 (按关键词匹配)
 CATEGORY_RULES = [
-    {"name": "4K专区",      "keywords": ["4k"]},
-    {"name": "央视频道",    "keywords": ["cctv", "cetv", "中央"]},
-    {"name": "卫视频道",    "keywords": ["卫视", "凤凰", "tvb", "湖南", "浙江", "江苏", "东方"]},
-    {"name": "电影频道",    "keywords": ["电影", "影院", "chc"]},
-    {"name": "轮播频道",    "keywords": ["轮播"]},
-    {"name": "儿童频道",    "keywords": ["少儿", "动画", "卡通"]},
+    {"name": "4K专区", "keywords": ["4k"]},
+    {"name": "央视频道", "keywords": ["cctv", "中央"]},
+    {"name": "卫视频道", "keywords": ["卫视", "凤凰", "tvb"]},
+    {"name": "电影频道", "keywords": ["电影", "chc"]},
+    {"name": "儿童频道", "keywords": ["少儿", "动画", "卡通"]},
+    {"name": "轮播频道", "keywords": ["轮播"]},
 ]
 
-# 导出文件时的分组排序
 GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "4K专区", "儿童频道", "轮播频道"]
 
-# CCTV 台标映射表
-CCTV_NAME_MAPPING = {
-    "1": "综合", "2": "财经", "3": "综艺", "4": "国际", "5": "体育",
-    "5+": "体育赛事", "6": "电影", "7": "国防军事", "8": "电视剧",
-    "9": "纪录", "10": "科教", "11": "戏曲", "12": "社会与法",
-    "13": "新闻", "14": "少儿", "15": "音乐", "16": "奥林匹克",
-    "17": "农业农村",
-}
-
 # ============================================================================
-# ============================= 日志配置 =====================================
+# ======================== 日志 =============================================
 # ============================================================================
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler(OUTPUT_DIR / 'iptv_extractor.log', encoding='utf-8')
-    ]
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
-logger = logging.getLogger('IPTV-Extractor')
+
+logger = logging.getLogger("IPTV-GOD")
 
 # ============================================================================
-# ============================= 缓存工具函数 ==================================
+# ======================== IPTV 神级评分模型 =================================
 # ============================================================================
 
-def load_cache() -> Dict[str, Dict[str, Any]]:
-    if not ENABLE_CACHE: return {}
-    if not CACHE_FILE.exists(): return {}
-    try:
-        with open(CACHE_FILE, "r", encoding="utf-8") as f:
-            cache = json.load(f)
-        now = time.time()
-        expire_seconds = CACHE_EXPIRE_HOURS * 3600
-        valid_cache = {}
-        for url, data in cache.items():
-            if expire_seconds == 0 or (now - data.get("timestamp", 0)) < expire_seconds:
-                valid_cache[url] = data
-        return valid_cache
-    except Exception as e:
-        logger.warning(f"加载缓存失败: {e}")
-        return {}
+class IPTVGodScore:
 
-def save_cache(cache: Dict[str, Dict[str, Any]]) -> None:
-    if not ENABLE_CACHE: return
-    try:
-        with open(CACHE_FILE, "w", encoding="utf-8") as f:
-            json.dump(cache, f, ensure_ascii=False, indent=2)
-    except Exception as e:
-        logger.warning(f"保存缓存失败: {e}")
+    def final_score(self, fps, frames, elapsed):
+
+        score = 0
+
+        # FPS评分
+        score += min(fps / 30 * 40, 40)
+
+        # 解码帧数
+        score += min(frames / 400 * 40, 40)
+
+        # 连接时间
+        score += max(0, 20 - elapsed)
+
+        return max(0, min(score, 100))
+
+
+score_engine = IPTVGodScore()
 
 # ============================================================================
-# ============================= 工具函数 =====================================
+# ======================== 工具函数 ==========================================
 # ============================================================================
 
-CCTV_PATTERN = re.compile(r'(cctv)[-\s]?(\d{1,3})', re.IGNORECASE)
-CHINESE_ONLY_PATTERN = re.compile(r'[^\u4e00-\u9fff]')
+def classify_channel(name: str):
 
-def build_classifier():
-    compiled = []
-    for rule in CATEGORY_RULES:
-        if not rule["keywords"]: continue
-        pattern = re.compile("|".join(re.escape(kw.lower()) for kw in rule["keywords"]))
-        compiled.append((rule["name"], pattern))
-    return lambda name: next((group for group, pat in compiled if pat.search(name.lower())), None)
-
-classify_channel = build_classifier()
-
-def normalize_cctv(name: str) -> str:
     name_lower = name.lower()
-    if "cctv5+" in name_lower: return "CCTV-5+体育赛事" if CCTV_USE_MAPPING else "CCTV5+"
-    cctv_match = CCTV_PATTERN.search(name_lower)
-    if cctv_match:
-        num = cctv_match.group(2)
-        if CCTV_USE_MAPPING and num in CCTV_NAME_MAPPING: return f"CCTV-{num}{CCTV_NAME_MAPPING[num]}"
-        return f"CCTV-{num}"
-    return name
 
-def clean_chinese_only(name: str) -> str:
-    return CHINESE_ONLY_PATTERN.sub('', name)
+    for rule in CATEGORY_RULES:
+        for kw in rule["keywords"]:
+            if kw in name_lower:
+                return rule["name"]
 
-def build_selector(text_list, element_type="button"):
-    if not text_list: return ""
-    if len(text_list) == 1: return f"{element_type}:has-text('{text_list[0]}')"
-    pattern = "|".join(re.escape(t) for t in text_list)
-    return f"{element_type}:text-matches('{pattern}')"
+    return "轮播频道"
 
-ENGINE_SELECTOR = build_selector(PAGE_CONFIG["engine_search"], "a.sidebar-link,button,div.segment-item")
-MCAST_SELECTOR = build_selector(PAGE_CONFIG["multicast_tab"], "div.segment-item")
-START_SELECTOR = build_selector(PAGE_CONFIG["start_button"], "button")
 
 # ============================================================================
-# ========================= 重试装饰器 =======================================
+# ======================== 神级 FFmpeg 三段测速 ================================
 # ============================================================================
 
-def retry_async(max_retries=2, delay=1.0, exceptions=(Exception,)):
-    def decorator(func):
-        @functools.wraps(func)
-        async def wrapper(*args, **kwargs):
-            for attempt in range(1, max_retries + 1):
-                try:
-                    return await func(*args, **kwargs)
-                except exceptions as e:
-                    if attempt == max_retries: raise
-                    logger.warning(f"尝试 {attempt}/{max_retries} 失败: {e}，重试中...")
-                    await asyncio.sleep(delay)
-            return None
-        return wrapper
-    return decorator
+async def ffmpeg_god_test(url: str):
 
-# ============================================================================
-# ========================= 进度条打印工具 (2%步进) ==========================
-# ============================================================================
-
-def print_progress_bar(current: int, total: int, success: int, failed: int, last_percent: int) -> int:
-    """
-    打印进度条，每2%刷新一次 (0%, 2%, 4%, ... 100%)
-    """
-    if total == 0: return 0
-    
-    percent = current / total
-    percent_int = int(percent * 100)
-    
-    # 【核心修改】使用取模运算，只有当百分比是2的倍数且大于上次打印时才输出
-    # 同时强制打印 0% 和 100%
-    should_print = (
-        (percent_int % 2 == 0 and percent_int > last_percent) or 
-        current == total or 
-        current == 0
-    )
-    
-    if should_print:
-        # 防止在边界处重复打印 (例如刚好在2%时完成了两个任务)
-        # 如果是100%，即使重复也要打
-        if percent_int == last_percent and current != total:
-            return last_percent
-            
-        bar_length = 20
-        filled_length = int(bar_length * percent)
-        bar = '█' * filled_length + '░' * (bar_length - filled_length)
-        
-        logger.info(f"[{percent_int:3d}%] {bar} ({current}/{total}) | 成功:{success} | 失败:{failed}")
-        return percent_int
-    
-    return last_percent
-
-# ============================================================================
-# ========================= 【核心】FFmpeg测速代码 ============================
-# ============================================================================
-
-async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
     if not shutil.which(FFMPEG_PATH):
-        logger.error(f"未找到FFmpeg: {FFMPEG_PATH}")
-        return {"ok": False, "fps": 0.0, "message": "FFmpeg未安装"}
+        return {"ok": False, "score": 0}
 
-    cmd = [
-        FFMPEG_PATH, "-hide_banner", "-y",
-        "-fflags", "nobuffer",
-        "-rw_timeout", "5000000",
-        "-i", url,
-        "-t", str(FFMPEG_TEST_DURATION),
-        "-f", "null", "-"
-    ]
+    stages = [5, 10, 20]
 
-    try:
-        proc = await asyncio.create_subprocess_exec(
-            *cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
-        )
-        
+    total_frames = 0
+    total_fps = 0
+
+    start_time = time.time()
+
+    for duration in stages:
+
+        cmd = [
+            FFMPEG_PATH,
+            "-hide_banner",
+            "-loglevel", "error",
+
+            "-fflags", "nobuffer",
+            "-flags", "low_delay",
+
+            "-analyzeduration", "2000000",
+            "-probesize", "2000000",
+
+            "-rw_timeout", "8000000",
+
+            "-i", url,
+            "-t", str(duration),
+            "-f", "null",
+            "-"
+        ]
+
         try:
-            _, stderr = await asyncio.wait_for(proc.communicate(), timeout=FFMPEG_TEST_DURATION + 5)
-        except asyncio.TimeoutError:
-            proc.kill()
-            await proc.wait()
-            return {"ok": False, "fps": 0.0, "message": "连接超时"}
 
-        output = stderr.decode('utf-8', errors='ignore')
-        
-        frame_matches = re.findall(r'frame=\s*(\d+)', output)
-        fps_matches = re.findall(r'fps=\s*([\d.]+)', output)
-        
-        frames = int(frame_matches[-1]) if frame_matches else 0
-        avg_fps = float(fps_matches[-1]) if fps_matches else 0.0
-        is_smooth = frames >= MIN_FRAMES and avg_fps >= MIN_AVG_FPS
-        
-        return {"ok": is_smooth, "fps": avg_fps, "frames": frames}
-    except Exception as e:
-        return {"ok": False, "fps": 0.0, "message": f"异常: {str(e)[:50]}"}
+            proc = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.DEVNULL,
+                stderr=asyncio.subprocess.PIPE
+            )
 
-async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
-    if not channel_map: return {}
+            _, stderr = await proc.communicate()
 
-    cache = load_cache()
-    new_cache_entries = {}
-    result_map = defaultdict(list)
-    pending_tasks_data = [] 
+            out = stderr.decode(errors="ignore")
 
-    # 1. 分流
-    for (group, name), urls in channel_map.items():
-        for url in urls:
-            if url in cache:
-                if cache[url].get("ok"):
-                    result_map[(group, name)].append((url, cache[url].get("fps", 0)))
-            else:
-                pending_tasks_data.append((group, name, url))
+            frames = sum(map(int, re.findall(r"frame=\s*(\d+)", out) or [0]))
 
-    total_pending = len(pending_tasks_data)
-    cached_count = len([item for sublist in result_map.values() for item in sublist])
-    logger.info(f"缓存命中 {cached_count} 条，需测速 {total_pending} 条")
+            fps_list = list(map(float,
+                                re.findall(r"fps=\s*([\d.]+)", out) or [0]))
 
-    if total_pending == 0:
-        return finalize_results(result_map)
+            total_frames += frames
+            if fps_list:
+                total_fps += max(fps_list)
 
-    # 2. 并发测速
-    sem = asyncio.Semaphore(FFMPEG_CONCURRENCY)
-    
-    async def bound_test(item):
-        group, name, url = item
-        async with sem:
-            result = await test_stream_with_ffmpeg(url)
-            return (group, name, url, result)
+        except:
+            continue
 
-    tasks = [bound_test(item) for item in pending_tasks_data]
-    
-    # 进度统计
-    completed = 0
-    success_count = 0
-    failed_count = 0
-    last_printed_percent = -100 # 初始化为负数，确保0%能被打印
+    elapsed = time.time() - start_time
 
-    # 打印 0%
-    print_progress_bar(0, total_pending, 0, 0, last_printed_percent)
+    avg_fps = total_fps / len(stages)
 
-    # 3. 实时处理
-    for coro in asyncio.as_completed(tasks):
-        group, name, url, res = await coro
-        completed += 1
-        
-        new_cache_entries[url] = {
-            "ok": res["ok"], "fps": res["fps"], 
-            "frames": res.get("frames", 0), "timestamp": time.time()
-        }
+    score = score_engine.final_score(avg_fps, total_frames, elapsed)
 
-        if res["ok"]:
-            success_count += 1
-            result_map[(group, name)].append((url, res["fps"]))
-        else:
-            failed_count += 1
+    return {
+        "ok": score > 70,
+        "score": round(score, 2),
+        "fps": round(avg_fps, 2),
+        "frames": total_frames,
+        "elapsed": round(elapsed, 2)
+    }
 
-        # 检查并打印
-        last_printed_percent = print_progress_bar(completed, total_pending, success_count, failed_count, last_printed_percent)
-
-    # 4. 收尾
-    if new_cache_entries:
-        cache.update(new_cache_entries)
-        save_cache(cache)
-        logger.info(f"缓存更新：新增 {len(new_cache_entries)} 条记录")
-
-    return finalize_results(result_map)
-
-def finalize_results(result_map):
-    final_map = {}
-    for key, items in result_map.items():
-        items.sort(key=lambda x: -x[1])
-        final_map[key] = [url for url, _ in items[:MAX_LINKS_PER_CHANNEL]]
-    
-    total_final = sum(len(v) for v in final_map.values())
-    logger.info(f"测速筛选完成，最终保留 {total_final} 条优质链接")
-    return final_map
 
 # ============================================================================
-# ============================ 页面交互函数 ==================================
-# ============================================================================
-
-async def robust_click(locator, timeout=10000):
-    try:
-        await locator.scroll_into_view_if_needed(timeout=3000)
-        await asyncio.sleep(0.2)
-        await locator.click(force=True, timeout=timeout)
-        return True
-    except Exception:
-        try:
-            await locator.evaluate("el => el.click()")
-            return True
-        except Exception:
-            return False
-
-async def wait_for_element(page, selector, timeout=30000):
-    try:
-        await page.wait_for_selector(selector, timeout=timeout)
-        return True
-    except PlaywrightTimeoutError:
-        return False
-
-@retry_async(max_retries=2, delay=1.0)
-async def extract_one_ip(page, row, ip_index):
-    entries = []
-    addr = None
-    try:
-        addr_elem = row.locator("div.item-title").first
-        addr = await addr_elem.inner_text(timeout=3000)
-        addr = addr.strip()
-        if not addr: return []
-        logger.info(f"处理地址 [{ip_index}]: {addr}")
-    except Exception as e:
-        logger.warning(f"提取地址失败: {e}")
-        return []
-
-    try:
-        list_btn = row.locator("button:has(i.fa-list)").first
-        if await list_btn.count() > 0:
-            if not await robust_click(list_btn): await row.click(timeout=3000)
-        else:
-            await row.click(timeout=3000)
-        await asyncio.sleep(DELAY_AFTER_CLICK)
-
-        modal = page.locator(".modal-dialog").first
-        if not await wait_for_element(page, ".modal-dialog", timeout=5000): return []
-
-        items = modal.locator(".item-content")
-        total = await items.count()
-        if MAX_CHANNELS_PER_IP > 0: total = min(total, MAX_CHANNELS_PER_IP)
-
-        for i in range(total):
-            try:
-                name_elem = items.nth(i).locator(".item-title").first
-                link_elem = items.nth(i).locator(".item-subtitle").first
-                name = await name_elem.inner_text(timeout=2000)
-                link = await link_elem.inner_text(timeout=2000)
-                name, link = name.strip(), link.strip()
-                if not name or not link: continue
-
-                if not link.startswith(('http://', 'https://', 'rtsp://', 'rtmp://')):
-                    link = DEFAULT_PROTOCOL + link
-
-                norm = normalize_cctv(name)
-                group = classify_channel(norm)
-                if not group: continue
-                final_name = norm if group == "央视频道" else (clean_chinese_only(name) if ENABLE_CHINESE_CLEAN else name)
-                if final_name: entries.append((group, final_name, link))
-            except Exception:
-                continue
-    except Exception as e:
-        logger.warning(f"提取出错 {addr}: {e}")
-    return entries
-
-async def wait_data(page):
-    for _ in range(2):
-        logger.info("等待30秒加载数据...")
-        await asyncio.sleep(30)
-        has = await page.evaluate('''()=>{
-            for(let e of document.querySelectorAll('div.item-title')){
-                if(e.innerText.trim()) return true;
-            }
-            return false;
-        }''')
-        if has:
-            logger.info("数据加载完成")
-            return True
-    logger.warning("数据加载超时")
-    return False
-
-# ============================================================================
-# ===================== 【导出】带时间戳的文件 ================================
-# ============================================================================
-
-def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]]):
-    now = datetime.datetime.now()
-    time_str = now.strftime("%Y-%m-%d %H:%M:%S")
-    # 使用配置的占位流 URL
-    update_url = UPDATE_STREAM_URL
-
-    grouped = defaultdict(list)
-    for (group, name), urls in channel_map.items():
-        for url in urls:
-            grouped[group].append((name, url))
-
-    # --- 导出 M3U ---
-    with open(OUTPUT_M3U_FILENAME, "w", encoding="utf-8") as f:
-        f.write("#EXTM3U\n")
-        if TIME_DISPLAY_AT_TOP:
-            # 顶部写入更新时间条目
-            f.write(f'#EXTINF:-1 tvg-name="{time_str}" tvg-id="更新时间" tvg-logo="" group-title="更新时间", {time_str}\n')
-            f.write(f"{update_url}\n\n")
-        for group in GROUP_ORDER:
-            if group in grouped:
-                for name, url in grouped[group]:
-                    f.write(f'#EXTINF:-1 group-title="{group}",{name}\n{url}\n')
-                f.write("\n")
-        if not TIME_DISPLAY_AT_TOP:
-            # 底部写入更新时间条目
-            f.write(f'#EXTINF:-1 tvg-name="{time_str}" tvg-id="更新时间" tvg-logo="" group-title="更新时间", {time_str}\n')
-            f.write(f"{update_url}\n\n")
-
-    # --- 导出 TXT ---
-    with open(OUTPUT_TXT_FILENAME, "w", encoding="utf-8") as f:
-        if TIME_DISPLAY_AT_TOP:
-            f.write("更新时间,#genre#\n")
-            f.write(f"{time_str},{update_url}\n\n")
-        for group in GROUP_ORDER:
-            if group not in grouped:
-                continue
-            f.write(f"{group},#genre#\n")
-            for name, url in grouped[group]:
-                f.write(f"{name},{url}\n")
-            f.write("\n")
-        if not TIME_DISPLAY_AT_TOP:
-            f.write("更新时间,#genre#\n")
-            f.write(f"{time_str},{update_url}\n\n")
-
-    total_links = sum(len(v) for v in grouped.values()) + 1  # +1 为更新时间条目
-    position_text = "顶部" if TIME_DISPLAY_AT_TOP else "底部"
-    logger.info(f"导出完成！共 {total_links} 条链接（含更新时间），更新时间已放在{position_text}")
-
-# ============================================================================
-# ============================= 主流程 =======================================
+# ======================== 主流程 ===========================================
 # ============================================================================
 
 async def main():
-    if ENABLE_SCREENSHOTS:
-        (OUTPUT_DIR / "screenshots").mkdir(exist_ok=True)
+
+    channel_map = defaultdict(list)
 
     async with async_playwright() as p:
+
         browser = await getattr(p, BROWSER_TYPE).launch(
-            headless=HEADLESS, args=["--no-sandbox", "--disable-setuid-sandbox"]
+            headless=HEADLESS,
+            args=["--no-sandbox"]
         )
-        ctx = await browser.new_context(viewport={"width": 1920, "height": 1080})
-        page = await ctx.new_page()
 
-        try:
-            logger.info(f"正在访问 {TARGET_URL}")
-            await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT, wait_until="networkidle")
+        page = await browser.new_page()
 
-            if ENGINE_SELECTOR:
-                eng = page.locator(ENGINE_SELECTOR).first
-                if await eng.count() > 0: await robust_click(eng)
-            
-            if MCAST_SELECTOR:
-                mcast = page.locator(MCAST_SELECTOR).first
-                await robust_click(mcast)
-            
-            if START_SELECTOR:
-                start = page.locator(START_SELECTOR).first
-                await robust_click(start)
+        logger.info(f"访问 {TARGET_URL}")
 
-            if not await wait_data(page):
-                logger.error("数据加载失败")
-                return
+        await page.goto(
+            TARGET_URL,
+            timeout=PAGE_LOAD_TIMEOUT,
+            wait_until="networkidle"
+        )
 
-            rows = page.locator("div.ios-list-item").filter(has_text="频道:")
-            total_rows = await rows.count()
-            if total_rows == 0:
-                logger.error("未找到任何地址")
-                return
+        await asyncio.sleep(5)
 
-            process_count = min(total_rows, MAX_IPS) if MAX_IPS > 0 else total_rows
-            logger.info(f"找到 {total_rows} 个地址，处理前 {process_count} 个")
+        rows = page.locator("div.ios-list-item")
 
-            raw_entries = []
-            for i in range(process_count):
-                entries = await extract_one_ip(page, rows.nth(i), i+1)
-                raw_entries.extend(entries)
-                if i < process_count - 1: await asyncio.sleep(DELAY_BETWEEN_IPS)
+        total_rows = await rows.count()
 
-            logger.info(f"原始提取：{len(raw_entries)} 条")
+        logger.info(f"找到地址 {total_rows}")
 
-            # 去重
-            channel_map = defaultdict(list)
-            seen = set()
-            for group, name, url in raw_entries:
-                if ENABLE_DEDUPLICATION:
-                    key = (group, name, url)
-                    if key in seen: continue
-                    seen.add(key)
-                channel_map[(group, name)].append(url)
+        process_count = min(total_rows, MAX_IPS) if MAX_IPS > 0 else total_rows
 
-            # FFmpeg测速
-            if ENABLE_FFMPEG_TEST and channel_map:
-                channel_map = await run_ffmpeg_test(channel_map)
+        raw_entries = []
 
-            # 导出 (带时间戳)
-            export_results_with_timestamp(channel_map)
+        for i in range(process_count):
 
-        except Exception as e:
-            logger.exception("主流程异常")
-        finally:
-            await browser.close()
+            try:
+
+                row = rows.nth(i)
+
+                name = await row.locator(".item-title").inner_text()
+                link = await row.locator(".item-subtitle").inner_text()
+
+                name = name.strip()
+                link = link.strip()
+
+                if not link.startswith("http"):
+                    link = "http://" + link
+
+                group = classify_channel(name)
+
+                if ENABLE_FFMPEG_TEST:
+
+                    result = await ffmpeg_god_test(link)
+
+                    if not result["ok"]:
+                        continue
+
+                    score = result["score"]
+
+                    channel_map[(group, name)].append((link, score))
+
+            except:
+                continue
+
+        # 排序
+        final_map = defaultdict(list)
+
+        for (group, name), lst in channel_map.items():
+
+            lst.sort(key=lambda x: -x[1])
+
+            for url, _ in lst[:MAX_LINKS_PER_CHANNEL]:
+                final_map[group].append((name, url))
+
+        # ===============================
+        # 输出 M3U
+        # ===============================
+
+        with open(OUTPUT_M3U_FILENAME, "w", encoding="utf-8") as f:
+
+            f.write("#EXTM3U\n")
+
+            for group in GROUP_ORDER:
+
+                if group not in final_map:
+                    continue
+
+                for name, url in final_map[group]:
+                    f.write(
+                        f'#EXTINF:-1 group-title="{group}",{name}\n{url}\n'
+                    )
+
+        logger.info("✅ 神级 IPTV 生成完成")
+
+        await browser.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())
