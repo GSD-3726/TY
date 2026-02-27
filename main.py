@@ -94,7 +94,7 @@ CATEGORY_RULES = [
 # 导出文件时的分组排序
 GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "4K专区", "儿童频道", "轮播频道"]
 
-# CCTV 台标映射表
+# CCTV 台标映射表 & 排序顺序
 CCTV_NAME_MAPPING = {
     "1": "综合", "2": "财经", "3": "综艺", "4": "国际", "5": "体育",
     "5+": "体育赛事", "6": "电影", "7": "国防军事", "8": "电视剧",
@@ -102,6 +102,9 @@ CCTV_NAME_MAPPING = {
     "13": "新闻", "14": "少儿", "15": "音乐", "16": "奥林匹克",
     "17": "农业农村",
 }
+
+# 【央视严格排序】1,2,3,4,5,5+,6,7,8,9,10,11,12,13,14,15,16,17
+CCTV_ORDER = ["1", "2", "3", "4", "5", "5+", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17"]
 
 # ============================================================================
 # ============================= 日志配置 =====================================
@@ -150,7 +153,7 @@ def save_cache(cache: Dict[str, Dict[str, Any]]) -> None:
 # ============================= 工具函数 =====================================
 # ============================================================================
 
-CCTV_PATTERN = re.compile(r'(cctv)[-\s]?(\d{1,3})', re.IGNORECASE)
+CCTV_PATTERN = re.compile(r'(cctv)[-\s]?(\d{1,3}\+?)', re.IGNORECASE)
 CHINESE_ONLY_PATTERN = re.compile(r'[^\u4e00-\u9fff]')
 
 def build_classifier():
@@ -165,11 +168,13 @@ classify_channel = build_classifier()
 
 def normalize_cctv(name: str) -> str:
     name_lower = name.lower()
-    if "cctv5+" in name_lower: return "CCTV-5+体育赛事" if CCTV_USE_MAPPING else "CCTV5+"
-    cctv_match = CCTV_PATTERN.search(name_lower)
-    if cctv_match:
-        num = cctv_match.group(2)
-        if CCTV_USE_MAPPING and num in CCTV_NAME_MAPPING: return f"CCTV-{num}{CCTV_NAME_MAPPING[num]}"
+    if "cctv5+" in name_lower:
+        return "CCTV-5+体育赛事" if CCTV_USE_MAPPING else "CCTV-5+"
+    match = CCTV_PATTERN.search(name_lower)
+    if match:
+        num = match.group(2)
+        if CCTV_USE_MAPPING and num in CCTV_NAME_MAPPING:
+            return f"CCTV-{num}{CCTV_NAME_MAPPING[num]}"
         return f"CCTV-{num}"
     return name
 
@@ -218,8 +223,6 @@ def print_progress_bar(current: int, total: int, success: int, failed: int, last
     percent = current / total
     percent_int = int(percent * 100)
     
-    # 【核心修改】使用取模运算，只有当百分比是2的倍数且大于上次打印时才输出
-    # 同时强制打印 0% 和 100%
     should_print = (
         (percent_int % 2 == 0 and percent_int > last_percent) or 
         current == total or 
@@ -227,8 +230,6 @@ def print_progress_bar(current: int, total: int, success: int, failed: int, last
     )
     
     if should_print:
-        # 防止在边界处重复打印 (例如刚好在2%时完成了两个任务)
-        # 如果是100%，即使重复也要打
         if percent_int == last_percent and current != total:
             return last_percent
             
@@ -236,7 +237,6 @@ def print_progress_bar(current: int, total: int, success: int, failed: int, last
         filled_length = int(bar_length * percent)
         bar = '█' * filled_length + '░' * (bar_length - filled_length)
         
-        # 【关键修改】将“成功:success | 失败:failed”改为“有效:success | 共：current”
         logger.info(f"[{percent_int:3d}%] {bar} ({current}/{total}) | 有效:{success} | 共：{current}")
         return percent_int
     
@@ -293,7 +293,6 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     result_map = defaultdict(list)
     pending_tasks_data = [] 
 
-    # 1. 分流
     for (group, name), urls in channel_map.items():
         for url in urls:
             if url in cache:
@@ -309,7 +308,6 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     if total_pending == 0:
         return finalize_results(result_map)
 
-    # 2. 并发测速
     sem = asyncio.Semaphore(FFMPEG_CONCURRENCY)
     
     async def bound_test(item):
@@ -320,16 +318,13 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
 
     tasks = [bound_test(item) for item in pending_tasks_data]
     
-    # 进度统计
     completed = 0
     success_count = 0
     failed_count = 0
-    last_printed_percent = -100 # 初始化为负数，确保0%能被打印
+    last_printed_percent = -100
 
-    # 打印 0%
     print_progress_bar(0, total_pending, 0, 0, last_printed_percent)
 
-    # 3. 实时处理
     for coro in asyncio.as_completed(tasks):
         group, name, url, res = await coro
         completed += 1
@@ -345,10 +340,8 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
         else:
             failed_count += 1
 
-        # 检查并打印
         last_printed_percent = print_progress_bar(completed, total_pending, success_count, failed_count, last_printed_percent)
 
-    # 4. 收尾
     if new_cache_entries:
         cache.update(new_cache_entries)
         save_cache(cache)
@@ -459,13 +452,27 @@ async def wait_data(page):
     return False
 
 # ============================================================================
+# ======================== 【央视排序核心函数】 ===============================
+# ============================================================================
+
+def sort_cctv_channels(channels):
+    def get_cctv_sort_key(name):
+        match = CCTV_PATTERN.search(name)
+        if not match:
+            return (999, name)
+        num = match.group(2)
+        if num in CCTV_ORDER:
+            return (CCTV_ORDER.index(num), name)
+        return (998, name)
+    return sorted(channels, key=lambda x: get_cctv_sort_key(x[0]))
+
+# ============================================================================
 # ===================== 【导出】带时间戳的文件 ================================
 # ============================================================================
 
 def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]]):
     now = datetime.datetime.now()
     time_str = now.strftime("%Y-%m-%d %H:%M:%S")
-    # 使用配置的占位流 URL
     update_url = UPDATE_STREAM_URL
 
     grouped = defaultdict(list)
@@ -473,40 +480,52 @@ def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]])
         for url in urls:
             grouped[group].append((name, url))
 
-    # --- 导出 M3U ---
     with open(OUTPUT_M3U_FILENAME, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         if TIME_DISPLAY_AT_TOP:
-            # 顶部写入更新时间条目
             f.write(f'#EXTINF:-1 tvg-name="{time_str}" tvg-id="更新时间" tvg-logo="" group-title="更新时间", {time_str}\n')
             f.write(f"{update_url}\n\n")
+        
         for group in GROUP_ORDER:
-            if group in grouped:
-                for name, url in grouped[group]:
-                    f.write(f'#EXTINF:-1 group-title="{group}",{name}\n{url}\n')
-                f.write("\n")
+            if group not in grouped:
+                continue
+            if group == "央视频道":
+                sorted_chans = sort_cctv_channels(grouped[group])
+            else:
+                sorted_chans = sorted(grouped[group], key=lambda x: x[0])
+            
+            for name, url in sorted_chans:
+                f.write(f'#EXTINF:-1 group-title="{group}",{name}\n{url}\n')
+            f.write("\n")
+        
         if not TIME_DISPLAY_AT_TOP:
-            # 底部写入更新时间条目
             f.write(f'#EXTINF:-1 tvg-name="{time_str}" tvg-id="更新时间" tvg-logo="" group-title="更新时间", {time_str}\n')
             f.write(f"{update_url}\n\n")
 
-    # --- 导出 TXT ---
     with open(OUTPUT_TXT_FILENAME, "w", encoding="utf-8") as f:
         if TIME_DISPLAY_AT_TOP:
             f.write("更新时间,#genre#\n")
             f.write(f"{time_str},{update_url}\n\n")
+        
         for group in GROUP_ORDER:
             if group not in grouped:
                 continue
             f.write(f"{group},#genre#\n")
-            for name, url in grouped[group]:
+            
+            if group == "央视频道":
+                sorted_chans = sort_cctv_channels(grouped[group])
+            else:
+                sorted_chans = sorted(grouped[group], key=lambda x: x[0])
+            
+            for name, url in sorted_chans:
                 f.write(f"{name},{url}\n")
             f.write("\n")
+        
         if not TIME_DISPLAY_AT_TOP:
             f.write("更新时间,#genre#\n")
             f.write(f"{time_str},{update_url}\n\n")
 
-    total_links = sum(len(v) for v in grouped.values()) + 1  # +1 为更新时间条目
+    total_links = sum(len(v) for v in grouped.values()) + 1
     position_text = "顶部" if TIME_DISPLAY_AT_TOP else "底部"
     logger.info(f"导出完成！共 {total_links} 条链接（含更新时间），更新时间已放在{position_text}")
 
@@ -562,7 +581,6 @@ async def main():
 
             logger.info(f"原始提取：{len(raw_entries)} 条")
 
-            # 去重
             channel_map = defaultdict(list)
             seen = set()
             for group, name, url in raw_entries:
@@ -572,11 +590,9 @@ async def main():
                     seen.add(key)
                 channel_map[(group, name)].append(url)
 
-            # FFmpeg测速
             if ENABLE_FFMPEG_TEST and channel_map:
                 channel_map = await run_ffmpeg_test(channel_map)
 
-            # 导出 (带时间戳)
             export_results_with_timestamp(channel_map)
 
         except Exception as e:
