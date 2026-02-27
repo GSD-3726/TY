@@ -318,6 +318,7 @@ def print_progress_bar(current: int, total: int, success: int, failed: int, last
 # ============================================================================
 
 async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
+    """增强版测速：添加单行读取超时，避免卡死"""
     if not shutil.which(FFMPEG_PATH):
         logger.error(f"未找到FFmpeg: {FFMPEG_PATH}")
         return {"ok": False, "fps": 0.0, "frames": 0, "message": "FFmpeg未安装"}
@@ -346,12 +347,29 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
         fps = 0.0
         start = time.time()
 
+        # 单行读取超时（秒）
+        LINE_READ_TIMEOUT = 10
+
         while True:
-            if time.time() - start > FFMPEG_TEST_DURATION + 8:
+            # 如果总运行时间超过允许值，强制退出
+            elapsed = time.time() - start
+            if elapsed > FFMPEG_TEST_DURATION + 8:
                 break
 
-            line = await proc.stdout.readline()
+            try:
+                # 使用 wait_for 避免 readline 永久阻塞
+                line = await asyncio.wait_for(proc.stdout.readline(), timeout=LINE_READ_TIMEOUT)
+            except asyncio.TimeoutError:
+                # 超时后尝试终止进程
+                logger.warning(f"读取 ffmpeg 输出超时，可能链接卡死: {url}")
+                try:
+                    proc.kill()
+                except:
+                    pass
+                break
+
             if not line:
+                # 进程结束
                 break
 
             text = line.decode(errors="ignore").strip()
@@ -366,7 +384,12 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
                 except:
                     pass
 
-        await proc.wait()
+        # 等待进程结束（最多再等 2 秒）
+        try:
+            await asyncio.wait_for(proc.wait(), timeout=2)
+        except asyncio.TimeoutError:
+            proc.kill()
+            await proc.wait()
 
         min_frames_dynamic = int(FFMPEG_TEST_DURATION * 25 * MIN_FRAMES_RATIO)
         min_frames_final = max(min_frames_dynamic, MIN_FRAMES)
