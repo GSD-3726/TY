@@ -1,56 +1,148 @@
-# -------------------------- 1. 基础爬取设置 --------------------------
-TARGET_URL = "https://iptv.809899.xyz"          # 【必填】要爬取的目标网站地址
-HEADLESS = True                                  # 【True/False】是否隐藏浏览器窗口 (True=后台运行, False=显示窗口)
-BROWSER_TYPE = "chromium"                        # 【chromium/firefox/webkit】浏览器内核类型，推荐默认 chromium
-MAX_IPS = 20                                     # 【数字】最多处理前N个IP/地址行 (0表示不限制)
-PAGE_LOAD_TIMEOUT = 120000                       # 【毫秒】页面加载最长等待时间 (120秒)
-
-# -------------------------- 2. 文件输出设置 --------------------------
-OUTPUT_DIR = __file__                            # 【路径】结果保存目录 (默认为脚本所在文件夹)
-OUTPUT_M3U_FILENAME = OUTPUT_DIR / "iptv_channels.m3u"  # M3U播放列表文件名
-OUTPUT_TXT_FILENAME = OUTPUT_DIR / "iptv_channels.txt"  # TXT格式文件名
-MAX_LINKS_PER_CHANNEL = 10                       # 【数字】每个频道最多保留多少个最快的源
-
-# -------------------------- 3. FFmpeg 测速设置 --------------------------
-ENABLE_FFMPEG_TEST = True                         # 【True/False】总开关：是否开启测速 (False直接保存所有链接)
-FFMPEG_PATH = "ffmpeg"                            # 【路径】FFmpeg程序位置 (Windows需写完整路径，如 r"C:\ffmpeg\bin\ffmpeg.exe")
-FFPROBE_PATH = "ffprobe"                          # 【路径】ffprobe程序位置 (同上，测速预检测用)
-FFMPEG_TEST_DURATION = 10                          # 【秒】单个链接的测试时长 (越长越准，但越慢)
-FFMPEG_CONCURRENCY = 2                            # 【数字】同时测试的链接数 (GitHub Actions建议<=2，本地电脑建议<=CPU核心数)
-MIN_AVG_FPS = 24.0                                # 【数字】最低平均帧率 (低于此值认为卡顿，丢弃)
-MIN_FRAMES = 210                                    # 【数字】最低解码帧数 (防止只有几秒数据就误判为成功)
-MIN_FRAMES_RATIO = 0.75                            # 【比例】动态帧率阈值 (总时长*25*比例，代码1核心参数)
-
-# -------------------------- 4. HLS/FFprobe 预检测设置 --------------------------
-ENABLE_FFPROBE_CHECK = True                       # 【True/False】是否开启ffprobe预检测视频流
-ENABLE_HLS_QUICK_CHECK = True                     # 【True/False】是否开启HLS(m3u8)快速检测
-HLS_CHECK_TIMEOUT = 6                             # 【秒】HLS检测超时时间
-
-# -------------------------- 5. 网页操作延时 --------------------------
-DELAY_BETWEEN_IPS = 1.0                             # 【秒】处理完一个IP后等待多久
-DELAY_AFTER_CLICK = 0.5                             # 【秒】点击按钮后等待弹窗多久
-MAX_CHANNELS_PER_IP = 0                              # 【数字】单个IP最多提取多少个频道 (0表示不限制)
-
-# -------------------------- 6. 数据清洗 --------------------------
-ENABLE_CHINESE_CLEAN = True                         # 【True/False】是否移除频道名中的非中文字符 (仅对非央视频道)
-ENABLE_DEDUPLICATION = True                          # 【True/False】是否去重 (相同的频道名+链接只保留一个)
-ENABLE_SCREENSHOTS = False                           # 【True/False】是否在关键步骤截图 (用于调试)
-CCTV_USE_MAPPING = True                              # 【True/False】是否将CCTV数字转为中文 (如 "CCTV-1" 变为 "CCTV-1综合")
-
-# -------------------------- 7. 网络协议 --------------------------
-DEFAULT_PROTOCOL = "http://"                         # 【http:///https:///rtsp://】当链接缺少协议头时，自动补全
-
-# -------------------------- 8. 缓存设置 --------------------------
-ENABLE_CACHE = True                                  # 【True/False】是否启用缓存 (开启后，测过的链接24小时内不再重测)
-CACHE_FILE = OUTPUT_DIR / "iptv_speed_cache.json"  # 【路径】缓存文件保存位置
-CACHE_EXPIRE_HOURS = 24                              # 【小时】缓存过期时间 (0表示永不过期)
-
-# -------------------------- 9. 更新时间显示 --------------------------
-TIME_DISPLAY_AT_TOP = False                          # 【True/False】更新时间显示位置 (True=文件最上面, False=文件最后面)
-UPDATE_STREAM_URL = "https://gitee.com/bmg369/test/blob/main/175081947304562457.webp"  # 更新时间条目占位流
+# ============================================================================
+# 【必填前置】提前导入路径工具，禁止删除/移动！
+# ============================================================================
+from pathlib import Path
 
 # ============================================================================
-# ============================= 依赖导入 =====================================
+# ======================== 【配置区 · 全中文填写指南】 =========================
+# 👉 所有参数按模块分类，#后面是填写说明，直接修改=后面的值即可
+# 👉 无特殊需求，保持默认值就能直接运行，无需修改
+# ============================================================================
+
+# ==================================
+# 🔴 1. 基础爬取核心设置
+# ==================================
+# 【爬取目标地址】要提取直播源的网站地址，无需修改
+TARGET_URL = "https://iptv.809899.xyz"
+
+# 【浏览器窗口开关】True=后台静默运行(无窗口)，False=显示浏览器窗口(本地调试用)
+# ⚠️ GitHub Actions必须设为True，否则会运行失败
+HEADLESS = True
+
+# 【浏览器内核】默认chromium即可，可选firefox/webkit，无需修改
+BROWSER_TYPE = "chromium"
+
+# 【最大处理IP数量】最多提取前N个IP里的频道，0=不限制全部提取
+# ⚠️ 数值越大，运行时间越长，GitHub Actions建议设20-50，本地可设0
+MAX_IPS = 20
+
+# 【页面加载超时时间】单位：毫秒，120000=2分钟，网络慢可以调大
+PAGE_LOAD_TIMEOUT = 120000
+
+# ==================================
+# 🟠 2. 输出文件设置
+# ==================================
+# 【文件保存目录】默认=脚本所在的文件夹，无需修改
+OUTPUT_DIR = Path(__file__).parent
+
+# 【M3U播放列表文件名】支持电视/盒子/播放器直接打开的格式，无需修改
+OUTPUT_M3U_FILENAME = OUTPUT_DIR / "iptv_channels.m3u"
+
+# 【TXT格式文件名】通用文本格式，无需修改
+OUTPUT_TXT_FILENAME = OUTPUT_DIR / "iptv_channels.txt"
+
+# 【单个频道最多保留源数】每个频道只保留测速最快的前N个源，避免文件过大
+MAX_LINKS_PER_CHANNEL = 10
+
+# ==================================
+# 🟡 3. FFmpeg测速核心设置
+# ==================================
+# 【测速总开关】True=开启测速筛选(只保留流畅源)，False=直接保存所有爬取到的链接(无测速)
+ENABLE_FFMPEG_TEST = True
+
+# 【FFmpeg程序路径】
+# ✅ Windows：必须写完整绝对路径，比如 r"C:\ffmpeg\bin\ffmpeg.exe"
+# ✅ Linux/macOS/GitHub Actions：直接填 "ffmpeg" 即可
+FFMPEG_PATH = "ffmpeg"
+
+# 【FFprobe程序路径】和FFmpeg同目录，填写规则同上
+FFPROBE_PATH = "ffprobe"
+
+# 【单个链接测速时长】单位：秒，数值越大测速越准，运行时间也越长
+# ⚠️ GitHub Actions建议设5-10秒，本地可设10-20秒
+FFMPEG_TEST_DURATION = 10
+
+# 【同时测速的链接数】数值越大测速越快，对CPU/网络要求越高
+# ⚠️ GitHub Actions建议设1-2，本地4核CPU可设4，8核可设8
+FFMPEG_CONCURRENCY = 2
+
+# 【最低平均帧率】低于这个值的卡顿源会被丢弃，24是流畅播放的最低标准
+MIN_AVG_FPS = 24.0
+
+# 【最低解码帧数】防止只有几秒数据就误判为成功，默认210=10秒×25帧×0.85，无需修改
+MIN_FRAMES = 210
+
+# 【动态帧率阈值】和上面的固定帧数取最大值，无需修改
+MIN_FRAMES_RATIO = 0.75
+
+# ==================================
+# 🟢 4. 预检测设置（减少无效测速，节省时间）
+# ==================================
+# 【ffprobe预检测开关】True=先检测链接有没有视频流，无视频流直接跳过测速
+ENABLE_FFPROBE_CHECK = True
+
+# 【HLS快速检测开关】True=先检测m3u8链接是否有效，无效直接跳过测速
+ENABLE_HLS_QUICK_CHECK = True
+
+# 【HLS检测超时时间】单位：秒，无需修改
+HLS_CHECK_TIMEOUT = 6
+
+# ==================================
+# 🔵 5. 网页操作延时设置（网站卡顿可调大）
+# ==================================
+# 【处理完一个IP后的等待时间】单位：秒，防止操作太快被网站拦截
+DELAY_BETWEEN_IPS = 1.0
+
+# 【点击按钮后等待弹窗的时间】单位：秒，网站加载慢可以调大
+DELAY_AFTER_CLICK = 0.5
+
+# 【单个IP最多提取频道数】0=不限制，防止单个IP频道太多拖慢速度
+MAX_CHANNELS_PER_IP = 0
+
+# ==================================
+# 🟣 6. 频道名称清洗设置
+# ==================================
+# 【中文清洗开关】True=移除非央视频道名称里的乱码/特殊字符，只保留中文
+ENABLE_CHINESE_CLEAN = True
+
+# 【去重开关】True=相同频道名+相同链接只保留一个，避免重复
+ENABLE_DEDUPLICATION = True
+
+# 【调试截图开关】True=关键步骤自动截图，保存在screenshots文件夹，仅本地调试用
+ENABLE_SCREENSHOTS = False
+
+# 【CCTV名称标准化】True=自动把CCTV-1转为CCTV-1综合，适配EPG节目单
+CCTV_USE_MAPPING = True
+
+# ==================================
+# 🟤 7. 网络协议设置
+# ==================================
+# 【默认协议头】当爬取的链接没有http/https开头时，自动补全的协议，无需修改
+DEFAULT_PROTOCOL = "http://"
+
+# ==================================
+# ⚫ 8. 测速缓存设置（GitHub Actions必开，大幅节省时间）
+# ==================================
+# 【缓存开关】True=测过的链接24小时内不再重复测速，False=每次都重新测所有链接
+ENABLE_CACHE = True
+
+# 【缓存文件保存路径】无需修改
+CACHE_FILE = OUTPUT_DIR / "iptv_speed_cache.json"
+
+# 【缓存过期时间】单位：小时，24=一天内测过的链接不再重测，0=永不过期
+CACHE_EXPIRE_HOURS = 24
+
+# ==================================
+# ⚪ 9. 更新时间显示设置
+# ==================================
+# 【更新时间位置】True=更新时间放在播放列表最顶部，False=放在最底部
+TIME_DISPLAY_AT_TOP = False
+
+# 【更新时间占位流地址】无需修改
+UPDATE_STREAM_URL = "https://gitee.com/bmg369/test/blob/main/175081947304562457.webp"
+
+# ============================================================================
+# ============================= 【代码区 · 无需修改】 =========================
 # ============================================================================
 
 import asyncio
@@ -64,28 +156,22 @@ import shutil
 import datetime
 import requests
 from collections import defaultdict
-from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 from urllib.parse import urljoin
 import functools
 
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
-# 修正OUTPUT_DIR路径（兼容配置区的简写）
-OUTPUT_DIR = Path(OUTPUT_DIR).parent
-
 # ============================================================================
 # ============================ 频道分类规则 ==================================
 # ============================================================================
 
-# 页面元素定位关键词 (如果网站改版了，修改这里的文字即可)
 PAGE_CONFIG = {
     "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
     "multicast_tab": ["酒店提取"],
     "start_button": ["开始播放", "开始搜索", "开始提取"],
 }
 
-# 频道自动分类规则 (按关键词匹配)
 CATEGORY_RULES = [
     {"name": "4K专区",      "keywords": ["4k"]},
     {"name": "央视频道",    "keywords": ["cctv", "cetv", "中央"]},
@@ -95,10 +181,8 @@ CATEGORY_RULES = [
     {"name": "儿童频道",    "keywords": ["少儿", "动画", "卡通"]},
 ]
 
-# 导出文件时的分组排序
 GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "4K专区", "儿童频道", "轮播频道"]
 
-# CCTV 台标映射表
 CCTV_NAME_MAPPING = {
     "1": "综合", "2": "财经", "3": "综艺", "4": "国际", "5": "体育",
     "5+": "体育赛事", "6": "电影", "7": "国防军事", "8": "电视剧",
@@ -151,11 +235,10 @@ def save_cache(cache: Dict[str, Dict[str, Any]]) -> None:
         logger.warning(f"保存缓存失败: {e}")
 
 # ============================================================================
-# ============================= 工具函数 (新增代码1的预检测) ======================
+# ============================= 工具函数 =====================================
 # ============================================================================
 
 async def ffprobe_check(url: str) -> bool:
-    """【代码1集成】ffprobe 预检测是否包含视频流"""
     if not ENABLE_FFPROBE_CHECK or not shutil.which(FFPROBE_PATH):
         return True
 
@@ -180,13 +263,11 @@ async def ffprobe_check(url: str) -> bool:
 
         data = json.loads(out.decode())
         streams = data.get("streams", [])
-        # 必须至少有 video stream
         return any(s.get("codec_type") == "video" for s in streams)
     except Exception:
         return True
 
 def hls_quick_check(url: str) -> bool:
-    """【代码1集成】HLS m3u8 快速检测"""
     if not ENABLE_HLS_QUICK_CHECK or not url.endswith(".m3u8"):
         return True
 
@@ -286,20 +367,17 @@ def print_progress_bar(current: int, total: int, success: int, failed: int, last
     return last_percent
 
 # ============================================================================
-# ========================= 【核心】FFmpeg测速代码 (集成代码1预检测) ===========
+# ========================= 【核心】FFmpeg测速代码 ============================
 # ============================================================================
 
 async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
-    """集成代码1的ffprobe+HLS预检测，减少无效测速"""
     if not shutil.which(FFMPEG_PATH):
         logger.error(f"未找到FFmpeg: {FFMPEG_PATH}")
         return {"ok": False, "fps": 0.0, "frames": 0, "message": "FFmpeg未安装"}
 
-    # 步骤1：代码1的ffprobe预检测
     if not await ffprobe_check(url):
         return {"ok": False, "fps": 0.0, "frames": 0, "message": "ffprobe检测无视频流"}
 
-    # 步骤2：代码1的HLS快速检测
     if not hls_quick_check(url):
         return {"ok": False, "fps": 0.0, "frames": 0, "message": "HLS检测失败"}
 
@@ -309,7 +387,7 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
         "-rw_timeout", "5000000",
         "-i", url,
         "-t", str(FFMPEG_TEST_DURATION),
-        "-f", "null", "-progress", "pipe:1", "-"  # 代码1的progress输出，更精准
+        "-f", "null", "-progress", "pipe:1", "-"
     ]
 
     try:
@@ -321,7 +399,6 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
         fps = 0.0
         start = time.time()
 
-        # 代码1的progress实时解析逻辑
         while True:
             if time.time() - start > FFMPEG_TEST_DURATION + 8:
                 break
@@ -344,7 +421,6 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
 
         await proc.wait()
 
-        # 代码1的动态阈值 + 代码2的固定阈值双重校验
         min_frames_dynamic = int(FFMPEG_TEST_DURATION * 25 * MIN_FRAMES_RATIO)
         min_frames_final = max(min_frames_dynamic, MIN_FRAMES)
         is_smooth = frames >= min_frames_final and fps >= MIN_AVG_FPS
@@ -368,7 +444,6 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     result_map = defaultdict(list)
     pending_tasks_data = [] 
 
-    # 1. 分流（缓存命中直接用）
     for (group, name), urls in channel_map.items():
         for url in urls:
             if url in cache:
@@ -384,7 +459,6 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     if total_pending == 0:
         return finalize_results(result_map)
 
-    # 2. 并发测速
     sem = asyncio.Semaphore(FFMPEG_CONCURRENCY)
     
     async def bound_test(item):
@@ -395,16 +469,13 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
 
     tasks = [bound_test(item) for item in pending_tasks_data]
     
-    # 进度统计
     completed = 0
     success_count = 0
     failed_count = 0
     last_printed_percent = -100
 
-    # 打印 0%
     print_progress_bar(0, total_pending, 0, 0, last_printed_percent)
 
-    # 3. 实时处理
     for coro in asyncio.as_completed(tasks):
         group, name, url, res = await coro
         completed += 1
@@ -422,10 +493,8 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
             failed_count += 1
             logger.debug(f"链接 {url} 测速失败: {res['message']}")
 
-        # 检查并打印进度
         last_printed_percent = print_progress_bar(completed, total_pending, success_count, failed_count, last_printed_percent)
 
-    # 4. 收尾
     if new_cache_entries:
         cache.update(new_cache_entries)
         save_cache(cache)
@@ -436,7 +505,6 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
 def finalize_results(result_map):
     final_map = {}
     for key, items in result_map.items():
-        # 按帧率降序排序，取前N个
         items.sort(key=lambda x: -x[1])
         final_map[key] = [url for url, _ in items[:MAX_LINKS_PER_CHANNEL]]
     
@@ -550,7 +618,6 @@ def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]])
         for url in urls:
             grouped[group].append((name, url))
 
-    # --- 导出 M3U ---
     with open(OUTPUT_M3U_FILENAME, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         if TIME_DISPLAY_AT_TOP:
@@ -565,7 +632,6 @@ def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]])
             f.write(f'#EXTINF:-1 tvg-name="{time_str}" tvg-id="更新时间" tvg-logo="" group-title="更新时间", {time_str}\n')
             f.write(f"{update_url}\n\n")
 
-    # --- 导出 TXT ---
     with open(OUTPUT_TXT_FILENAME, "w", encoding="utf-8") as f:
         if TIME_DISPLAY_AT_TOP:
             f.write("更新时间,#genre#\n")
@@ -637,7 +703,6 @@ async def main():
 
             logger.info(f"原始提取：{len(raw_entries)} 条")
 
-            # 去重
             channel_map = defaultdict(list)
             seen = set()
             for group, name, url in raw_entries:
@@ -647,11 +712,9 @@ async def main():
                     seen.add(key)
                 channel_map[(group, name)].append(url)
 
-            # FFmpeg测速
             if ENABLE_FFMPEG_TEST and channel_map:
                 channel_map = await run_ffmpeg_test(channel_map)
 
-            # 导出 (带时间戳)
             export_results_with_timestamp(channel_map)
 
         except Exception as e:
