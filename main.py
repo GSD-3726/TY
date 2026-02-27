@@ -67,6 +67,9 @@ CACHE_EXPIRE_HOURS = 24                              # 【小时】缓存过期�
 # -------------------------- 8. 更新时间显示 --------------------------
 TIME_DISPLAY_AT_TOP = False                          # 【True/False】更新时间显示位置 (True=文件最上面, False=文件最后面)
 
+# -------------------------- 9. 更新时间条目占位流 --------------------------
+UPDATE_STREAM_URL = "https://gitee.com/bmg369/test/blob/main/175081947304562457.webp"
+
 # ============================================================================
 # ============================ 频道分类规则 ==================================
 # ============================================================================
@@ -135,7 +138,7 @@ def load_cache() -> Dict[str, Dict[str, Any]]:
         logger.warning(f"加载缓存失败: {e}")
         return {}
 
-def save_cache(cache: Dict[str, Dict[str, Any]]):
+def save_cache(cache: Dict[str, Dict[str, Any]]) -> None:
     if not ENABLE_CACHE: return
     try:
         with open(CACHE_FILE, "w", encoding="utf-8") as f:
@@ -461,8 +464,8 @@ async def wait_data(page):
 def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]]):
     now = datetime.datetime.now()
     time_str = now.strftime("%Y-%m-%d %H:%M:%S")
-    info_group_name = "📋 信息"
-    info_channel_name = "🔄 更新时间"
+    # 使用配置的占位流 URL
+    update_url = UPDATE_STREAM_URL
 
     grouped = defaultdict(list)
     for (group, name), urls in channel_map.items():
@@ -473,33 +476,38 @@ def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]])
     with open(OUTPUT_M3U_FILENAME, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         if TIME_DISPLAY_AT_TOP:
-            f.write(f'#EXTINF:-1 group-title="{info_group_name}",{info_channel_name}\n# {time_str}\n\n')
+            # 顶部写入更新时间条目
+            f.write(f'#EXTINF:-1 tvg-name="{time_str}" tvg-id="更新时间" tvg-logo="" group-title="更新时间", {time_str}\n')
+            f.write(f"{update_url}\n\n")
         for group in GROUP_ORDER:
             if group in grouped:
                 for name, url in grouped[group]:
                     f.write(f'#EXTINF:-1 group-title="{group}",{name}\n{url}\n')
                 f.write("\n")
         if not TIME_DISPLAY_AT_TOP:
-            f.write(f'#EXTINF:-1 group-title="{info_group_name}",{info_channel_name}\n# {time_str}\n\n')
+            # 底部写入更新时间条目
+            f.write(f'#EXTINF:-1 tvg-name="{time_str}" tvg-id="更新时间" tvg-logo="" group-title="更新时间", {time_str}\n')
+            f.write(f"{update_url}\n\n")
 
     # --- 导出 TXT ---
     with open(OUTPUT_TXT_FILENAME, "w", encoding="utf-8") as f:
         if TIME_DISPLAY_AT_TOP:
-            f.write(f"{info_group_name},#genre#\n")
-            f.write(f"{info_channel_name},{time_str}\n\n")
+            f.write("更新时间,#genre#\n")
+            f.write(f"{time_str},{update_url}\n\n")
         for group in GROUP_ORDER:
-            if group not in grouped: continue
+            if group not in grouped:
+                continue
             f.write(f"{group},#genre#\n")
             for name, url in grouped[group]:
                 f.write(f"{name},{url}\n")
             f.write("\n")
         if not TIME_DISPLAY_AT_TOP:
-            f.write(f"{info_group_name},#genre#\n")
-            f.write(f"{info_channel_name},{time_str}\n\n")
+            f.write("更新时间,#genre#\n")
+            f.write(f"{time_str},{update_url}\n\n")
 
-    total_links = sum(len(v) for v in grouped.values())
+    total_links = sum(len(v) for v in grouped.values()) + 1  # +1 为更新时间条目
     position_text = "顶部" if TIME_DISPLAY_AT_TOP else "底部"
-    logger.info(f"导出完成！共 {total_links} 条链接，更新时间已放在{position_text}")
+    logger.info(f"导出完成！共 {total_links} 条链接（含更新时间），更新时间已放在{position_text}")
 
 # ============================================================================
 # ============================= 主流程 =======================================
