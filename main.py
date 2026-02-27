@@ -1,145 +1,92 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+IPTV 组播提取工具（网页阅读优化版）
+核心功能：自动爬取IPTV直播源 + 多层测速筛选 + 自动生成M3U/TXT播放列表
+适配场景：本地Windows/macOS/Linux运行 + GitHub Actions自动定时更新
+"""
+
 # ============================================================================
 # 【必填前置】提前导入路径工具，禁止删除/移动！
 # ============================================================================
 from pathlib import Path
 
 # ============================================================================
-# ======================== 【配置区 · 全中文填写指南】 =========================
-# 👉 所有参数按模块分类，#后面是填写说明，直接修改=后面的值即可
-# 👉 无特殊需求，保持默认值就能直接运行，无需修改
+# ======================== 【配置区 · 网页友好优化版】 =========================
+# 📌 格式说明：参数 = 值  # 🎯 功能说明 | ⚠️ 注意事项 | 💡 推荐值
+# 📌 关键参数已用 emoji 高亮，无特殊需求保持默认值即可直接运行
 # ============================================================================
 
 # ==================================
 # 🔴 1. 基础爬取核心设置
 # ==================================
-# 【爬取目标地址】要提取直播源的网站地址，无需修改
-TARGET_URL = "https://iptv.809899.xyz"
-
-# 【浏览器窗口开关】True=后台静默运行(无窗口)，False=显示浏览器窗口(本地调试用)
-# ⚠️ GitHub Actions必须设为True，否则会运行失败
-HEADLESS = True
-
-# 【浏览器内核】默认chromium即可，可选firefox/webkit，无需修改
-BROWSER_TYPE = "chromium"
-
-# 【最大处理IP数量】最多提取前N个IP里的频道，0=不限制全部提取
-# ⚠️ 数值越大，运行时间越长，GitHub Actions建议设20-50，本地可设0
-MAX_IPS = 20
-
-# 【页面加载超时时间】单位：毫秒，120000=2分钟，网络慢可以调大
-PAGE_LOAD_TIMEOUT = 120000
+TARGET_URL = "https://iptv.809899.xyz"          # 🎯 爬取目标地址 | ⚠️ 无需修改
+HEADLESS = True                                   # 🎯 浏览器窗口开关 | ⚠️ GitHub Actions必须为True | 💡 True=后台运行 False=显示窗口
+BROWSER_TYPE = "chromium"                         # 🎯 浏览器内核 | 💡 可选firefox/webkit，推荐默认
+MAX_IPS = 20                                       # 🎯 最大处理IP数量 | ⚠️ 数值越大运行越久 | 💡 GitHub Actions=20-50 本地=0(不限制)
+PAGE_LOAD_TIMEOUT = 120000                        # 🎯 页面加载超时时间(毫秒) | 💡 网络慢可调大
 
 # ==================================
 # 🟠 2. 输出文件设置
 # ==================================
-# 【文件保存目录】默认=脚本所在的文件夹，无需修改
-OUTPUT_DIR = Path(__file__).parent
-
-# 【M3U播放列表文件名】支持电视/盒子/播放器直接打开的格式，无需修改
-OUTPUT_M3U_FILENAME = OUTPUT_DIR / "iptv_channels.m3u"
-
-# 【TXT格式文件名】通用文本格式，无需修改
-OUTPUT_TXT_FILENAME = OUTPUT_DIR / "iptv_channels.txt"
-
-# 【单个频道最多保留源数】每个频道只保留测速最快的前N个源，避免文件过大
-MAX_LINKS_PER_CHANNEL = 10
+OUTPUT_DIR = Path(__file__).parent                # 🎯 文件保存目录 | 💡 默认=脚本所在文件夹
+# 修复点：显式转换为Path对象，避免字符串拼接错误
+OUTPUT_M3U_FILENAME = Path(OUTPUT_DIR) / "iptv_channels.m3u"  # 🎯 M3U播放列表文件名 | ✅ 支持电视/盒子直接打开
+OUTPUT_TXT_FILENAME = Path(OUTPUT_DIR) / "iptv_channels.txt"  # 🎯 TXT格式文件名 | ✅ 通用文本格式
+MAX_LINKS_PER_CHANNEL = 10                         # 🎯 单个频道最多保留源数 | 💡 避免文件过大
 
 # ==================================
 # 🟡 3. FFmpeg测速核心设置
 # ==================================
-# 【测速总开关】True=开启测速筛选(只保留流畅源)，False=直接保存所有爬取到的链接(无测速)
-ENABLE_FFMPEG_TEST = True
-
-# 【FFmpeg程序路径】
-# ✅ Windows：必须写完整绝对路径，比如 r"C:\ffmpeg\bin\ffmpeg.exe"
-# ✅ Linux/macOS/GitHub Actions：直接填 "ffmpeg" 即可
-FFMPEG_PATH = "ffmpeg"
-
-# 【FFprobe程序路径】和FFmpeg同目录，填写规则同上
-FFPROBE_PATH = "ffprobe"
-
-# 【单个链接测速时长】单位：秒，数值越大测速越准，运行时间也越长
-# ⚠️ GitHub Actions建议设5-10秒，本地可设10-20秒
-FFMPEG_TEST_DURATION = 10
-
-# 【同时测速的链接数】数值越大测速越快，对CPU/网络要求越高
-# ⚠️ GitHub Actions建议设1-2，本地4核CPU可设4，8核可设8
-FFMPEG_CONCURRENCY = 2
-
-# 【最低平均帧率】低于这个值的卡顿源会被丢弃，24是流畅播放的最低标准
-MIN_AVG_FPS = 24.0
-
-# 【最低解码帧数】防止只有几秒数据就误判为成功，默认210=10秒×25帧×0.85，无需修改
-MIN_FRAMES = 210
-
-# 【动态帧率阈值】和上面的固定帧数取最大值，无需修改
-MIN_FRAMES_RATIO = 0.75
+ENABLE_FFMPEG_TEST = True                          # 🎯 测速总开关 | 💡 True=只保留流畅源 False=保存所有链接
+FFMPEG_PATH = "ffmpeg"                             # 🎯 FFmpeg程序路径 | ⚠️ Windows必填完整路径 | 💡 Windows示例: r"C:\ffmpeg\bin\ffmpeg.exe"
+FFPROBE_PATH = "ffprobe"                           # 🎯 FFprobe程序路径 | ⚠️ 填写规则同上
+FFMPEG_TEST_DURATION = 10                           # 🎯 单个链接测速时长(秒) | ⚠️ 越长越准但越慢 | 💡 GitHub Actions=5-10 本地=10-20
+FFMPEG_CONCURRENCY = 2                              # 🎯 同时测速的链接数 | ⚠️ 越大越快但对CPU/网络要求高 | 💡 GitHub Actions=1-2 本地=CPU核心数
+MIN_AVG_FPS = 24.0                                  # 🎯 最低平均帧率 | 💡 24是流畅播放最低标准
+MIN_FRAMES = 210                                     # 🎯 最低解码帧数 | 💡 防止误判，无需修改
+MIN_FRAMES_RATIO = 0.75                              # 🎯 动态帧率阈值 | 💡 无需修改
 
 # ==================================
-# 🟢 4. 预检测设置（减少无效测速，节省时间）
+# 🟢 4. 预检测设置（减少无效测速）
 # ==================================
-# 【ffprobe预检测开关】True=先检测链接有没有视频流，无视频流直接跳过测速
-ENABLE_FFPROBE_CHECK = True
-
-# 【HLS快速检测开关】True=先检测m3u8链接是否有效，无效直接跳过测速
-ENABLE_HLS_QUICK_CHECK = True
-
-# 【HLS检测超时时间】单位：秒，无需修改
-HLS_CHECK_TIMEOUT = 6
+ENABLE_FFPROBE_CHECK = True                         # 🎯 ffprobe预检测开关 | 💡 True=先检测有无视频流
+ENABLE_HLS_QUICK_CHECK = True                       # 🎯 HLS快速检测开关 | 💡 True=先检测m3u8是否有效
+HLS_CHECK_TIMEOUT = 6                                # 🎯 HLS检测超时时间(秒) | 💡 无需修改
 
 # ==================================
-# 🔵 5. 网页操作延时设置（网站卡顿可调大）
+# 🔵 5. 网页操作延时设置
 # ==================================
-# 【处理完一个IP后的等待时间】单位：秒，防止操作太快被网站拦截
-DELAY_BETWEEN_IPS = 1.0
-
-# 【点击按钮后等待弹窗的时间】单位：秒，网站加载慢可以调大
-DELAY_AFTER_CLICK = 0.5
-
-# 【单个IP最多提取频道数】0=不限制，防止单个IP频道太多拖慢速度
-MAX_CHANNELS_PER_IP = 0
+DELAY_BETWEEN_IPS = 1.0                              # 🎯 处理完一个IP后的等待时间(秒) | 💡 防止被拦截
+DELAY_AFTER_CLICK = 0.5                              # 🎯 点击按钮后等待弹窗时间(秒) | 💡 网站慢可调大
+MAX_CHANNELS_PER_IP = 0                               # 🎯 单个IP最多提取频道数 | 💡 0=不限制
 
 # ==================================
 # 🟣 6. 频道名称清洗设置
 # ==================================
-# 【中文清洗开关】True=移除非央视频道名称里的乱码/特殊字符，只保留中文
-ENABLE_CHINESE_CLEAN = True
-
-# 【去重开关】True=相同频道名+相同链接只保留一个，避免重复
-ENABLE_DEDUPLICATION = True
-
-# 【调试截图开关】True=关键步骤自动截图，保存在screenshots文件夹，仅本地调试用
-ENABLE_SCREENSHOTS = False
-
-# 【CCTV名称标准化】True=自动把CCTV-1转为CCTV-1综合，适配EPG节目单
-CCTV_USE_MAPPING = True
+ENABLE_CHINESE_CLEAN = True                          # 🎯 中文清洗开关 | 💡 True=移除乱码/特殊字符
+ENABLE_DEDUPLICATION = True                           # 🎯 去重开关 | 💡 True=相同频道名+链接只保留一个
+ENABLE_SCREENSHOTS = False                            # 🎯 调试截图开关 | 💡 仅本地调试用
+CCTV_USE_MAPPING = True                               # 🎯 CCTV名称标准化 | 💡 True=自动适配EPG节目单
 
 # ==================================
 # 🟤 7. 网络协议设置
 # ==================================
-# 【默认协议头】当爬取的链接没有http/https开头时，自动补全的协议，无需修改
-DEFAULT_PROTOCOL = "http://"
+DEFAULT_PROTOCOL = "http://"                          # 🎯 默认协议头 | 💡 无需修改
 
 # ==================================
-# ⚫ 8. 测速缓存设置（GitHub Actions必开，大幅节省时间）
+# ⚫ 8. 测速缓存设置（GitHub Actions必开）
 # ==================================
-# 【缓存开关】True=测过的链接24小时内不再重复测速，False=每次都重新测所有链接
-ENABLE_CACHE = True
-
-# 【缓存文件保存路径】无需修改
-CACHE_FILE = OUTPUT_DIR / "iptv_speed_cache.json"
-
-# 【缓存过期时间】单位：小时，24=一天内测过的链接不再重测，0=永不过期
-CACHE_EXPIRE_HOURS = 24
+ENABLE_CACHE = True                                    # 🎯 缓存开关 | 💡 True=24小时内测过的链接不再重测
+# 修复点：显式转换为Path对象
+CACHE_FILE = Path(OUTPUT_DIR) / "iptv_speed_cache.json"    # 🎯 缓存文件保存路径 | 💡 无需修改
+CACHE_EXPIRE_HOURS = 24                                # 🎯 缓存过期时间(小时) | 💡 0=永不过期
 
 # ==================================
 # ⚪ 9. 更新时间显示设置
 # ==================================
-# 【更新时间位置】True=更新时间放在播放列表最顶部，False=放在最底部
-TIME_DISPLAY_AT_TOP = False
-
-# 【更新时间占位流地址】无需修改
-UPDATE_STREAM_URL = "https://gitee.com/bmg369/test/blob/main/175081947304562457.webp"
+TIME_DISPLAY_AT_TOP = False                            # 🎯 更新时间位置 | 💡 True=顶部 False=底部
+UPDATE_STREAM_URL = "https://gitee.com/bmg369/test/blob/main/175081947304562457.webp"  # 🎯 更新时间占位流 | 💡 无需修改
 
 # ============================================================================
 # ============================= 【代码区 · 无需修改】 =========================
