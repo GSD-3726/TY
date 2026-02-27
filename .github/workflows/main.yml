@@ -20,25 +20,25 @@ jobs:
           python-version: '3.11'
 
       # ==========================================
-      # 【修改 1/4】恢复 FFmpeg 测速缓存
-      # 作用：避免每次都重新测所有源，大幅节省时间
+      # 【优化 1/4】恢复 FFmpeg 测速缓存
+      # 修正 Key 逻辑，确保缓存能被复用
       # ==========================================
       - name: 恢复 FFmpeg 测速缓存
         id: cache-iptv
         uses: actions/cache@v4
         with:
           path: iptv_speed_cache.json  # 对应你 Python 代码里 CACHE_FILE 的文件名
-          key: ${{ runner.os }}-iptv-${{ github.run_id }}
+          key: ${{ runner.os }}-iptv-cache  # 固定 Key 前缀，确保能复用
           restore-keys: |
-            ${{ runner.os }}-iptv-
+            ${{ runner.os }}-iptv-cache-
 
       - name: Install dependencies
         run: |
           sudo apt update
-          # 【修改 2/4】安装 FFmpeg (必须)
+          # 【优化 2/4】安装 FFmpeg (必须)
           sudo apt install -y ffmpeg
-          # 安装 Python 依赖
-          pip install aiohttp playwright
+          # 【优化 3/4】安装 Python 依赖（补充 requests，移除不必要的 aiohttp）
+          pip install requests playwright
           python -m playwright install chromium --with-deps
 
       - name: Run IPTV update
@@ -49,7 +49,7 @@ jobs:
         run: ls -la *.m3u *.txt *.json 2>/dev/null || echo "未找到生成的文件"
 
       # ==========================================
-      # 【修改 3/4】提交并推送结果
+      # 【优化 4/4】提交并推送结果
       # ==========================================
       - name: Commit and push
         run: |
