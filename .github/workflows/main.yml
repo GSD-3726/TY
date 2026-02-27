@@ -2,8 +2,8 @@ name: IPTV自动更新
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
-  workflow_dispatch:
+    - cron: '0 */6 * * *'  # 每6小时执行一次
+  workflow_dispatch:        # 允许手动触发
 
 jobs:
   build:
@@ -19,26 +19,51 @@ jobs:
         with:
           python-version: '3.11'
 
+      # ==========================================
+      # 【修改 1/4】恢复 FFmpeg 测速缓存
+      # 作用：避免每次都重新测所有源，大幅节省时间
+      # ==========================================
+      - name: 恢复 FFmpeg 测速缓存
+        id: cache-iptv
+        uses: actions/cache@v4
+        with:
+          path: iptv_speed_cache.json  # 对应你 Python 代码里 CACHE_FILE 的文件名
+          key: ${{ runner.os }}-iptv-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-iptv-
+
       - name: Install dependencies
         run: |
           sudo apt update
-          # ffmpeg 已不再需要（脚本已改为纯 HTTP 测速）
+          # 【修改 2/4】安装 FFmpeg (必须)
+          sudo apt install -y ffmpeg
+          # 安装 Python 依赖
           pip install aiohttp playwright
           python -m playwright install chromium --with-deps
 
       - name: Run IPTV update
         run: python main.py
-        continue-on-error: true
+        continue-on-error: true  # 即使脚本报错（如网站挂了），也继续执行后面的步骤
 
       - name: List generated files
-        run: ls -la *.m3u *.txt || echo "No files found"
+        run: ls -la *.m3u *.txt *.json 2>/dev/null || echo "未找到生成的文件"
 
+      # ==========================================
+      # 【修改 3/4】提交并推送结果
+      # ==========================================
       - name: Commit and push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add *.m3u *.txt
-          # 检查暂存区与 HEAD 是否有差异，若无则退出
-          git diff --cached --quiet && exit 0
+          
+          # 添加所有可能的输出文件 (m3u, txt, 以及缓存json)
+          git add *.m3u *.txt iptv_speed_cache.json 2>/dev/null || true
+          
+          # 检查是否有变更
+          if git diff --cached --quiet; then
+            echo "没有更新的内容，跳过提交"
+            exit 0
+          fi
+          
           git commit -m "📺 Auto update $(date +'%Y-%m-%d %H:%M')"
           git push
