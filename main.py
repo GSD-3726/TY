@@ -68,7 +68,7 @@ DEFAULT_PROTOCOL = "http://"                         # 【http:///https:///rtsp:
 # -------------------------- 7. 缓存设置 --------------------------
 ENABLE_CACHE = True                                  # 【True/False】是否启用缓存 (开启后，测过的链接24小时内不再重测)
 CACHE_FILE = OUTPUT_DIR / "iptv_speed_cache.json"  # 【路径】缓存文件保存位置
-CACHE_EXPIRE_HOURS = 24                              # 【小时】缓存过期时间 (0表示永不过期)
+CACHE_EXPIRE_HOURS = 48                              # 【小时】缓存过期时间 (0表示永不过期)
 
 # -------------------------- 8. 更新时间显示 --------------------------
 TIME_DISPLAY_AT_TOP = False                          # 【True/False】更新时间显示位置 (True=文件最上面, False=文件最后面)
