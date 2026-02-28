@@ -2,7 +2,7 @@ name: 自动更新
 
 on:
   schedule:
-    - cron: '0 */12 * * *'  # 修正注释：每12小时执行一次（若要每6小时，改为 */6 * * *）
+    - cron: '0 */12 * * *'  # 每12小时执行一次（若要每6小时，改为 0 */6 * * *）
   workflow_dispatch:        # 允许手动触发
 
 jobs:
@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 增加：获取完整git历史，避免提交/推送异常
+          fetch-depth: 0  # 获取完整git历史，避免提交/推送异常
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -47,11 +47,14 @@ jobs:
           echo "缓存文件:"
           ls -la iptv_speed_cache.json 2>/dev/null || echo "未找到缓存文件"
 
-      # 提交并推送结果
+      # 提交并推送结果（修复核心问题：增加拉取远程最新代码步骤）
       - name: Commit and push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 关键修复：拉取远程最新代码，自动解决合并冲突（--rebase 变基，--autostash 自动暂存本地修改）
+          git pull --rebase --autostash origin $(git rev-parse --abbrev-ref HEAD)
           
           # 添加所有可能的输出文件
           git add iptv_channels.m3u iptv_channels.txt iptv_speed_cache.json 2>/dev/null || true
@@ -63,7 +66,5 @@ jobs:
           fi
           
           git commit -m "📺 Auto update $(date +'%Y-%m-%d %H:%M')"
-          # 修复核心错误：使用正确的远程仓库名+分支名（origin是默认远程仓库名，main是主流分支名）
-          # 可选优化：自动获取当前分支名，避免硬编码
-          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-          git push origin $CURRENT_BRANCH
+          # 推送（若变基后有更新，需要强制推送？这里用普通推送，变基后通常能正常推送）
+          git push origin $(git rev-parse --abbrev-ref HEAD)
