@@ -2,7 +2,7 @@ name: 自动更新
 
 on:
   schedule:
-    - cron: '0 */12 * * *'  # 每6小时执行一次
+    - cron: '0 */12 * * *'  # 修正注释：每12小时执行一次（若要每6小时，改为 */6 * * *）
   workflow_dispatch:        # 允许手动触发
 
 jobs:
@@ -13,6 +13,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 增加：获取完整git历史，避免提交/推送异常
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -61,4 +63,7 @@ jobs:
           fi
           
           git commit -m "📺 Auto update $(date +'%Y-%m-%d %H:%M')"
-          git push 修改这个工作流
+          # 修复核心错误：使用正确的远程仓库名+分支名（origin是默认远程仓库名，main是主流分支名）
+          # 可选优化：自动获取当前分支名，避免硬编码
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          git push origin $CURRENT_BRANCH
