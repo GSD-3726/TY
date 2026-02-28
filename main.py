@@ -12,6 +12,7 @@ import sys
 import time
 import shutil
 import datetime
+import pytz  # 【新增】导入时区处理库
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
@@ -505,8 +506,10 @@ def sort_cctv_channels(channels):
 # ============================================================================
 
 def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]]):
-    now = datetime.datetime.now()
-    time_str = now.strftime("%Y-%m-%d %H:%M:%S")
+    # 【核心修改】设置为UTC+8（北京时间）
+    tz_beijing = pytz.timezone('Asia/Shanghai')  # 定义北京时间时区
+    now = datetime.datetime.now(tz_beijing)      # 获取当前北京时间（UTC+8）
+    time_str = now.strftime("%Y-%m-%d %H:%M:%S") # 格式化时间字符串
     update_url = UPDATE_STREAM_URL
 
     grouped = defaultdict(list)
