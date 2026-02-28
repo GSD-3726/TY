@@ -613,6 +613,7 @@ async def main():
             logger.info(f"找到 {total_rows} 个地址，处理前 {process_count} 个")
 
             raw_entries = []
+            seen = set()  # 提前初始化seen，避免未定义
             for i in range(process_count):
                 entries = await extract_one_ip(page, rows.nth(i), i+1)
                 raw_entries.extend(entries)
@@ -620,8 +621,19 @@ async def main():
 
             logger.info(f"原始提取：{len(raw_entries)} 条未筛选的频道链接")
 
+            # 【矩阵适配新增】导出原始链接为JSON文件（供GitHub Actions拆分用）
+            raw_channel_map = defaultdict(list)
+            for group, name, url in raw_entries:
+                if ENABLE_DEDUPLICATION:
+                    key = (group, name, url)
+                    if key in seen: continue
+                    seen.add(key)
+                raw_channel_map[(group, name)].append(url)
+            with open("raw_channels.json", "w", encoding="utf-8") as f:
+                json.dump(dict(raw_channel_map), f, ensure_ascii=False, indent=2)
+            logger.info("已导出原始链接文件 raw_channels.json 供矩阵并行使用")
+
             channel_map = defaultdict(list)
-            seen = set()
             for group, name, url in raw_entries:
                 if ENABLE_DEDUPLICATION:
                     key = (group, name, url)
@@ -639,5 +651,11 @@ async def main():
         finally:
             await browser.close()
 
+# 【矩阵适配新增】暴露核心函数供GitHub Actions矩阵脚本调用
 if __name__ == "__main__":
     asyncio.run(main())
+else:
+    __all__ = [
+        "test_stream_with_ffmpeg", "load_cache", "save_cache",
+        "export_results_with_timestamp", "finalize_results"
+    ]
