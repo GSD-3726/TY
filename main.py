@@ -351,22 +351,28 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     result_map = defaultdict(list)
     pending_tasks_data = [] 
 
+    # 新增：统计缓存命中情况
+    cache_hit_success = 0
+    cache_hit_failed = 0
 
     for (group, name), urls in channel_map.items():
         for url in urls:
             if url in cache:
                 if cache[url].get("ok"):
-                    # 从缓存读取分辨率，如果没有则默认为0
+                    # 成功缓存，直接使用
                     w = cache[url].get("width", 0)
                     h = cache[url].get("height", 0)
                     result_map[(group, name)].append((url, cache[url].get("fps", 0), w, h))
+                    cache_hit_success += 1
+                else:
+                    # 失败缓存，跳过
+                    cache_hit_failed += 1
             else:
+                # 无缓存，需要测试
                 pending_tasks_data.append((group, name, url))
 
-
     total_pending = len(pending_tasks_data)
-    cached_count = len([item for sublist in result_map.values() for item in sublist])
-    logger.info(f"缓存命中 {cached_count} 条，需测速 {total_pending} 条")
+    logger.info(f"缓存命中（成功）: {cache_hit_success} 条，缓存命中（失败/跳过）: {cache_hit_failed} 条，需测速: {total_pending} 条")
 
 
     if total_pending == 0:
@@ -420,7 +426,7 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     if new_cache_entries:
         cache.update(new_cache_entries)
         save_cache(cache)
-        logger.info(f"缓存更新：新增 {len(new_cache_entries)} 条记录 (含分辨率)")
+        logger.info(f"缓存更新：新增 {len(new_cache_entries)} 条记录 (含失败记录)")
 
 
     return finalize_results(result_map)
