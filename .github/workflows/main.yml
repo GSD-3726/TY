@@ -6,13 +6,13 @@ on:
   workflow_dispatch:        # 允许手动触发
 
 jobs:
-  # ========== 第一步：爬取链接并拆分为分片（仅爬取，不测速） ==========
+  # 第一步：爬取链接并拆分为分片
   crawl-and-split:
     runs-on: ubuntu-latest
     permissions:
-      contents: read  # 仅读取代码，无需写入
+      contents: read
     outputs:
-      split_count: ${{ steps.split.outputs.split_count }}  # 传递分片数量给矩阵Job
+      split_count: ${{ steps.split.outputs.split_count }}
     steps:
       - uses: actions/checkout@v4
 
@@ -30,43 +30,35 @@ jobs:
 
       - name: 运行爬取脚本（仅爬取链接，临时禁用测速）
         run: |
-          # 临时修改脚本禁用测速，仅生成原始链接文件（不影响原脚本逻辑）
           sed -i 's/ENABLE_FFMPEG_TEST = True/ENABLE_FFMPEG_TEST = False/' main.py
           python main.py
           
-          # 读取原始链接并拆分为分片（Public仓库设10分片，Private设2分片）
           python -c "
           import json
           from collections import defaultdict
 
-          # 加载main.py导出的原始链接文件
           with open('raw_channels.json', 'r', encoding='utf-8') as f:
               raw_data = json.load(f)
 
-          # 转换为扁平列表（group|name|url格式）
           all_links = []
           for key, urls in raw_data.items():
               group, name = eval(key)
               for url in urls:
                   all_links.append(f'{group}|{name}|{url}')
 
-          # 去重
           all_links = list(set(all_links))
           total_links = len(all_links)
           print(f'总待测速链接数：{total_links}')
 
-          # 根据仓库类型设置分片数（Public=10，Private=2）
           split_count = 10 if 'public' in '${{ github.repository_visibility }}' else 2
           chunk_size = (total_links + split_count - 1) // split_count
 
-          # 生成分片文件
           for i in range(split_count):
               chunk = all_links[i*chunk_size : (i+1)*chunk_size]
               with open(f'links_chunk_{i}.txt', 'w', encoding='utf-8') as f:
                   f.write('\\n'.join(chunk))
               print(f'分片 {i} 生成 {len(chunk)} 条链接')
 
-          # 输出分片数量供矩阵使用
           print(f'::set-output name=split_count::{split_count}')
           "
         id: split
@@ -77,14 +69,14 @@ jobs:
           name: links-chunks
           path: links_chunk_*.txt
 
-  # ========== 第二步：矩阵并行测速（核心提速环节） ==========
+  # 第二步：矩阵并行测速
   speed-test:
     needs: crawl-and-split
     runs-on: ubuntu-latest
     permissions:
       contents: read
     strategy:
-      fail-fast: false  # 单个分片失败不影响其他分片
+      fail-fast: false
       matrix:
         chunk_id: ${{ fromJson('[' + join(range(0, needs.crawl-and-split.outputs.split_count), ',') + ']') }}
     steps:
@@ -123,35 +115,28 @@ jobs:
           import json
           import time
           from collections import defaultdict
-          # 导入main.py中的核心测速函数
           from main import test_stream_with_ffmpeg, load_cache, save_cache
 
-          # 加载当前分片
           chunk_id = ${{ matrix.chunk_id }}
           with open(f'links_chunk_{chunk_id}.txt', 'r', encoding='utf-8') as f:
               lines = [l.strip() for l in f if l.strip()]
           print(f'分片 {chunk_id} 共 {len(lines)} 条链接待测速')
 
-          # 加载缓存
           cache = load_cache()
           result_map = defaultdict(list)
 
-          # 异步测速当前分片（复用原脚本的并发数配置）
           async def process_chunk():
-              sem = asyncio.Semaphore(3)  # 对应原脚本FFMPEG_CONCURRENCY=3
+              sem = asyncio.Semaphore(3)
               tasks = []
 
               async def test_single_url(group, name, url):
                   async with sem:
-                      # 缓存命中直接使用
                       if url in cache and cache[url].get('ok'):
                           result_map[(group, name)].append(url)
                           return
-                      # 执行测速
                       res = await test_stream_with_ffmpeg(url)
                       if res['ok']:
                           result_map[(group, name)].append(url)
-                          # 更新缓存
                           cache[url] = {
                               'ok': res['ok'], 'fps': res['fps'],
                               'frames': res.get('frames', 0),
@@ -160,16 +145,13 @@ jobs:
                               'timestamp': time.time()
                           }
 
-              # 创建并执行任务
               for line in lines:
                   group, name, url = line.split('|', 2)
                   tasks.append(test_single_url(group, name, url))
               await asyncio.gather(*tasks)
 
-          # 运行测速
           asyncio.run(process_chunk())
 
-          # 保存分片结果和缓存
           with open(f'result_chunk_{chunk_id}.json', 'w', encoding='utf-8') as f:
               json.dump(dict(result_map), f, ensure_ascii=False)
           save_cache(cache)
@@ -184,12 +166,12 @@ jobs:
             result_chunk_${{ matrix.chunk_id }}.json
             iptv_speed_cache.json
 
-  # ========== 第三步：合并结果并提交到仓库（保留原有提交逻辑） ==========
+  # 第三步：合并结果并提交到仓库
   merge-and-push:
     needs: speed-test
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # 需要写入权限提交代码
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -199,23 +181,21 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install pytz  # 仅需pytz用于导出时间戳
+        run: pip install pytz
 
       - name: 下载所有分片结果和缓存
         uses: actions/download-artifact@v4
         with:
           pattern: result-chunk-*
-          merge-multiple: true  # 合并所有分片结果到同一目录
+          merge-multiple: true
 
       - name: 合并结果并生成最终文件
         run: |
           python -c "
           import json
           from collections import defaultdict
-          # 导入main.py中的导出函数
           from main import export_results_with_timestamp
 
-          # 合并所有分片结果
           final_map = defaultdict(list)
           split_count = ${{ needs.crawl-and-split.outputs.split_count }}
           for i in range(split_count):
@@ -229,11 +209,9 @@ jobs:
                   print(f'分片 {i} 结果文件不存在，跳过')
                   continue
 
-          # 去重并保留前10条（对应原脚本MAX_LINKS_PER_CHANNEL=10）
           for key in final_map:
               final_map[key] = list(dict.fromkeys(final_map[key]))[:10]
 
-          # 生成最终M3U/TXT文件
           export_results_with_timestamp(final_map)
           print(f'合并完成！最终有效链接 {sum(len(v) for v in final_map.values())} 条')
           "
@@ -250,10 +228,8 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 添加所有输出文件（保留原有逻辑）
           git add iptv_channels.m3u iptv_channels.txt iptv_speed_cache.json 2>/dev/null || true
           
-          # 检查是否有变更，无变更则跳过提交
           if git diff --cached --quiet; then
             echo "没有更新的内容，跳过提交"
             exit 0
