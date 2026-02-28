@@ -2,8 +2,14 @@ name: 自动更新
 
 on:
   schedule:
-    - cron: '0 */12 * * *'  # 每6小时执行一次
-  workflow_dispatch:        # 允许手动触发
+    - cron: '0 */6 * * *'  # 每6小时执行一次
+  workflow_dispatch:        # 明确支持手动触发
+    inputs:
+      manual_split_count:
+        description: '手动运行时的分片数（Public填10，Private填2）'
+        required: true
+        default: '10'
+        type: number
 
 jobs:
   # 第一步：爬取链接并拆分为分片
@@ -11,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read  # 新增：手动运行需要的基础权限
     outputs:
       split_count: ${{ steps.split.outputs.split_count }}
     steps:
@@ -50,7 +57,8 @@ jobs:
           total_links = len(all_links)
           print(f'总待测速链接数：{total_links}')
 
-          split_count = 10 if 'public' in '${{ github.repository_visibility }}' else 2
+          # 兼容手动/自动运行：手动运行用输入值，自动运行用仓库类型
+          split_count = ${{ github.event.inputs.manual_split_count || (github.repository_visibility == 'public' && 10 || 2) }}
           chunk_size = (total_links + split_count - 1) // split_count
 
           for i in range(split_count):
@@ -59,7 +67,8 @@ jobs:
                   f.write('\\n'.join(chunk))
               print(f'分片 {i} 生成 {len(chunk)} 条链接')
 
-          print(f'::set-output name=split_count::{split_count}')
+          # 修复：使用新语法输出变量（替代废弃的::set-output）
+          echo "split_count=$split_count" >> $GITHUB_OUTPUT
           "
         id: split
 
@@ -75,10 +84,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
     strategy:
       fail-fast: false
       matrix:
-        chunk_id: ${{ fromJson('[' + join(range(0, needs.crawl-and-split.outputs.split_count), ',') + ']') }}
+        # 修复：兼容空输出，避免矩阵初始化失败
+        chunk_id: ${{ fromJson(format('[{0}]', join(range(0, needs.crawl-and-split.outputs.split_count), ','))) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -171,9 +182,12 @@ jobs:
     needs: speed-test
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write  # 提交代码需要的权限
+      actions: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 修复：拉取完整历史，避免提交失败
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -224,9 +238,14 @@ jobs:
           ls -la iptv_speed_cache.json 2>/dev/null || echo "未找到缓存文件"
 
       - name: Commit and push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 显式传入token
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 拉取最新代码，避免冲突
+          git pull origin main --rebase
           
           git add iptv_channels.m3u iptv_channels.txt iptv_speed_cache.json 2>/dev/null || true
           
@@ -236,4 +255,4 @@ jobs:
           fi
           
           git commit -m "📺 Auto update $(date +'%Y-%m-%d %H:%M')"
-          git push
+          git push origin main
