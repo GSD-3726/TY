@@ -49,12 +49,12 @@ ENABLE_FFMPEG_TEST = True                         # 【True/False】总开关：
 FFMPEG_PATH = "ffmpeg"                            # 【路径】FFmpeg程序位置 (Windows需写完整路径，如 r"C:\ffmpeg\bin\ffmpeg.exe")
 FFMPEG_TEST_DURATION = 10                          # 【秒】单个链接的测试时长 (越长越准，但越慢)
 FFMPEG_CONCURRENCY = 2                            # 【数字】同时测试的链接数 (GitHub Actions建议<=2，本地电脑建议<=CPU核心数)
-MIN_AVG_FPS = 24.0                                # 【数字】最低平均帧率 (低于此值认为卡顿，丢弃)
+MIN_AVG_FPS = 23.0                                # 【数字】最低平均帧率 (低于此值认为卡顿，丢弃)
 MIN_FRAMES = 210                                    # 【数字】最低解码帧数 (防止只有几秒数据就误判为成功)
 
 
 # -------------------------- 3.1 分辨率优先设置 (新增) --------------------------
-PREFER_1080P = True                               # 【True/False】是否优先1920x1080分辨率 (True=1080p排在最前, False=仅按帧率排序)
+PREFER_1080P = False                               # 【True/False】是否优先1920x1080分辨率 (True=1080p排在最前, False=仅按帧率排序)
 PREFER_RESOLUTION_WIDTH = 1920                   # 【数字】优先分辨率宽度
 PREFER_RESOLUTION_HEIGHT = 1080                  # 【数字】优先分辨率高度
 
