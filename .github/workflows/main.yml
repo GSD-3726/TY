@@ -32,19 +32,11 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y ffmpeg
-          pip install playwright
+          pip install playwright pytz
           python -m playwright install chromium --with-deps
 
       - name: Run IPTV update
-        run: |
-          # 将Python脚本保存为iptv_extractor.py
-          cat << 'EOF' > iptv_extractor.py
-          #!/usr/bin/env python3
-          # 这里粘贴您提供的完整Python代码
-          EOF
-          
-          # 运行脚本
-          python main.py
+        run: python main.py
 
       - name: List generated files
         run: |
