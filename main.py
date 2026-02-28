@@ -243,7 +243,8 @@ def print_progress_bar(current: int, total: int, success: int, failed: int, last
         filled_length = int(bar_length * percent)
         bar = '█' * filled_length + '░' * (bar_length - filled_length)
         
-        logger.info(f"[{percent_int:3d}%] {bar} ({current}/{total}) | 有效:{success} | 共：{current}")
+        # 核心修改：共：{total}条 格式
+        logger.info(f"[{percent_int:3d}%] {bar} ({current}/{total}) | 有效:{success} | 共：{total}条")
         return percent_int
     
     return last_percent
@@ -391,7 +392,7 @@ def finalize_results(result_map):
         final_map[key] = [url for url, _, _, _ in items[:MAX_LINKS_PER_CHANNEL]]
     
     total_final = sum(len(v) for v in final_map.values())
-    logger.info(f"测速筛选完成，最终保留 {total_final} 条优质链接 (1080p优先: {PREFER_1080P})")
+    logger.info(f"测速筛选完成，最终保留 {total_final} 条优质频道链接 (1080p优先: {PREFER_1080P})")
     return final_map
 
 # ============================================================================
@@ -562,9 +563,10 @@ def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]])
             f.write("更新时间,#genre#\n")
             f.write(f"{time_str},{update_url}\n\n")
 
-    total_links = sum(len(v) for v in grouped.values()) + 1
+    # 核心修改：移除+1，仅统计真实频道链接
+    total_links = sum(len(v) for v in grouped.values())
     position_text = "顶部" if TIME_DISPLAY_AT_TOP else "底部"
-    logger.info(f"导出完成！共 {total_links} 条链接（含更新时间），更新时间已放在{position_text}")
+    logger.info(f"导出完成！共 {total_links} 条有效频道链接，更新时间占位链接已放在{position_text}")
 
 # ============================================================================
 # ============================= 主流程 =======================================
@@ -616,7 +618,7 @@ async def main():
                 raw_entries.extend(entries)
                 if i < process_count - 1: await asyncio.sleep(DELAY_BETWEEN_IPS)
 
-            logger.info(f"原始提取：{len(raw_entries)} 条")
+            logger.info(f"原始提取：{len(raw_entries)} 条未筛选的频道链接")
 
             channel_map = defaultdict(list)
             seen = set()
