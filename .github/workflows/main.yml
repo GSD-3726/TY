@@ -2,24 +2,15 @@ name: 自动更新
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # 每6小时执行一次
-  workflow_dispatch:        # 明确支持手动触发
-    inputs:
-      manual_split_count:
-        description: '手动运行时的分片数（Public填10，Private填2）'
-        required: true
-        default: '10'
-        type: number
+    - cron: '0 */12 * * *'  # 每6小时执行一次
+  workflow_dispatch:        # 允许手动触发
 
 jobs:
-  # 第一步：爬取链接并拆分为分片
-  crawl-and-split:
+  build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      actions: read  # 新增：手动运行需要的基础权限
-    outputs:
-      split_count: ${{ steps.split.outputs.split_count }}
+      contents: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,6 +18,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      # 恢复 FFmpeg 测速缓存
+      - name: 恢复 FFmpeg 测速缓存
+        uses: actions/cache@v4
+        with:
+          path: iptv_speed_cache.json
+          key: ${{ runner.os }}-iptv-cache-v1
+          restore-keys: |
+            ${{ runner.os }}-iptv-cache-
 
       - name: Install dependencies
         run: |
@@ -35,200 +35,8 @@ jobs:
           pip install playwright pytz
           python -m playwright install chromium --with-deps
 
-      - name: 运行爬取脚本（仅爬取链接，临时禁用测速）
-        run: |
-          sed -i 's/ENABLE_FFMPEG_TEST = True/ENABLE_FFMPEG_TEST = False/' main.py
-          python main.py
-          
-          python -c "
-          import json
-          from collections import defaultdict
-
-          with open('raw_channels.json', 'r', encoding='utf-8') as f:
-              raw_data = json.load(f)
-
-          all_links = []
-          for key, urls in raw_data.items():
-              group, name = eval(key)
-              for url in urls:
-                  all_links.append(f'{group}|{name}|{url}')
-
-          all_links = list(set(all_links))
-          total_links = len(all_links)
-          print(f'总待测速链接数：{total_links}')
-
-          # 兼容手动/自动运行：手动运行用输入值，自动运行用仓库类型
-          split_count = ${{ github.event.inputs.manual_split_count || (github.repository_visibility == 'public' && 10 || 2) }}
-          chunk_size = (total_links + split_count - 1) // split_count
-
-          for i in range(split_count):
-              chunk = all_links[i*chunk_size : (i+1)*chunk_size]
-              with open(f'links_chunk_{i}.txt', 'w', encoding='utf-8') as f:
-                  f.write('\\n'.join(chunk))
-              print(f'分片 {i} 生成 {len(chunk)} 条链接')
-
-          # 修复：使用新语法输出变量（替代废弃的::set-output）
-          echo "split_count=$split_count" >> $GITHUB_OUTPUT
-          "
-        id: split
-
-      - name: 上传链接分片文件
-        uses: actions/upload-artifact@v4
-        with:
-          name: links-chunks
-          path: links_chunk_*.txt
-
-  # 第二步：矩阵并行测速
-  speed-test:
-    needs: crawl-and-split
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: read
-    strategy:
-      fail-fast: false
-      matrix:
-        # 修复：兼容空输出，避免矩阵初始化失败
-        chunk_id: ${{ fromJson(format('[{0}]', join(range(0, needs.crawl-and-split.outputs.split_count), ','))) }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y ffmpeg
-          pip install playwright pytz
-
-      - name: 恢复 FFmpeg 测速缓存
-        uses: actions/cache@v4
-        with:
-          path: iptv_speed_cache.json
-          key: ${{ runner.os }}-iptv-cache-v1-${{ matrix.chunk_id }}
-          restore-keys: |
-            ${{ runner.os }}-iptv-cache-v1-
-            ${{ runner.os }}-iptv-cache-
-
-      - name: 下载链接分片文件
-        uses: actions/download-artifact@v4
-        with:
-          name: links-chunks
-          path: ./
-
-      - name: 运行分片测速
-        run: |
-          python -c "
-          import asyncio
-          import json
-          import time
-          from collections import defaultdict
-          from main import test_stream_with_ffmpeg, load_cache, save_cache
-
-          chunk_id = ${{ matrix.chunk_id }}
-          with open(f'links_chunk_{chunk_id}.txt', 'r', encoding='utf-8') as f:
-              lines = [l.strip() for l in f if l.strip()]
-          print(f'分片 {chunk_id} 共 {len(lines)} 条链接待测速')
-
-          cache = load_cache()
-          result_map = defaultdict(list)
-
-          async def process_chunk():
-              sem = asyncio.Semaphore(3)
-              tasks = []
-
-              async def test_single_url(group, name, url):
-                  async with sem:
-                      if url in cache and cache[url].get('ok'):
-                          result_map[(group, name)].append(url)
-                          return
-                      res = await test_stream_with_ffmpeg(url)
-                      if res['ok']:
-                          result_map[(group, name)].append(url)
-                          cache[url] = {
-                              'ok': res['ok'], 'fps': res['fps'],
-                              'frames': res.get('frames', 0),
-                              'width': res.get('width', 0),
-                              'height': res.get('height', 0),
-                              'timestamp': time.time()
-                          }
-
-              for line in lines:
-                  group, name, url = line.split('|', 2)
-                  tasks.append(test_single_url(group, name, url))
-              await asyncio.gather(*tasks)
-
-          asyncio.run(process_chunk())
-
-          with open(f'result_chunk_{chunk_id}.json', 'w', encoding='utf-8') as f:
-              json.dump(dict(result_map), f, ensure_ascii=False)
-          save_cache(cache)
-          print(f'分片 {chunk_id} 测速完成，有效链接 {sum(len(v) for v in result_map.values())} 条')
-          "
-
-      - name: 上传分片结果和缓存
-        uses: actions/upload-artifact@v4
-        with:
-          name: result-chunk-${{ matrix.chunk_id }}
-          path: |
-            result_chunk_${{ matrix.chunk_id }}.json
-            iptv_speed_cache.json
-
-  # 第三步：合并结果并提交到仓库
-  merge-and-push:
-    needs: speed-test
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write  # 提交代码需要的权限
-      actions: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # 修复：拉取完整历史，避免提交失败
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: pip install pytz
-
-      - name: 下载所有分片结果和缓存
-        uses: actions/download-artifact@v4
-        with:
-          pattern: result-chunk-*
-          merge-multiple: true
-
-      - name: 合并结果并生成最终文件
-        run: |
-          python -c "
-          import json
-          from collections import defaultdict
-          from main import export_results_with_timestamp
-
-          final_map = defaultdict(list)
-          split_count = ${{ needs.crawl-and-split.outputs.split_count }}
-          for i in range(split_count):
-              try:
-                  with open(f'result_chunk_{i}.json', 'r', encoding='utf-8') as f:
-                      chunk_data = json.load(f)
-                  for key, urls in chunk_data.items():
-                      group, name = eval(key)
-                      final_map[(group, name)].extend(urls)
-              except FileNotFoundError:
-                  print(f'分片 {i} 结果文件不存在，跳过')
-                  continue
-
-          for key in final_map:
-              final_map[key] = list(dict.fromkeys(final_map[key]))[:10]
-
-          export_results_with_timestamp(final_map)
-          print(f'合并完成！最终有效链接 {sum(len(v) for v in final_map.values())} 条')
-          "
+      - name: Run IPTV update
+        run: python main.py
 
       - name: List generated files
         run: |
@@ -237,22 +45,20 @@ jobs:
           echo "缓存文件:"
           ls -la iptv_speed_cache.json 2>/dev/null || echo "未找到缓存文件"
 
+      # 提交并推送结果
       - name: Commit and push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 显式传入token
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 拉取最新代码，避免冲突
-          git pull origin main --rebase
-          
+          # 添加所有可能的输出文件
           git add iptv_channels.m3u iptv_channels.txt iptv_speed_cache.json 2>/dev/null || true
           
+          # 检查是否有变更
           if git diff --cached --quiet; then
             echo "没有更新的内容，跳过提交"
             exit 0
           fi
           
           git commit -m "📺 Auto update $(date +'%Y-%m-%d %H:%M')"
-          git push origin main
+          git push 修改这个工作流
