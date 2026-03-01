@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具（配置文件版）
+IPTV 组播提取工具（配置文件版）- 保留自定义频道+三重测速
+修改点：增强CCTV/卫视频道识别，确保先合并去重再测速
 """
 
 import asyncio
@@ -75,13 +76,13 @@ MAX_LINKS_PER_CHANNEL = config.getint('输出配置', 'MAX_LINKS_PER_CHANNEL')
 TIME_DISPLAY_AT_TOP = config.getboolean('输出配置', 'TIME_DISPLAY_AT_TOP')
 UPDATE_STREAM_URL = config.get('输出配置', 'UPDATE_STREAM_URL')
 
-# -------------------------- 自定义源配置 --------------------------
+# -------------------------- 自定义源配置（核心保留） --------------------------
 ENABLE_CUSTOM_SOURCES = config.getboolean('自定义源配置', 'ENABLE_CUSTOM_SOURCES')
 # 解析自定义源列表（处理换行分隔）
 CUSTOM_SOURCES_RAW = config.get('自定义源配置', 'CUSTOM_SOURCES', fallback='')
 CUSTOM_SOURCES = [line.strip() for line in CUSTOM_SOURCES_RAW.split('\n') if line.strip()]
 
-# -------------------------- FFmpeg测速配置 --------------------------
+# -------------------------- FFmpeg测速配置（三重测速核心保留） --------------------------
 ENABLE_FFMPEG_TEST = config.getboolean('FFmpeg测速配置', 'ENABLE_FFMPEG_TEST')
 FFMPEG_PATH = config.get('FFmpeg测速配置', 'FFMPEG_PATH')
 FFMPEG_CONCURRENCY = config.getint('FFmpeg测速配置', 'FFMPEG_CONCURRENCY')
@@ -91,7 +92,7 @@ FFMPEG_TEST_DURATION_FULL = config.getint('FFmpeg测速配置', 'FFMPEG_TEST_DUR
 MIN_FRAMES_FULL = config.getint('FFmpeg测速配置', 'MIN_FRAMES_FULL')
 MIN_AVG_FPS = config.getfloat('FFmpeg测速配置', 'MIN_AVG_FPS')
 
-# -------------------------- HLS预检配置 --------------------------
+# -------------------------- HLS预检配置（三重测速前置环节） --------------------------
 ENABLE_HLS_PRECHECK = config.getboolean('HLS预检配置', 'ENABLE_HLS_PRECHECK')
 HLS_MIN_BANDWIDTH_MBPS = config.getfloat('HLS预检配置', 'HLS_MIN_BANDWIDTH_MBPS')
 
@@ -115,16 +116,18 @@ CACHE_EXPIRE_HOURS = config.getint('缓存配置', 'CACHE_EXPIRE_HOURS')
 # ============================= 频道分类规则 ==================================
 # ============================================================================
 
+# 【修改】增强分类规则，覆盖更多变体
 CATEGORY_RULES = [
-    {"name": "央视频道",    "keywords": ["cctv", "cetv", "中央"]},
-    {"name": "卫视频道",    "keywords": ["卫视", "凤凰", "tvb", "湖南", "浙江", "江苏", "东方"]},
+    {"name": "央视频道",    "keywords": ["cctv", "cetv", "中央", "央视"]},  # 新增"央视"关键词
+    {"name": "卫视频道",    "keywords": ["卫视", "凤凰", "tvb", "湖南", "浙江", "江苏", "东方", "东南", "广东", "江西", "河南", "陕西", "湖北", "吉林", "大湾区"]},  # 补充常见卫视名称
     {"name": "4K专区",      "keywords": ["4k"]},
     {"name": "电影频道",    "keywords": ["电影", "影院", "chc"]},
     {"name": "轮播频道",    "keywords": ["轮播"]},
     {"name": "儿童频道",    "keywords": ["少儿", "动画", "卡通"]},
+    {"name": "体育频道",    "keywords": ["体育", "五环", "赛事", "掼蛋", "钓鱼", "武术", "咪咕"]},  # 新增体育分类
 ]
 
-GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "轮播频道", "儿童频道"]
+GROUP_ORDER = ["央视频道", "卫视频道", "体育频道", "电影频道", "轮播频道", "儿童频道", "4K专区"]  # 补充体育频道排序
 
 CCTV_NAME_MAPPING = {
     "1": "综合", "2": "财经", "3": "综艺", "4": "国际", "5": "体育",
@@ -183,33 +186,59 @@ def save_cache(cache: Dict[str, Dict[str, Any]]) -> None:
 # ============================= 工具函数 =====================================
 # ============================================================================
 
-CCTV_PATTERN = re.compile(r'(cctv)[-\s]?(\d{1,3}\+?)', re.IGNORECASE)
+# 【修改】增强CCTV正则，覆盖hd/超清/综合等变体
+CCTV_PATTERN = re.compile(r'(cctv)[-\s]?(\d{1,3}\+?)|(CCTV[\u4e00-\u9fff]+)', re.IGNORECASE)
 CHINESE_ONLY_PATTERN = re.compile(r'[^\u4e00-\u9fff]')
-SUFFIX_REMOVE_PATTERN = re.compile(r'(4K|高清|超清|标清|HD|SD)$', re.IGNORECASE)
+# 【修改】增强后缀移除规则，覆盖hd/超清/高清/SD/HD等
+SUFFIX_REMOVE_PATTERN = re.compile(r'(4K|高清|超清|标清|HD|SD|hd|超清版|高清版)$', re.IGNORECASE)
 
 def build_classifier():
     compiled = []
     for rule in CATEGORY_RULES:
         if not rule["keywords"]: continue
-        pattern = re.compile("|".join(re.escape(kw.lower()) for kw in rule["keywords"]))
+        # 【修改】调整正则匹配逻辑，支持关键词出现在任意位置且兼容后缀
+        pattern = re.compile(r'.*?(' + '|'.join(re.escape(kw.lower()) for kw in rule["keywords"]) + r').*?', re.IGNORECASE)
         compiled.append((rule["name"], pattern))
-    return lambda name: next((group for group, pat in compiled if pat.search(name.lower())), None)
+    
+    def classify(name):
+        # 先清理后缀再分类，避免hd/超清影响识别
+        clean_name = clean_channel_suffix(name).lower()
+        for group, pat in compiled:
+            if pat.search(clean_name):
+                return group
+        return None
+    
+    return classify
 
 classify_channel = build_classifier()
 
 def normalize_cctv(name: str) -> str:
+    """【修改】增强CCTV归一化，覆盖更多变体"""
     name_lower = name.lower()
-    if "cctv5+" in name_lower:
+    # 处理CCTV-5+变体
+    if "cctv5+" in name_lower or "cctv 5+" in name_lower:
         return "CCTV-5+体育赛事" if CCTV_USE_MAPPING else "CCTV-5+"
+    
+    # 处理纯数字+中文变体（如CCTV综合 → CCTV-1）
+    for num, cname in CCTV_NAME_MAPPING.items():
+        if cname in name_lower and "cctv" in name_lower:
+            return f"CCTV-{num}{cname}" if CCTV_USE_MAPPING else f"CCTV-{num}"
+    
+    # 处理带hd/高清的变体（如cctv-1hd → CCTV-1）
     match = CCTV_PATTERN.search(name_lower)
     if match:
-        num = match.group(2)
-        if CCTV_USE_MAPPING and num in CCTV_NAME_MAPPING:
+        num = match.group(2) if match.group(2) else ""
+        if num and CCTV_USE_MAPPING and num in CCTV_NAME_MAPPING:
             return f"CCTV-{num}{CCTV_NAME_MAPPING[num]}"
-        return f"CCTV-{num}"
+        elif num:
+            return f"CCTV-{num}"
+        else:
+            # 无数字的CCTV变体（如CCTV中文国际 → 保留原名）
+            return name.strip()
     return name
 
 def clean_channel_suffix(name: str) -> str:
+    """【修改】循环移除所有后缀，确保彻底清理"""
     while True:
         new_name = SUFFIX_REMOVE_PATTERN.sub('', name).strip()
         if new_name == name:
@@ -230,7 +259,7 @@ ENGINE_SELECTOR = build_selector(PAGE_CONFIG["engine_search"], "a.sidebar-link,b
 MCAST_SELECTOR = build_selector(PAGE_CONFIG["multicast_tab"], "div.segment-item")
 START_SELECTOR = build_selector(PAGE_CONFIG["start_button"], "button")
 
-# -------------------------- 自定义源解析工具函数 --------------------------
+# -------------------------- 自定义源解析工具函数（核心保留） --------------------------
 
 async def fetch_content(source: str) -> Optional[str]:
     """获取自定义源内容，支持网络链接和本地文件"""
@@ -318,7 +347,7 @@ def parse_txt(content: str) -> List[Tuple[str, str, str]]:
     return entries
 
 async def process_custom_sources() -> List[Tuple[str, str, str]]:
-    """处理所有自定义源，返回 (分组, 频道名, 链接) 列表（取消自定义频道，自动归类）"""
+    """处理所有自定义源，返回 (分组, 频道名, 链接) 列表"""
     if not ENABLE_CUSTOM_SOURCES:
         return []
     
@@ -349,7 +378,7 @@ async def process_custom_sources() -> List[Tuple[str, str, str]]:
         
         all_entries.extend(entries)
     
-    # 对自定义源进行标准化清洗和自动分类（取消自定义频道）
+    # 对自定义源进行标准化清洗和自动分类
     classified_entries = []
     for group, name, url in all_entries:
         # 补全协议头
@@ -360,12 +389,12 @@ async def process_custom_sources() -> List[Tuple[str, str, str]]:
         norm_name = normalize_cctv(name)
         
         # 自动分类（优先级：手动指定分组 > 关键词分类）
-        if group:
+        if group and group.strip():
             new_group = group
         else:
             new_group = classify_channel(norm_name)
         
-        # 如果无法分类，跳过（不加入自定义频道）
+        # 确保分类有效
         if not new_group:
             logger.warning(f"自定义频道 {name} 无法自动分类，已跳过")
             continue
@@ -421,12 +450,12 @@ def print_progress_bar(current: int, total: int, success: int, failed: int, last
         bar_length = 20
         filled_length = int(bar_length * percent)
         bar = '█' * filled_length + '░' * (bar_length - filled_length)
-        logger.info(f"[{stage}] [{percent_int:3d}%] {bar} ({current}/{total}) | 有效:{success} | 共：{total}条")
+        logger.info(f"[{stage}] [{percent_int:3d}%] {bar} ({current}/{total}) | 有效:{success} | 失败:{failed} | 共：{total}条")
         return percent_int
     return last_percent
 
 # ============================================================================
-# ========================= 【核心】三层测速逻辑 ===============================
+# ========================= 【核心保留】三层测速逻辑 ===============================
 # ============================================================================
 
 async def hls_precheck(url: str) -> Tuple[bool, Dict[str, Any]]:
@@ -523,7 +552,7 @@ async def ffmpeg_test_wrapper(url: str, duration: int) -> Dict[str, Any]:
         return {"ok": False, "fps": 0.0, "message": str(e)[:50], "width": 0, "height": 0}
 
 # ============================================================================
-# ========================= 【调度】三层测速流水线 =============================
+# ========================= 【核心保留】三层测速流水线 =============================
 # ============================================================================
 
 async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
@@ -537,8 +566,14 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     cache_hit_ok = 0
     cache_hit_fail = 0
 
+    # 【修改】遍历所有需要测速的分组（TEST_ONLY_GROUPS）
     for (group, name), urls in channel_map.items():
-        if group not in TEST_ONLY_GROUPS: continue
+        if group not in TEST_ONLY_GROUPS: 
+            # 非测速分组直接保留所有链接
+            result_map[(group, name)] = urls[:MAX_LINKS_PER_CHANNEL]
+            continue
+        
+        # 测速分组先查缓存
         for url in urls:
             if url in cache:
                 res = cache[url]
@@ -551,7 +586,7 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
                 pending_tasks.append((group, name, url))
 
     total_tasks = len(pending_tasks)
-    logger.info(f"缓存命中(有效): {cache_hit_ok}, 需重新检测: {total_tasks}")
+    logger.info(f"缓存命中(有效): {cache_hit_ok}, 缓存命中(无效): {cache_hit_fail}, 需重新检测: {total_tasks}")
     if total_tasks == 0:
         return finalize_results(result_map)
 
@@ -570,13 +605,16 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
 
         async with sem:
             try:
+                # 第一步：HLS预检
                 if ENABLE_HLS_PRECHECK:
                     is_ok, pre_info = await hls_precheck(url)
                     if not is_ok:
                         final_result = {"passed_final": False, "stage": "precheck", "timestamp": time.time()}
                         stats["fail"] += 1
                         return (group, name, url, None, final_result)
+                    stats["pre"] += 1
 
+                # 第二步：短时间测速
                 short_res = await ffmpeg_test_wrapper(url, FFMPEG_TEST_DURATION_SHORT)
                 if not short_res["ok"] or \
                    short_res["fps"] < MIN_AVG_FPS or \
@@ -584,7 +622,9 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
                     final_result = {"passed_final": False, "stage": "short", "fps": short_res["fps"], "timestamp": time.time()}
                     stats["fail"] += 1
                     return (group, name, url, None, final_result)
+                stats["short"] += 1
 
+                # 第三步：长时间测速
                 long_res = await ffmpeg_test_wrapper(url, FFMPEG_TEST_DURATION_FULL)
                 if long_res["ok"] and \
                    long_res["fps"] >= MIN_AVG_FPS and \
@@ -615,11 +655,13 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     tasks = [worker(item) for item in pending_tasks]
     results = await asyncio.gather(*tasks)
 
+    # 处理测速结果
     for group, name, url, data, cache_entry in results:
         new_cache_entries[url] = cache_entry
         if data and cache_entry.get("passed_final"):
             result_map[(group, name)].append((url, data["fps"], data["width"], data["height"]))
 
+    # 保存缓存
     if new_cache_entries:
         cache.update(new_cache_entries)
         save_cache(cache)
@@ -628,25 +670,40 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     return finalize_results(result_map)
 
 def finalize_results(result_map):
+    """【修改】确保去重后保留最优链接"""
     final_map = {}
     for key, items in result_map.items():
-        group, _ = key
-        if group in TEST_ONLY_GROUPS:
-            if PREFER_1080P:
-                items.sort(
-                    key=lambda x: (
-                        0 if (x[2] == PREFER_RESOLUTION_WIDTH and x[3] == PREFER_RESOLUTION_HEIGHT) else 1,
-                        -x[1]
-                    )
+        group, name = key
+        # 非测速分组直接取前N条
+        if group not in TEST_ONLY_GROUPS:
+            final_map[key] = items[:MAX_LINKS_PER_CHANNEL]
+            continue
+        
+        # 测速分组按分辨率+FPS排序
+        if PREFER_1080P:
+            items.sort(
+                key=lambda x: (
+                    0 if (x[2] == PREFER_RESOLUTION_WIDTH and x[3] == PREFER_RESOLUTION_HEIGHT) else 1,
+                    -x[1]
                 )
-            else:
-                items.sort(key=lambda x: -x[1])
-            final_map[key] = [url for url, _, _, _ in items[:MAX_LINKS_PER_CHANNEL]]
+            )
         else:
-            final_map[key] = [url for url, _, _, _ in items]
+            items.sort(key=lambda x: -x[1])
+        
+        # 提取URL并去重
+        unique_urls = []
+        seen_urls = set()
+        for url, _, _, _ in items:
+            if url not in seen_urls:
+                seen_urls.add(url)
+                unique_urls.append(url)
+                if len(unique_urls) >= MAX_LINKS_PER_CHANNEL:
+                    break
+        
+        final_map[key] = unique_urls
     
     total_final = sum(len(v) for v in final_map.values())
-    logger.info(f"全部流程结束，最终保留 {total_final} 条优质链接")
+    logger.info(f"测速流程结束，最终保留 {total_final} 条优质链接")
     return final_map
 
 # ============================================================================
@@ -760,7 +817,7 @@ def sort_cctv_channels(channels):
         match = CCTV_PATTERN.search(name)
         if not match:
             return (999, name)
-        num = match.group(2)
+        num = match.group(2) if match.group(2) else ""
         if num in CCTV_ORDER:
             return (CCTV_ORDER.index(num), name)
         return (998, name)
@@ -781,6 +838,17 @@ def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]])
         for url in urls:
             grouped[group].append((name, url))
 
+    # 去重：同一分组+频道名只保留唯一链接
+    deduped_grouped = defaultdict(list)
+    seen_entries = set()
+    for group, entries in grouped.items():
+        for name, url in entries:
+            key = (group, name, url)
+            if key not in seen_entries:
+                seen_entries.add(key)
+                deduped_grouped[group].append((name, url))
+
+    # 写入M3U
     with open(OUTPUT_M3U_FILENAME, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         if TIME_DISPLAY_AT_TOP:
@@ -788,12 +856,12 @@ def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]])
             f.write(f"{update_url}\n\n")
         
         for group in GROUP_ORDER:
-            if group not in grouped:
+            if group not in deduped_grouped:
                 continue
             if group == "央视频道":
-                sorted_chans = sort_cctv_channels(grouped[group])
+                sorted_chans = sort_cctv_channels(deduped_grouped[group])
             else:
-                sorted_chans = sorted(grouped[group], key=lambda x: x[0])
+                sorted_chans = sorted(deduped_grouped[group], key=lambda x: x[0])
             
             for name, url in sorted_chans:
                 f.write(f'#EXTINF:-1 group-title="{group}",{name}\n{url}\n')
@@ -803,20 +871,21 @@ def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]])
             f.write(f'#EXTINF:-1 tvg-name="{time_str}" tvg-id="更新时间" tvg-logo="" group-title="更新时间", {time_str}\n')
             f.write(f"{update_url}\n\n")
 
+    # 写入TXT
     with open(OUTPUT_TXT_FILENAME, "w", encoding="utf-8") as f:
         if TIME_DISPLAY_AT_TOP:
             f.write("更新时间,#genre#\n")
             f.write(f"{time_str},{update_url}\n\n")
         
         for group in GROUP_ORDER:
-            if group not in grouped:
+            if group not in deduped_grouped:
                 continue
             f.write(f"{group},#genre#\n")
             
             if group == "央视频道":
-                sorted_chans = sort_cctv_channels(grouped[group])
+                sorted_chans = sort_cctv_channels(deduped_grouped[group])
             else:
-                sorted_chans = sorted(grouped[group], key=lambda x: x[0])
+                sorted_chans = sorted(deduped_grouped[group], key=lambda x: x[0])
             
             for name, url in sorted_chans:
                 f.write(f"{name},{url}\n")
@@ -826,7 +895,7 @@ def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]])
             f.write("更新时间,#genre#\n")
             f.write(f"{time_str},{update_url}\n\n")
 
-    total_links = sum(len(v) for v in grouped.values())
+    total_links = sum(len(v) for v in deduped_grouped.values())
     position_text = "顶部" if TIME_DISPLAY_AT_TOP else "底部"
     logger.info(f"导出完成！共 {total_links} 条有效频道链接，更新时间已放在{position_text}")
 
@@ -835,6 +904,8 @@ def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]])
 # ============================================================================
 
 async def main():
+    # 确保输出目录存在
+    OUTPUT_DIR.mkdir(exist_ok=True)
     if ENABLE_SCREENSHOTS:
         (OUTPUT_DIR / "screenshots").mkdir(exist_ok=True)
 
@@ -848,7 +919,7 @@ async def main():
         try:
             raw_entries = []
 
-            # 1. 网页爬取逻辑
+            # 1. 网页爬取逻辑（保留，仅作为补充）
             if TARGET_URL:
                 logger.info(f"正在访问 {TARGET_URL}")
                 await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT, wait_until="networkidle")
@@ -884,7 +955,7 @@ async def main():
                 else:
                     logger.error("网页数据加载失败")
 
-            # 2. 合并自定义直播源
+            # 2. 合并自定义直播源（核心保留）
             if ENABLE_CUSTOM_SOURCES:
                 custom_entries = await process_custom_sources()
                 raw_entries.extend(custom_entries)
@@ -894,21 +965,30 @@ async def main():
                 logger.error("没有获取到任何频道链接（网页+自定义均为空）")
                 return
 
-            # 3. 去重与构建频道映射
-            channel_map = defaultdict(list)
-            seen = set()
+            # 3. 全局去重（核心：先合并所有链接再去重）
+            logger.info("开始全局去重...")
+            deduped_entries = []
+            seen_keys = set()
             for group, name, url in raw_entries:
-                if ENABLE_DEDUPLICATION:
-                    key = (group, name, url)
-                    if key in seen: continue
-                    seen.add(key)
-                channel_map[(group, name)].append(url)
+                # 去重键：分组+频道名+链接（避免同一频道重复）
+                dedup_key = (group.strip(), name.strip(), url.strip())
+                if dedup_key not in seen_keys:
+                    seen_keys.add(dedup_key)
+                    deduped_entries.append((group, name, url))
+            logger.info(f"全局去重完成：原始{len(raw_entries)}条 → 去重后{len(deduped_entries)}条")
 
-            # 4. 测速
+            # 4. 构建频道映射（分组+频道名 → 链接列表）
+            channel_map = defaultdict(list)
+            for group, name, url in deduped_entries:
+                channel_map[(group, name)].append(url)
+            logger.info(f"构建频道映射完成：共{len(channel_map)}个独立频道")
+
+            # 5. 三重测速（核心保留）
             if ENABLE_FFMPEG_TEST and channel_map:
+                logger.info("开始执行三重测速...")
                 channel_map = await run_ffmpeg_test(channel_map)
 
-            # 5. 导出
+            # 6. 导出结果
             export_results_with_timestamp(channel_map)
 
         except Exception as e:
