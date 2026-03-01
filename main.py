@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 IPTV 组播提取工具（配置文件版）- 保留自定义频道+三重测速
-修改点：增强CCTV/卫视频道识别，确保先合并去重再测速
+适配配置：仅测速央视频道/卫视频道/电影频道/轮播频道/儿童频道
 """
 
 import asyncio
@@ -116,18 +116,18 @@ CACHE_EXPIRE_HOURS = config.getint('缓存配置', 'CACHE_EXPIRE_HOURS')
 # ============================= 频道分类规则 ==================================
 # ============================================================================
 
-# 【修改】增强分类规则，覆盖更多变体
+# ✨ 同步配置修改：移除体育频道，匹配TEST_ONLY_GROUPS/KEEP_GROUPS
 CATEGORY_RULES = [
-    {"name": "央视频道",    "keywords": ["cctv", "cetv", "中央", "央视"]},  # 新增"央视"关键词
+    {"name": "央视频道",    "keywords": ["cctv", "cetv", "中央", "央视"]},  # 新增"央视"关键词，覆盖更多变体
     {"name": "卫视频道",    "keywords": ["卫视", "凤凰", "tvb", "湖南", "浙江", "江苏", "东方", "东南", "广东", "江西", "河南", "陕西", "湖北", "吉林", "大湾区"]},  # 补充常见卫视名称
     {"name": "4K专区",      "keywords": ["4k"]},
     {"name": "电影频道",    "keywords": ["电影", "影院", "chc"]},
     {"name": "轮播频道",    "keywords": ["轮播"]},
     {"name": "儿童频道",    "keywords": ["少儿", "动画", "卡通"]},
-    {"name": "体育频道",    "keywords": ["体育", "五环", "赛事", "掼蛋", "钓鱼", "武术", "咪咕"]},  # 新增体育分类
 ]
 
-GROUP_ORDER = ["央视频道", "卫视频道", "体育频道", "电影频道", "轮播频道", "儿童频道", "4K专区"]  # 补充体育频道排序
+# ✨ 同步配置修改：调整分组排序，匹配保留分组
+GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "轮播频道", "儿童频道", "4K专区"]
 
 CCTV_NAME_MAPPING = {
     "1": "综合", "2": "财经", "3": "综艺", "4": "国际", "5": "体育",
@@ -186,17 +186,17 @@ def save_cache(cache: Dict[str, Dict[str, Any]]) -> None:
 # ============================= 工具函数 =====================================
 # ============================================================================
 
-# 【修改】增强CCTV正则，覆盖hd/超清/综合等变体
+# ✨ 增强CCTV正则，覆盖hd/超清/综合等变体
 CCTV_PATTERN = re.compile(r'(cctv)[-\s]?(\d{1,3}\+?)|(CCTV[\u4e00-\u9fff]+)', re.IGNORECASE)
 CHINESE_ONLY_PATTERN = re.compile(r'[^\u4e00-\u9fff]')
-# 【修改】增强后缀移除规则，覆盖hd/超清/高清/SD/HD等
+# ✨ 增强后缀移除规则，覆盖hd/超清/高清/SD/HD等
 SUFFIX_REMOVE_PATTERN = re.compile(r'(4K|高清|超清|标清|HD|SD|hd|超清版|高清版)$', re.IGNORECASE)
 
 def build_classifier():
     compiled = []
     for rule in CATEGORY_RULES:
         if not rule["keywords"]: continue
-        # 【修改】调整正则匹配逻辑，支持关键词出现在任意位置且兼容后缀
+        # ✨ 调整正则匹配逻辑，支持关键词出现在任意位置且兼容后缀
         pattern = re.compile(r'.*?(' + '|'.join(re.escape(kw.lower()) for kw in rule["keywords"]) + r').*?', re.IGNORECASE)
         compiled.append((rule["name"], pattern))
     
@@ -213,7 +213,7 @@ def build_classifier():
 classify_channel = build_classifier()
 
 def normalize_cctv(name: str) -> str:
-    """【修改】增强CCTV归一化，覆盖更多变体"""
+    """✨ 增强CCTV归一化，覆盖更多变体"""
     name_lower = name.lower()
     # 处理CCTV-5+变体
     if "cctv5+" in name_lower or "cctv 5+" in name_lower:
@@ -238,7 +238,7 @@ def normalize_cctv(name: str) -> str:
     return name
 
 def clean_channel_suffix(name: str) -> str:
-    """【修改】循环移除所有后缀，确保彻底清理"""
+    """✨ 循环移除所有后缀，确保彻底清理"""
     while True:
         new_name = SUFFIX_REMOVE_PATTERN.sub('', name).strip()
         if new_name == name:
@@ -566,7 +566,7 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     cache_hit_ok = 0
     cache_hit_fail = 0
 
-    # 【修改】遍历所有需要测速的分组（TEST_ONLY_GROUPS）
+    # ✨ 遍历所有需要测速的分组（TEST_ONLY_GROUPS）
     for (group, name), urls in channel_map.items():
         if group not in TEST_ONLY_GROUPS: 
             # 非测速分组直接保留所有链接
@@ -670,7 +670,7 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     return finalize_results(result_map)
 
 def finalize_results(result_map):
-    """【修改】确保去重后保留最优链接"""
+    """✨ 确保去重后保留最优链接"""
     final_map = {}
     for key, items in result_map.items():
         group, name = key
