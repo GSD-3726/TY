@@ -18,7 +18,7 @@ import statistics
 import configparser
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, Tuple, Optional, Any, Union
 from urllib.parse import urljoin
 import functools
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
@@ -231,68 +231,124 @@ MCAST_SELECTOR = build_selector(PAGE_CONFIG["multicast_tab"], "div.segment-item"
 START_SELECTOR = build_selector(PAGE_CONFIG["start_button"], "button")
 
 # -------------------------- 自定义源解析工具函数 --------------------------
-
 async def fetch_content(source: str) -> Optional[str]:
-    """获取自定义源内容，支持网络链接和本地文件"""
+    """
+    获取自定义源内容（适配M3U文件流下载场景）
+    支持网络链接+本地文件，二进制读取+多编码适配+请求头+重定向
+    """
     try:
         if source.startswith(('http://', 'https://')):
-            # 网络链接
-            async with aiohttp.ClientSession() as sess:
-                async with sess.get(source, timeout=30) as r:
-                    if r.status == 200:
-                        return await r.text()
-                    else:
+            # 网络链接：添加浏览器请求头+允许重定向+延长超时
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': '*/*',
+                'Connection': 'keep-alive'
+            }
+            async with aiohttp.ClientSession(headers=headers, timeout=aiohttp.ClientTimeout(total=60)) as sess:
+                async with sess.get(source, allow_redirects=True, max_redirects=5) as r:
+                    if r.status != 200:
                         logger.warning(f"获取网络源失败 {source}: HTTP {r.status}")
                         return None
+                    
+                    # 二进制读取内容（适配文件流下载的M3U）
+                    content_bytes = await r.read()
+                    if not content_bytes:
+                        logger.warning(f"获取到的内容为空: {source}")
+                        return None
+                    
+                    # 尝试多种编码解码（解决中文乱码/编码错误）
+                    content = None
+                    for encoding in ['utf-8', 'gbk', 'gb2312', 'latin-1']:
+                        try:
+                            content = content_bytes.decode(encoding)
+                            break
+                        except UnicodeDecodeError:
+                            continue
+                    
+                    if not content:
+                        # 最后尝试忽略错误解码，确保内容不丢失
+                        content = content_bytes.decode('utf-8', errors='ignore')
+                    
+                    return content
         else:
-            # 本地文件
+            # 本地文件：同样用二进制读取适配不同编码
             path = Path(source)
             if path.exists():
-                return path.read_text(encoding='utf-8')
+                with open(path, 'rb') as f:
+                    content_bytes = f.read()
+                # 尝试多种编码解码
+                content = None
+                for encoding in ['utf-8', 'gbk', 'gb2312', 'latin-1']:
+                    try:
+                        content = content_bytes.decode(encoding)
+                        break
+                    except UnicodeDecodeError:
+                        continue
+                if not content:
+                    content = content_bytes.decode('utf-8', errors='ignore')
+                return content
             else:
                 logger.warning(f"本地文件不存在: {source}")
                 return None
+    except asyncio.TimeoutError:
+        logger.warning(f"获取源内容超时（60秒）: {source}")
+        return None
+    except aiohttp.ClientError as e:
+        logger.warning(f"网络请求错误: {source} - {str(e)}")
+        return None
     except Exception as e:
-        logger.warning(f"获取源内容失败 {source}: {e}")
+        logger.warning(f"获取源内容失败: {source} - {str(e)}")
         return None
 
 def parse_m3u(content: str) -> List[Tuple[str, str, str]]:
-    """解析M3U格式内容，返回 (分组, 频道名, 链接) 列表"""
+    """
+    解析M3U格式内容（兼容非标准M3U）
+    返回 (分组, 频道名, 链接) 列表
+    """
     entries = []
     current_group = ""
     lines = content.splitlines()
     i = 0
+    
     while i < len(lines):
         line = lines[i].strip()
         i += 1
-        if not line:
+        
+        # 跳过空行和非核心注释行
+        if not line or (line.startswith('#') and not line.startswith(('#EXTINF:', '#EXTGRP:'))):
             continue
+        
+        # 解析分组行（#EXTGRP）
+        if line.startswith('#EXTGRP:'):
+            current_group = line[8:].strip()
+            continue
+        
+        # 解析核心频道行（#EXTINF）
         if line.startswith('#EXTINF:'):
-            # 解析#EXTINF行
-            info = line[8:]  # 去掉#EXTINF:
-            # 提取group-title
-            group_match = re.search(r'group-title="([^"]+)"', info)
+            # 提取分组（group-title）
+            group_match = re.search(r'group-title="([^"]+)"', line)
             if group_match:
                 current_group = group_match.group(1)
-            # 提取频道名（逗号后面的部分）
-            name = "未知频道"
-            if ',' in info:
-                name = info.split(',', 1)[1].strip()
             
-            # 寻找下一行非注释行作为链接
-            url = None
+            # 提取频道名（逗号后内容）
+            channel_name = "未知频道"
+            if ',' in line:
+                channel_name = line.split(',', 1)[1].strip()
+            
+            # 寻找下一行非注释行作为频道链接
+            channel_url = None
             while i < len(lines):
                 url_line = lines[i].strip()
                 i += 1
                 if url_line and not url_line.startswith('#'):
-                    url = url_line
+                    channel_url = url_line
                     break
             
-            if url and name:
-                entries.append((current_group, name, url))
-        elif line.startswith('#EXTGRP:'):
-            # 有些m3u用#EXTGRP指定分组
-            current_group = line[8:].strip()
+            # 有效频道才加入列表
+            if channel_url and channel_name:
+                entries.append((current_group, channel_name, channel_url))
+    
+    logger.info(f"解析M3U完成，共提取 {len(entries)} 个频道")
     return entries
 
 def parse_txt(content: str) -> List[Tuple[str, str, str]]:
@@ -917,4 +973,13 @@ async def main():
             await browser.close()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # 兼容Python 3.8的asyncio.run
+    try:
+        asyncio.run(main())
+    except RuntimeError as e:
+        if "asyncio.run() cannot be called from a running event loop" in str(e):
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(main())
+    except AttributeError:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(main())
