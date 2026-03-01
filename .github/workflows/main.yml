@@ -1,70 +1,66 @@
-name: 自动更新
+name: IPTV 自动采集与测速
 
 on:
   schedule:
-    - cron: '0 */12 * * *'  # 每12小时执行一次（若要每6小时，改为 0 */6 * * *）
-  workflow_dispatch:        # 允许手动触发
+    # 每12小时运行一次 (UTC时间 00:00 和 12:00，对应北京时间早8点晚8点)
+    - cron: '0 */12 * * *'
+  workflow_dispatch: # 允许在网页手动点击运行
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 180 # 超时时间设置为3小时
     permissions:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # 获取完整git历史，避免提交/推送异常
+      - name: 检出代码
+        uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      - name: 设置 Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
 
-      # 恢复 FFmpeg 测速缓存
-      - name: 恢复 FFmpeg 测速缓存
+      - name: 安装系统级依赖 (FFmpeg & 中文字体)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-wqy-microhei
+
+      - name: 安装 Python 依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright pytz aiohttp pyee
+
+      - name: 安装 Playwright 浏览器 (Chromium)
+        run: playwright install --with-deps chromium
+
+      - name: 恢复测速缓存 (关键！节省大量时间)
         uses: actions/cache@v4
         with:
-          path: iptv_speed_cache.json
-          key: ${{ runner.os }}-iptv-cache-v1
+          path: |
+            iptv_speed_cache.json
+          key: iptv-cache-v2-${{ github.run_id }}
           restore-keys: |
-            ${{ runner.os }}-iptv-cache-
+            iptv-cache-v2-
 
-      - name: Install dependencies
+      - name: 运行采集脚本
+        run: python3 iptv_tool.py # 请确保脚本文件名与此一致
+
+      - name: 上传生成的结果 (Artifacts)
+        uses: actions/upload-artifact@v4
+        with:
+          name: iptv-results
+          path: |
+            iptv_channels.m3u
+            iptv_channels.txt
+          retention-days: 30
+
+      - name: 提交文件到仓库
         run: |
-          sudo apt update
-          sudo apt install -y ffmpeg
-          pip install playwright pytz
-          python -m playwright install chromium --with-deps
-
-      - name: Run IPTV update
-        run: python main.py
-
-      - name: List generated files
-        run: |
-          echo "生成的文件:"
-          ls -la *.m3u *.txt *.json 2>/dev/null || echo "未找到生成的文件"
-          echo "缓存文件:"
-          ls -la iptv_speed_cache.json 2>/dev/null || echo "未找到缓存文件"
-
-      # 提交并推送结果（修复核心问题：增加拉取远程最新代码步骤）
-      - name: Commit and push
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # 关键修复：拉取远程最新代码，自动解决合并冲突（--rebase 变基，--autostash 自动暂存本地修改）
-          git pull --rebase --autostash origin $(git rev-parse --abbrev-ref HEAD)
-          
-          # 添加所有可能的输出文件
-          git add iptv_channels.m3u iptv_channels.txt iptv_speed_cache.json 2>/dev/null || true
-          
-          # 检查是否有变更
-          if git diff --cached --quiet; then
-            echo "没有更新的内容，跳过提交"
-            exit 0
-          fi
-          
-          git commit -m "📺 Auto update $(date +'%Y-%m-%d %H:%M')"
-          # 推送（若变基后有更新，需要强制推送？这里用普通推送，变基后通常能正常推送）
-          git push origin $(git rev-parse --abbrev-ref HEAD)
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add iptv_channels.m3u iptv_channels.txt iptv_speed_cache.json
+          git commit -m "chore: 自动更新直播源" || echo "未发生变化，无需提交"
+          git push
