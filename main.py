@@ -32,7 +32,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 TARGET_URL = "https://iptv.809899.xyz"          # 【必填】要爬取的目标网站地址
 HEADLESS = True                                  # 【True/False】是否隐藏浏览器窗口 (True=后台运行, False=显示窗口)
 BROWSER_TYPE = "chromium"                        # 【chromium/firefox/webkit】浏览器内核类型，推荐默认 chromium
-MAX_IPS = 0                                     # 【数字】最多处理前N个IP/地址行 (0表示不限制)
+MAX_IPS = 50                                     # 【数字】最多处理前N个IP/地址行 (0表示不限制)
 PAGE_LOAD_TIMEOUT = 120000                       # 【毫秒】页面加载最长等待时间 (120秒)
 
 
