@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具（配置文件版）- 修复HTTP 403问题
+IPTV 组播提取工具（配置文件版）
 """
 
 import asyncio
@@ -18,7 +18,7 @@ import statistics
 import configparser
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any, Union
+from typing import Dict, List, Tuple, Optional, Any
 from urllib.parse import urljoin
 import functools
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
@@ -122,13 +122,9 @@ CATEGORY_RULES = [
     {"name": "电影频道",    "keywords": ["电影", "影院", "chc"]},
     {"name": "轮播频道",    "keywords": ["轮播"]},
     {"name": "儿童频道",    "keywords": ["少儿", "动画", "卡通"]},
-    # 新增：适配体育赛事回放/体育频道
-    {"name": "体育赛事",    "keywords": ["体育", "男篮", "世预赛", "赛事", "回放", "体坛", "钓鱼"]},
-    # 新增：适配地方特色频道
-    {"name": "地方特色频道", "keywords": ["新闻综合", "秦腔", "银龄", "文旅", "经济", "都市青春", "公共", "生活", "影视剧"]},
 ]
 
-GROUP_ORDER = ["央视频道", "卫视频道", "体育赛事", "电影频道", "轮播频道", "地方特色频道", "儿童频道", "4K专区"]
+GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "轮播频道", "儿童频道"]
 
 CCTV_NAME_MAPPING = {
     "1": "综合", "2": "财经", "3": "综艺", "4": "国际", "5": "体育",
@@ -235,150 +231,68 @@ MCAST_SELECTOR = build_selector(PAGE_CONFIG["multicast_tab"], "div.segment-item"
 START_SELECTOR = build_selector(PAGE_CONFIG["start_button"], "button")
 
 # -------------------------- 自定义源解析工具函数 --------------------------
+
 async def fetch_content(source: str) -> Optional[str]:
-    """
-    获取自定义源内容（修复HTTP 403问题+适配M3U文件流下载场景）
-    支持网络链接+本地文件，二进制读取+多编码适配+完整浏览器请求头+重定向
-    """
+    """获取自定义源内容，支持网络链接和本地文件"""
     try:
         if source.startswith(('http://', 'https://')):
-            # 【核心修复403】完整模拟浏览器请求头，包含所有关键字段
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-                'Cache-Control': 'max-age=0',
-                'Connection': 'keep-alive',
-                # 关键：模拟同域名跳转，解决防盗链403
-                'Referer': f'{source.split("?")[0].rsplit("/", 1)[0]}/',
-                # 补充Cookie字段（即使为空，部分服务器校验存在性）
-                'Cookie': '',
-                'Upgrade-Insecure-Requests': '1'
-            }
-            # 延长超时至60秒，允许慢响应；开启重定向（最多5次）
-            async with aiohttp.ClientSession(
-                headers=headers, 
-                timeout=aiohttp.ClientTimeout(total=60),
-                # 禁用压缩避免解码问题
-                connector=aiohttp.TCPConnector(ssl=False)
-            ) as sess:
-                async with sess.get(
-                    source, 
-                    allow_redirects=True, 
-                    max_redirects=5,
-                    compress=False
-                ) as r:
-                    # 打印响应状态和头信息，便于排查403问题
-                    logger.info(f"请求 {source} 响应状态码: {r.status}")
-                    if r.status != 200:
+            # 网络链接
+            async with aiohttp.ClientSession() as sess:
+                async with sess.get(source, timeout=30) as r:
+                    if r.status == 200:
+                        return await r.text()
+                    else:
                         logger.warning(f"获取网络源失败 {source}: HTTP {r.status}")
-                        logger.info(f"服务器响应头: {dict(r.headers)}")
                         return None
-                    
-                    # 二进制读取内容（适配M3U文件流下载场景，避免编码提前解析）
-                    content_bytes = await r.read()
-                    if not content_bytes:
-                        logger.warning(f"获取到的内容为空: {source}")
-                        return None
-                    
-                    # 尝试多种编码解码（解决中文乱码/编码错误）
-                    content = None
-                    encoding_priority = ['utf-8', 'gbk', 'gb2312', 'latin-1']
-                    for encoding in encoding_priority:
-                        try:
-                            content = content_bytes.decode(encoding)
-                            logger.info(f"使用 {encoding} 编码解析成功: {source}")
-                            break
-                        except UnicodeDecodeError:
-                            continue
-                    
-                    if not content:
-                        # 最后尝试忽略错误解码，确保内容不丢失
-                        content = content_bytes.decode('utf-8', errors='ignore')
-                        logger.warning(f"所有编码解析失败，使用忽略错误模式: {source}")
-                    
-                    return content
         else:
-            # 本地文件：同样用二进制读取适配不同编码
+            # 本地文件
             path = Path(source)
             if path.exists():
-                with open(path, 'rb') as f:
-                    content_bytes = f.read()
-                # 尝试多种编码解码
-                content = None
-                encoding_priority = ['utf-8', 'gbk', 'gb2312', 'latin-1']
-                for encoding in encoding_priority:
-                    try:
-                        content = content_bytes.decode(encoding)
-                        break
-                    except UnicodeDecodeError:
-                        continue
-                if not content:
-                    content = content_bytes.decode('utf-8', errors='ignore')
-                return content
+                return path.read_text(encoding='utf-8')
             else:
                 logger.warning(f"本地文件不存在: {source}")
                 return None
-    except asyncio.TimeoutError:
-        logger.warning(f"获取源内容超时（60秒）: {source}")
-        return None
-    except aiohttp.ClientError as e:
-        logger.warning(f"网络请求错误: {source} - {str(e)}")
-        return None
     except Exception as e:
-        logger.warning(f"获取源内容失败: {source} - {str(e)}")
+        logger.warning(f"获取源内容失败 {source}: {e}")
         return None
 
 def parse_m3u(content: str) -> List[Tuple[str, str, str]]:
-    """
-    解析M3U格式内容（兼容非标准M3U）
-    返回 (分组, 频道名, 链接) 列表
-    """
+    """解析M3U格式内容，返回 (分组, 频道名, 链接) 列表"""
     entries = []
     current_group = ""
     lines = content.splitlines()
     i = 0
-    
     while i < len(lines):
         line = lines[i].strip()
         i += 1
-        
-        # 跳过空行和非核心注释行，兼容非标准M3U
-        if not line or (line.startswith('#') and not line.startswith(('#EXTINF:', '#EXTGRP:'))):
+        if not line:
             continue
-        
-        # 解析分组行（#EXTGRP）
-        if line.startswith('#EXTGRP:'):
-            current_group = line[8:].strip()
-            continue
-        
-        # 解析核心频道行（#EXTINF）
         if line.startswith('#EXTINF:'):
-            # 提取分组（group-title）
-            group_match = re.search(r'group-title="([^"]+)"', line)
+            # 解析#EXTINF行
+            info = line[8:]  # 去掉#EXTINF:
+            # 提取group-title
+            group_match = re.search(r'group-title="([^"]+)"', info)
             if group_match:
                 current_group = group_match.group(1)
+            # 提取频道名（逗号后面的部分）
+            name = "未知频道"
+            if ',' in info:
+                name = info.split(',', 1)[1].strip()
             
-            # 提取频道名（逗号后内容）
-            channel_name = "未知频道"
-            if ',' in line:
-                channel_name = line.split(',', 1)[1].strip()
-            
-            # 寻找下一行非注释行作为频道链接
-            channel_url = None
+            # 寻找下一行非注释行作为链接
+            url = None
             while i < len(lines):
                 url_line = lines[i].strip()
                 i += 1
                 if url_line and not url_line.startswith('#'):
-                    channel_url = url_line
+                    url = url_line
                     break
             
-            # 有效频道才加入列表
-            if channel_url and channel_name:
-                entries.append((current_group, channel_name, channel_url))
-    
-    logger.info(f"解析M3U完成，共提取 {len(entries)} 个频道")
+            if url and name:
+                entries.append((current_group, name, url))
+        elif line.startswith('#EXTGRP:'):
+            # 有些m3u用#EXTGRP指定分组
+            current_group = line[8:].strip()
     return entries
 
 def parse_txt(content: str) -> List[Tuple[str, str, str]]:
@@ -451,10 +365,10 @@ async def process_custom_sources() -> List[Tuple[str, str, str]]:
         else:
             new_group = classify_channel(norm_name)
         
-        # 【优化】即使无自动分类，也保留原始分组（避免过滤有效频道）
+        # 如果无法分类，跳过（不加入自定义频道）
         if not new_group:
-            new_group = group if group else "其他频道"
-            logger.info(f"频道 {name} 无匹配分类，归类到[{new_group}]")
+            logger.warning(f"自定义频道 {name} 无法自动分类，已跳过")
+            continue
         
         # 清理频道名
         if new_group == "央视频道":
@@ -463,8 +377,8 @@ async def process_custom_sources() -> List[Tuple[str, str, str]]:
             temp_name = clean_chinese_only(name) if ENABLE_CHINESE_CLEAN else name
             final_name = clean_channel_suffix(temp_name)
         
-        # 仅保留在KEEP_GROUPS中的频道（若KEEP_GROUPS为空则全部保留）
-        if final_name and (not KEEP_GROUPS or new_group in KEEP_GROUPS):
+        # 仅保留在KEEP_GROUPS中的频道
+        if final_name and new_group in KEEP_GROUPS:
             classified_entries.append((new_group, final_name, url))
     
     logger.info(f"自定义源处理完成，共 {len(classified_entries)} 个有效频道")
@@ -802,11 +716,9 @@ async def extract_one_ip(page, row, ip_index):
 
                 norm = normalize_cctv(name)
                 group = classify_channel(norm)
-                # 【优化】页面提取的频道也保留原始分组
-                if not group:
-                    group = "其他频道"
-
-                if group not in KEEP_GROUPS and KEEP_GROUPS:
+                if not group: continue
+                
+                if group not in KEEP_GROUPS:
                     continue
 
                 if group == "央视频道":
@@ -875,21 +787,17 @@ def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]])
             f.write(f'#EXTINF:-1 tvg-name="{time_str}" tvg-id="更新时间" tvg-logo="" group-title="更新时间", {time_str}\n')
             f.write(f"{update_url}\n\n")
         
-        # 按自定义的GROUP_ORDER排序输出分组
         for group in GROUP_ORDER:
-            if group in grouped:
-                sorted_chans = sort_cctv_channels(grouped[group]) if group == "央视频道" else sorted(grouped[group], key=lambda x: x[0])
-                for name, url in sorted_chans:
-                    f.write(f'#EXTINF:-1 group-title="{group}",{name}\n{url}\n')
-                f.write("\n")
-        
-        # 输出未在GROUP_ORDER中的分组
-        for group in grouped:
-            if group not in GROUP_ORDER:
+            if group not in grouped:
+                continue
+            if group == "央视频道":
+                sorted_chans = sort_cctv_channels(grouped[group])
+            else:
                 sorted_chans = sorted(grouped[group], key=lambda x: x[0])
-                for name, url in sorted_chans:
-                    f.write(f'#EXTINF:-1 group-title="{group}",{name}\n{url}\n')
-                f.write("\n")
+            
+            for name, url in sorted_chans:
+                f.write(f'#EXTINF:-1 group-title="{group}",{name}\n{url}\n')
+            f.write("\n")
         
         if not TIME_DISPLAY_AT_TOP:
             f.write(f'#EXTINF:-1 tvg-name="{time_str}" tvg-id="更新时间" tvg-logo="" group-title="更新时间", {time_str}\n')
@@ -900,23 +808,19 @@ def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]])
             f.write("更新时间,#genre#\n")
             f.write(f"{time_str},{update_url}\n\n")
         
-        # 按自定义的GROUP_ORDER排序输出分组
         for group in GROUP_ORDER:
-            if group in grouped:
-                f.write(f"{group},#genre#\n")
-                sorted_chans = sort_cctv_channels(grouped[group]) if group == "央视频道" else sorted(grouped[group], key=lambda x: x[0])
-                for name, url in sorted_chans:
-                    f.write(f"{name},{url}\n")
-                f.write("\n")
-        
-        # 输出未在GROUP_ORDER中的分组
-        for group in grouped:
-            if group not in GROUP_ORDER:
-                f.write(f"{group},#genre#\n")
+            if group not in grouped:
+                continue
+            f.write(f"{group},#genre#\n")
+            
+            if group == "央视频道":
+                sorted_chans = sort_cctv_channels(grouped[group])
+            else:
                 sorted_chans = sorted(grouped[group], key=lambda x: x[0])
-                for name, url in sorted_chans:
-                    f.write(f"{name},{url}\n")
-                f.write("\n")
+            
+            for name, url in sorted_chans:
+                f.write(f"{name},{url}\n")
+            f.write("\n")
         
         if not TIME_DISPLAY_AT_TOP:
             f.write("更新时间,#genre#\n")
@@ -931,8 +835,6 @@ def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]])
 # ============================================================================
 
 async def main():
-    # 创建输出目录
-    OUTPUT_DIR.mkdir(exist_ok=True)
     if ENABLE_SCREENSHOTS:
         (OUTPUT_DIR / "screenshots").mkdir(exist_ok=True)
 
@@ -982,9 +884,8 @@ async def main():
                 else:
                     logger.error("网页数据加载失败")
 
-            # 2. 合并自定义直播源（核心修复：解决403问题）
+            # 2. 合并自定义直播源
             if ENABLE_CUSTOM_SOURCES:
-                logger.info(f"开始处理自定义源，共 {len(CUSTOM_SOURCES)} 个源")
                 custom_entries = await process_custom_sources()
                 raw_entries.extend(custom_entries)
                 logger.info(f"合并自定义源后，共 {len(raw_entries)} 条未筛选的频道链接")
@@ -1002,15 +903,12 @@ async def main():
                     if key in seen: continue
                     seen.add(key)
                 channel_map[(group, name)].append(url)
-            logger.info(f"去重后，共 {len(channel_map)} 个唯一频道")
 
-            # 4. 测速（可选）
+            # 4. 测速
             if ENABLE_FFMPEG_TEST and channel_map:
-                logger.info("开始FFmpeg三层测速...")
                 channel_map = await run_ffmpeg_test(channel_map)
 
-            # 5. 导出结果
-            logger.info("开始导出频道列表...")
+            # 5. 导出
             export_results_with_timestamp(channel_map)
 
         except Exception as e:
@@ -1019,13 +917,4 @@ async def main():
             await browser.close()
 
 if __name__ == "__main__":
-    # 兼容Python 3.8及以上的asyncio.run
-    try:
-        asyncio.run(main())
-    except RuntimeError as e:
-        if "asyncio.run() cannot be called from a running event loop" in str(e):
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(main())
-    except AttributeError:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(main())
+    asyncio.run(main())
