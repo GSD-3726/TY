@@ -80,7 +80,7 @@ TIME_DISPLAY_AT_TOP = False                          # 【True/False】更新时
 
 
 # -------------------------- 9. 更新时间条目占位流 --------------------------
-UPDATE_STREAM_URL = "https://gitee.com/bmg369/tvtest/blob/master/cg/index.m3u8"
+UPDATE_STREAM_URL = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8"
 
 
 # ============================================================================
