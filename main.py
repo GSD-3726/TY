@@ -59,7 +59,7 @@ FFMPEG_CONCURRENCY = 3                         # 同时测试的链接数
 
 # HLS 预检设置
 ENABLE_HLS_PRECHECK = True                     # 是否开启轻量级预检 (快速淘汰死链)
-HLS_MIN_BANDWIDTH_MBPS = 0.125                # 最低带宽要求 (MB/s)，低于此值直接淘汰
+HLS_MIN_BANDWIDTH_MBPS = 1.5                # 最低带宽要求 (MB/s)，低于此值直接淘汰
 
 # FFmpeg 短测设置
 FFMPEG_TEST_DURATION_SHORT = 5                 # 短测时长 (秒)
