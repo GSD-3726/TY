@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具
+IPTV 组播提取工具（配置文件版）
 """
 
 import asyncio
@@ -15,6 +15,7 @@ import shutil
 import datetime
 import pytz
 import statistics
+import configparser
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
@@ -23,105 +24,96 @@ import functools
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 # ============================================================================
-# ================================ 配置区 ====================================
+# ============================= 读取配置文件 =================================
 # ============================================================================
 
-# 基础爬取设置
-TARGET_URL = "https://iptv.809899.xyz"    # 目标网站地址
-HEADLESS = True                               # 是否隐藏浏览器窗口 (True=后台运行, False=显示窗口)
-BROWSER_TYPE = "chromium"                     # 浏览器内核类型 (chromium/firefox/webkit)
-MAX_IPS = 20                                   # 最多处理前N个IP/地址 (0表示不限制)
-PAGE_LOAD_TIMEOUT = 120000                    # 页面加载最长等待时间 (毫秒)
+# 初始化配置解析器
+config = configparser.ConfigParser(allow_no_value=True, comment_prefixes='#')
+config.optionxform = str  # 保留配置项大小写
 
-# 文件输出设置
-OUTPUT_DIR = Path(__file__).parent            # 结果保存目录 (默认为脚本所在文件夹)
-OUTPUT_M3U_FILENAME = OUTPUT_DIR / "iptv_channels.m3u"  # M3U播放列表文件名
-OUTPUT_TXT_FILENAME = OUTPUT_DIR / "iptv_channels.txt"  # TXT格式文件名
-MAX_LINKS_PER_CHANNEL = 10                    # 单个频道最多保留的源数量
+# 读取配置文件
+CONFIG_FILE = Path(__file__).parent / "iptv_config.ini"
+if not CONFIG_FILE.exists():
+    print(f"配置文件不存在：{CONFIG_FILE}")
+    sys.exit(1)
 
-# 自定义直播源设置
-ENABLE_CUSTOM_SOURCES = True                      # 是否启用自定义直播源
-CUSTOM_SOURCES = [
-    # 支持以下三种格式：
-    # 1. 网络 M3U/TXT 链接
-    "http://156.238.248.80:8880/live.m3u?key=172125",
-    # 2. 本地 M3U/TXT 文件路径
-    # "path/to/your/local_channels.m3u",
-    # 3. 直接指定频道元组 (分组名, 频道名, 链接)
-    # ("卫视频道", "山东卫视", "http://example.com/shandong.ts"),
-]
-CUSTOM_SOURCES_DEFAULT_GROUP = "自定义频道"       # 自定义源未指定分组时的默认分组
+config.read(CONFIG_FILE, encoding='utf-8')
 
-# FFmpeg 测速设置
-ENABLE_FFMPEG_TEST = True                      # 是否开启测速 (False直接保存所有链接)
-FFMPEG_PATH = "ffmpeg"                         # FFmpeg程序路径
-FFMPEG_CONCURRENCY = 3                         # 同时测试的链接数
+# -------------------------- 基础配置 --------------------------
+TARGET_URL = config.get('基础配置', 'TARGET_URL')
+HEADLESS = config.getboolean('基础配置', 'HEADLESS')
+BROWSER_TYPE = config.get('基础配置', 'BROWSER_TYPE')
+MAX_IPS = config.getint('基础配置', 'MAX_IPS')
+PAGE_LOAD_TIMEOUT = config.getint('基础配置', 'PAGE_LOAD_TIMEOUT')
+DELAY_BETWEEN_IPS = config.getfloat('基础配置', 'DELAY_BETWEEN_IPS')
+DELAY_AFTER_CLICK = config.getfloat('基础配置', 'DELAY_AFTER_CLICK')
+MAX_CHANNELS_PER_IP = config.getint('基础配置', 'MAX_CHANNELS_PER_IP')
+DEFAULT_PROTOCOL = config.get('基础配置', 'DEFAULT_PROTOCOL')
 
-# HLS 预检设置
-ENABLE_HLS_PRECHECK = True                     # 是否开启轻量级预检 (快速淘汰死链)
-HLS_MIN_BANDWIDTH_MBPS = 1.5                # 最低带宽要求 (MB/s)，低于此值直接淘汰
+# -------------------------- 页面配置 --------------------------
+def get_config_list(section, key):
+    """将配置文件中的逗号分隔字符串转为列表"""
+    value = config.get(section, key, fallback='')
+    return [item.strip() for item in value.split(',') if item.strip()]
 
-# FFmpeg 短测设置
-FFMPEG_TEST_DURATION_SHORT = 5                 # 短测时长 (秒)
-MIN_FRAMES_SHORT = 80                          # 短测最低解码帧数
+ENGINE_SEARCH = get_config_list('页面配置', 'ENGINE_SEARCH')
+MULTICAST_TAB = get_config_list('页面配置', 'MULTICAST_TAB')
+START_BUTTON = get_config_list('页面配置', 'START_BUTTON')
 
-# FFmpeg 长测设置
-FFMPEG_TEST_DURATION_FULL = 15                 # 长测时长 (秒)
-MIN_FRAMES_FULL = 300                          # 长测最低解码帧数
+PAGE_CONFIG = {
+    "engine_search": ENGINE_SEARCH,
+    "multicast_tab": MULTICAST_TAB,
+    "start_button": START_BUTTON,
+}
 
-# 通用帧率要求
-MIN_AVG_FPS = 24.0                             # 最低平均帧率 (fps)
+# -------------------------- 输出配置 --------------------------
+OUTPUT_DIR = config.get('输出配置', 'OUTPUT_DIR') or Path(__file__).parent
+OUTPUT_DIR = Path(OUTPUT_DIR)
+OUTPUT_M3U_FILENAME = OUTPUT_DIR / config.get('输出配置', 'OUTPUT_M3U_FILENAME')
+OUTPUT_TXT_FILENAME = OUTPUT_DIR / config.get('输出配置', 'OUTPUT_TXT_FILENAME')
+MAX_LINKS_PER_CHANNEL = config.getint('输出配置', 'MAX_LINKS_PER_CHANNEL')
+TIME_DISPLAY_AT_TOP = config.getboolean('输出配置', 'TIME_DISPLAY_AT_TOP')
+UPDATE_STREAM_URL = config.get('输出配置', 'UPDATE_STREAM_URL')
 
-# 测速白名单
-TEST_ONLY_GROUPS = [                            # 只对这些分组的频道进行测速
-    "央视频道",
-    "卫视频道",
-    "电影频道",
-    "轮播频道",
-    "儿童频道",
-    "自定义频道"
-]
-KEEP_GROUPS = TEST_ONLY_GROUPS                 # 最终只保留这些分组的频道
+# -------------------------- 自定义源配置 --------------------------
+ENABLE_CUSTOM_SOURCES = config.getboolean('自定义源配置', 'ENABLE_CUSTOM_SOURCES')
+# 解析自定义源列表（处理换行分隔）
+CUSTOM_SOURCES_RAW = config.get('自定义源配置', 'CUSTOM_SOURCES', fallback='')
+CUSTOM_SOURCES = [line.strip() for line in CUSTOM_SOURCES_RAW.split('\n') if line.strip()]
 
-# 分辨率优先设置
-PREFER_1080P = True                             # 是否优先1920x1080分辨率 (True=1080p排在最前)
-PREFER_RESOLUTION_WIDTH = 1920                 # 优先分辨率宽度
-PREFER_RESOLUTION_HEIGHT = 1080                # 优先分辨率高度
+# -------------------------- FFmpeg测速配置 --------------------------
+ENABLE_FFMPEG_TEST = config.getboolean('FFmpeg测速配置', 'ENABLE_FFMPEG_TEST')
+FFMPEG_PATH = config.get('FFmpeg测速配置', 'FFMPEG_PATH')
+FFMPEG_CONCURRENCY = config.getint('FFmpeg测速配置', 'FFMPEG_CONCURRENCY')
+FFMPEG_TEST_DURATION_SHORT = config.getint('FFmpeg测速配置', 'FFMPEG_TEST_DURATION_SHORT')
+MIN_FRAMES_SHORT = config.getint('FFmpeg测速配置', 'MIN_FRAMES_SHORT')
+FFMPEG_TEST_DURATION_FULL = config.getint('FFmpeg测速配置', 'FFMPEG_TEST_DURATION_FULL')
+MIN_FRAMES_FULL = config.getint('FFmpeg测速配置', 'MIN_FRAMES_FULL')
+MIN_AVG_FPS = config.getfloat('FFmpeg测速配置', 'MIN_AVG_FPS')
 
-# 网页操作延时
-DELAY_BETWEEN_IPS = 1.0                         # 处理完一个IP后等待多久 (秒)
-DELAY_AFTER_CLICK = 0.5                         # 点击按钮后等待弹窗多久 (秒)
-MAX_CHANNELS_PER_IP = 0                         # 单个IP最多提取多少个频道 (0表示不限制)
+# -------------------------- HLS预检配置 --------------------------
+ENABLE_HLS_PRECHECK = config.getboolean('HLS预检配置', 'ENABLE_HLS_PRECHECK')
+HLS_MIN_BANDWIDTH_MBPS = config.getfloat('HLS预检配置', 'HLS_MIN_BANDWIDTH_MBPS')
 
-# 数据清洗
-ENABLE_CHINESE_CLEAN = True                     # 是否移除频道名中的非中文字符
-ENABLE_DEDUPLICATION = True                      # 是否去重 (相同的频道名+链接只保留一个)
-ENABLE_SCREENSHOTS = False                       # 是否在关键步骤截图 (用于调试)
-CCTV_USE_MAPPING = True                          # 是否将CCTV数字转为中文 (如 "CCTV-1" 变为 "CCTV-1综合")
+# -------------------------- 过滤与分类配置 --------------------------
+TEST_ONLY_GROUPS = get_config_list('过滤与分类配置', 'TEST_ONLY_GROUPS')
+KEEP_GROUPS = get_config_list('过滤与分类配置', 'KEEP_GROUPS')
+PREFER_1080P = config.getboolean('过滤与分类配置', 'PREFER_1080P')
+PREFER_RESOLUTION_WIDTH = config.getint('过滤与分类配置', 'PREFER_RESOLUTION_WIDTH')
+PREFER_RESOLUTION_HEIGHT = config.getint('过滤与分类配置', 'PREFER_RESOLUTION_HEIGHT')
+ENABLE_CHINESE_CLEAN = config.getboolean('过滤与分类配置', 'ENABLE_CHINESE_CLEAN')
+ENABLE_DEDUPLICATION = config.getboolean('过滤与分类配置', 'ENABLE_DEDUPLICATION')
+ENABLE_SCREENSHOTS = config.getboolean('过滤与分类配置', 'ENABLE_SCREENSHOTS')
+CCTV_USE_MAPPING = config.getboolean('过滤与分类配置', 'CCTV_USE_MAPPING')
 
-# 网络协议
-DEFAULT_PROTOCOL = "http://"                     # 当链接缺少协议头时，自动补全
-
-# 缓存设置
-ENABLE_CACHE = True                               # 是否启用缓存 (开启后，测过的链接不再重测)
-CACHE_FILE = OUTPUT_DIR / "iptv_speed_cache.json"  # 缓存文件保存位置
-CACHE_EXPIRE_HOURS = 48                           # 缓存过期时间 (小时)
-
-# 更新时间显示
-TIME_DISPLAY_AT_TOP = False                       # 更新时间显示位置 (True=文件最上面, False=文件最后面)
-
-# 更新时间条目占位流
-UPDATE_STREAM_URL = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8"
+# -------------------------- 缓存配置 --------------------------
+ENABLE_CACHE = config.getboolean('缓存配置', 'ENABLE_CACHE')
+CACHE_FILE = OUTPUT_DIR / config.get('缓存配置', 'CACHE_FILE')
+CACHE_EXPIRE_HOURS = config.getint('缓存配置', 'CACHE_EXPIRE_HOURS')
 
 # ============================================================================
 # ============================= 频道分类规则 ==================================
 # ============================================================================
-
-PAGE_CONFIG = {
-    "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
-    "multicast_tab": ["酒店提取"],
-    "start_button": ["开始播放", "开始搜索", "开始提取"],
-}
 
 CATEGORY_RULES = [
     {"name": "央视频道",    "keywords": ["cctv", "cetv", "中央"]},
@@ -132,7 +124,7 @@ CATEGORY_RULES = [
     {"name": "儿童频道",    "keywords": ["少儿", "动画", "卡通"]},
 ]
 
-GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "轮播频道", "儿童频道", "自定义频道"]
+GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "轮播频道", "儿童频道"]
 
 CCTV_NAME_MAPPING = {
     "1": "综合", "2": "财经", "3": "综艺", "4": "国际", "5": "体育",
@@ -264,10 +256,10 @@ async def fetch_content(source: str) -> Optional[str]:
         logger.warning(f"获取源内容失败 {source}: {e}")
         return None
 
-def parse_m3u(content: str, default_group: str) -> List[Tuple[str, str, str]]:
+def parse_m3u(content: str) -> List[Tuple[str, str, str]]:
     """解析M3U格式内容，返回 (分组, 频道名, 链接) 列表"""
     entries = []
-    current_group = default_group
+    current_group = ""
     lines = content.splitlines()
     i = 0
     while i < len(lines):
@@ -300,13 +292,13 @@ def parse_m3u(content: str, default_group: str) -> List[Tuple[str, str, str]]:
                 entries.append((current_group, name, url))
         elif line.startswith('#EXTGRP:'):
             # 有些m3u用#EXTGRP指定分组
-            current_group = line[8:].strip() or default_group
+            current_group = line[8:].strip()
     return entries
 
-def parse_txt(content: str, default_group: str) -> List[Tuple[str, str, str]]:
+def parse_txt(content: str) -> List[Tuple[str, str, str]]:
     """解析TXT格式内容，返回 (分组, 频道名, 链接) 列表"""
     entries = []
-    current_group = default_group
+    current_group = ""
     lines = content.splitlines()
     for line in lines:
         line = line.strip()
@@ -314,7 +306,7 @@ def parse_txt(content: str, default_group: str) -> List[Tuple[str, str, str]]:
             continue
         if ',#genre#' in line.lower():
             # 分组行
-            current_group = line.split(',', 1)[0].strip() or default_group
+            current_group = line.split(',', 1)[0].strip()
         else:
             # 频道行：频道名,链接
             if ',' in line:
@@ -326,35 +318,38 @@ def parse_txt(content: str, default_group: str) -> List[Tuple[str, str, str]]:
     return entries
 
 async def process_custom_sources() -> List[Tuple[str, str, str]]:
-    """处理所有自定义源，返回 (分组, 频道名, 链接) 列表"""
+    """处理所有自定义源，返回 (分组, 频道名, 链接) 列表（取消自定义频道，自动归类）"""
     if not ENABLE_CUSTOM_SOURCES:
         return []
     
     all_entries = []
     for source in CUSTOM_SOURCES:
-        if isinstance(source, tuple) and len(source) == 3:
-            # 直接是元组格式：(分组, 频道名, 链接)
-            group, name, url = source
+        # 处理直接指定的频道（格式：分组|频道名|链接）
+        if '|' in source and len(source.split('|')) == 3:
+            group, name, url = source.split('|', 2)
+            group = group.strip()
+            name = name.strip()
+            url = url.strip()
             all_entries.append((group, name, url))
             logger.info(f"添加自定义频道: [{group}] {name}")
             continue
         
-        # 否则是字符串，需要获取内容并解析
+        # 否则是M3U/TXT文件/链接，需要解析
         content = await fetch_content(source)
         if not content:
             continue
         
         # 判断是m3u还是txt
         if '#EXTM3U' in content:
-            entries = parse_m3u(content, CUSTOM_SOURCES_DEFAULT_GROUP)
+            entries = parse_m3u(content)
             logger.info(f"解析M3U源 {source}: 得到 {len(entries)} 个频道")
         else:
-            entries = parse_txt(content, CUSTOM_SOURCES_DEFAULT_GROUP)
+            entries = parse_txt(content)
             logger.info(f"解析TXT源 {source}: 得到 {len(entries)} 个频道")
         
         all_entries.extend(entries)
     
-    # 对自定义源进行标准化清洗和重分类
+    # 对自定义源进行标准化清洗和自动分类（取消自定义频道）
     classified_entries = []
     for group, name, url in all_entries:
         # 补全协议头
@@ -364,22 +359,27 @@ async def process_custom_sources() -> List[Tuple[str, str, str]]:
         # 标准化频道名（比如CCTV转中文）
         norm_name = normalize_cctv(name)
         
-        # 如果分组是默认分组，尝试通过关键词重新分类
-        if group == CUSTOM_SOURCES_DEFAULT_GROUP:
+        # 自动分类（优先级：手动指定分组 > 关键词分类）
+        if group:
+            new_group = group
+        else:
             new_group = classify_channel(norm_name)
-            if new_group:
-                group = new_group
         
-        # 清理频道名（与网页爬取逻辑保持一致）
-        if group == "央视频道":
+        # 如果无法分类，跳过（不加入自定义频道）
+        if not new_group:
+            logger.warning(f"自定义频道 {name} 无法自动分类，已跳过")
+            continue
+        
+        # 清理频道名
+        if new_group == "央视频道":
             final_name = norm_name
         else:
             temp_name = clean_chinese_only(name) if ENABLE_CHINESE_CLEAN else name
             final_name = clean_channel_suffix(temp_name)
         
         # 仅保留在KEEP_GROUPS中的频道
-        if final_name and group in KEEP_GROUPS:
-            classified_entries.append((group, final_name, url))
+        if final_name and new_group in KEEP_GROUPS:
+            classified_entries.append((new_group, final_name, url))
     
     logger.info(f"自定义源处理完成，共 {len(classified_entries)} 个有效频道")
     return classified_entries
