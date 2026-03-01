@@ -32,7 +32,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 TARGET_URL = "https://iptv.809899.xyz"          # 【必填】要爬取的目标网站地址
 HEADLESS = True                                  # 【True/False】是否隐藏浏览器窗口 (True=后台运行, False=显示窗口)
 BROWSER_TYPE = "chromium"                        # 【chromium/firefox/webkit】浏览器内核类型，推荐默认 chromium
-MAX_IPS = 20                                     # 【数字】最多处理前N个IP/地址行 (0表示不限制)
+MAX_IPS = 30                                     # 【数字】最多处理前N个IP/地址行 (0表示不限制)
 PAGE_LOAD_TIMEOUT = 120000                       # 【毫秒】页面加载最长等待时间 (120秒)
 
 
@@ -120,6 +120,32 @@ CCTV_NAME_MAPPING = {
     "17": "农业农村",
 }
 
+# 央视严格排序（1,2,3,4,5,5+,6,7,8,9,10,11,12,13,14,15,16,17）
+CCTV_ORDER = [
+    "CCTV-1综合",
+    "CCTV-2财经",
+    "CCTV-3综艺",
+    "CCTV-4国际",
+    "CCTV-5体育",
+    "CCTV-5+体育赛事",
+    "CCTV-6电影",
+    "CCTV-7国防军事",
+    "CCTV-8电视剧",
+    "CCTV-9纪录",
+    "CCTV-10科教",
+    "CCTV-11戏曲",
+    "CCTV-12社会与法",
+    "CCTV-13新闻",
+    "CCTV-14少儿",
+    "CCTV-15音乐",
+    "CCTV-16奥林匹克",
+    "CCTV-17农业农村",
+    "CETV1",
+    "CETV2",
+    "CETV4",
+    "CETV5"
+]
+
 
 # ============================================================================
 # ============================= 日志配置 =====================================
@@ -143,8 +169,10 @@ logger = logging.getLogger('IPTV-Extractor')
 
 
 def load_cache() -> Dict[str, Dict[str, Any]]:
-    if not ENABLE_CACHE: return {}
-    if not CACHE_FILE.exists(): return {}
+    if not ENABLE_CACHE:
+        return {}
+    if not CACHE_FILE.exists():
+        return {}
     try:
         with open(CACHE_FILE, "r", encoding="utf-8") as f:
             cache = json.load(f)
@@ -154,6 +182,7 @@ def load_cache() -> Dict[str, Dict[str, Any]]:
         for url, data in cache.items():
             if expire_seconds == 0 or (now - data.get("timestamp", 0)) < expire_seconds:
                 valid_cache[url] = data
+        logger.info(f"缓存加载完成，有效缓存共 {len(valid_cache)} 条")
         return valid_cache
     except Exception as e:
         logger.warning(f"加载缓存失败: {e}")
@@ -161,7 +190,8 @@ def load_cache() -> Dict[str, Dict[str, Any]]:
 
 
 def save_cache(cache: Dict[str, Dict[str, Any]]) -> None:
-    if not ENABLE_CACHE: return
+    if not ENABLE_CACHE:
+        return
     try:
         with open(CACHE_FILE, "w", encoding="utf-8") as f:
             json.dump(cache, f, ensure_ascii=False, indent=2)
@@ -174,14 +204,15 @@ def save_cache(cache: Dict[str, Dict[str, Any]]) -> None:
 # ============================================================================
 
 
-CCTV_PATTERN = re.compile(r'(cctv)[-\s]?(\d{1,3})', re.IGNORECASE)
+CCTV_PATTERN = re.compile(r'(cctv)[-\s]?(\d{1,3}|5\+)', re.IGNORECASE)
 CHINESE_ONLY_PATTERN = re.compile(r'[^\u4e00-\u9fff]')
 
 
 def build_classifier():
     compiled = []
     for rule in CATEGORY_RULES:
-        if not rule["keywords"]: continue
+        if not rule["keywords"]:
+            continue
         pattern = re.compile("|".join(re.escape(kw.lower()) for kw in rule["keywords"]))
         compiled.append((rule["name"], pattern))
     return lambda name: next((group for group, pat in compiled if pat.search(name.lower())), None)
@@ -192,11 +223,13 @@ classify_channel = build_classifier()
 
 def normalize_cctv(name: str) -> str:
     name_lower = name.lower()
-    if "cctv5+" in name_lower: return "CCTV-5+体育赛事" if CCTV_USE_MAPPING else "CCTV5+"
+    if "cctv5+" in name_lower:
+        return "CCTV-5+体育赛事" if CCTV_USE_MAPPING else "CCTV5+"
     cctv_match = CCTV_PATTERN.search(name_lower)
     if cctv_match:
         num = cctv_match.group(2)
-        if CCTV_USE_MAPPING and num in CCTV_NAME_MAPPING: return f"CCTV-{num}{CCTV_NAME_MAPPING[num]}"
+        if CCTV_USE_MAPPING and num in CCTV_NAME_MAPPING:
+            return f"CCTV-{num}{CCTV_NAME_MAPPING[num]}"
         return f"CCTV-{num}"
     return name
 
@@ -206,8 +239,10 @@ def clean_chinese_only(name: str) -> str:
 
 
 def build_selector(text_list, element_type="button"):
-    if not text_list: return ""
-    if len(text_list) == 1: return f"{element_type}:has-text('{text_list[0]}')"
+    if not text_list:
+        return ""
+    if len(text_list) == 1:
+        return f"{element_type}:has-text('{text_list[0]}')"
     pattern = "|".join(re.escape(t) for t in text_list)
     return f"{element_type}:text-matches('{pattern}')"
 
@@ -230,7 +265,8 @@ def retry_async(max_retries=2, delay=1.0, exceptions=(Exception,)):
                 try:
                     return await func(*args, **kwargs)
                 except exceptions as e:
-                    if attempt == max_retries: raise
+                    if attempt == max_retries:
+                        raise
                     logger.warning(f"尝试 {attempt}/{max_retries} 失败: {e}，重试中...")
                     await asyncio.sleep(delay)
             return None
@@ -247,32 +283,29 @@ def print_progress_bar(current: int, total: int, success: int, failed: int, last
     """
     打印进度条，每2%刷新一次 (0%, 2%, 4%, ... 100%)
     """
-    if total == 0: return 0
-    
+    if total == 0:
+        return 0
+
     percent = current / total
     percent_int = int(percent * 100)
-    
-    # 【核心修改】使用取模运算，只有当百分比是2的倍数且大于上次打印时才输出
-    # 同时强制打印 0% 和 100%
+
     should_print = (
-        (percent_int % 2 == 0 and percent_int > last_percent) or 
-        current == total or 
+        (percent_int % 2 == 0 and percent_int > last_percent) or
+        current == total or
         current == 0
     )
-    
+
     if should_print:
-        # 防止在边界处重复打印 (例如刚好在2%时完成了两个任务)
-        # 如果是100%，即使重复也要打
         if percent_int == last_percent and current != total:
             return last_percent
-            
+
         bar_length = 20
         filled_length = int(bar_length * percent)
         bar = '█' * filled_length + '░' * (bar_length - filled_length)
-        
+
         logger.info(f"[{percent_int:3d}%] {bar} ({current}/{total}) | 成功:{success} | 失败:{failed}")
         return percent_int
-    
+
     return last_percent
 
 
@@ -286,7 +319,6 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
         logger.error(f"未找到FFmpeg: {FFMPEG_PATH}")
         return {"ok": False, "fps": 0.0, "message": "FFmpeg未安装"}
 
-
     cmd = [
         FFMPEG_PATH, "-hide_banner", "-y",
         "-fflags", "nobuffer",
@@ -296,12 +328,11 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
         "-f", "null", "-"
     ]
 
-
     try:
         proc = await asyncio.create_subprocess_exec(
             *cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
         )
-        
+
         try:
             _, stderr = await asyncio.wait_for(proc.communicate(), timeout=FFMPEG_TEST_DURATION + 5)
         except asyncio.TimeoutError:
@@ -309,83 +340,83 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
             await proc.wait()
             return {"ok": False, "fps": 0.0, "message": "连接超时"}
 
-
         output = stderr.decode('utf-8', errors='ignore')
-        
+
         frame_matches = re.findall(r'frame=\s*(\d+)', output)
         fps_matches = re.findall(r'fps=\s*([\d.]+)', output)
-        
+
         frames = int(frame_matches[-1]) if frame_matches else 0
         avg_fps = float(fps_matches[-1]) if fps_matches else 0.0
         is_smooth = frames >= MIN_FRAMES and avg_fps >= MIN_AVG_FPS
-        
+
         return {"ok": is_smooth, "fps": avg_fps, "frames": frames}
     except Exception as e:
         return {"ok": False, "fps": 0.0, "message": f"异常: {str(e)[:50]}"}
 
 
 async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
-    if not channel_map: return {}
-
+    if not channel_map:
+        return {}
 
     cache = load_cache()
     new_cache_entries = {}
     result_map = defaultdict(list)
-    pending_tasks_data = [] 
+    pending_tasks_data = []
 
+    # 统计总链接数
+    total_urls = 0
+    for urls in channel_map.values():
+        total_urls += len(urls)
 
     # 1. 分流
+    cached_valid_count = 0
     for (group, name), urls in channel_map.items():
         for url in urls:
             if url in cache:
                 if cache[url].get("ok"):
                     result_map[(group, name)].append((url, cache[url].get("fps", 0)))
+                    cached_valid_count += 1
             else:
                 pending_tasks_data.append((group, name, url))
 
-
     total_pending = len(pending_tasks_data)
-    cached_count = len([item for sublist in result_map.values() for item in sublist])
-    logger.info(f"缓存命中 {cached_count} 条，需测速 {total_pending} 条")
 
+    # ====================== 新版日志输出 ======================
+    logger.info(f"总待处理链接：{total_urls} 条")
+    logger.info(f"缓存有效（无需测速）：{cached_valid_count} 条")
+    logger.info(f"需要重新测速：{total_pending} 条")
+    # ==========================================================
 
     if total_pending == 0:
         return finalize_results(result_map)
 
-
     # 2. 并发测速
     sem = asyncio.Semaphore(FFMPEG_CONCURRENCY)
-    
+
     async def bound_test(item):
         group, name, url = item
         async with sem:
             result = await test_stream_with_ffmpeg(url)
             return (group, name, url, result)
 
-
     tasks = [bound_test(item) for item in pending_tasks_data]
-    
+
     # 进度统计
     completed = 0
     success_count = 0
     failed_count = 0
-    last_printed_percent = -100 # 初始化为负数，确保0%能被打印
+    last_printed_percent = -100
 
-
-    # 打印 0%
     print_progress_bar(0, total_pending, 0, 0, last_printed_percent)
 
-
-    # 3. 实时处理
     for coro in asyncio.as_completed(tasks):
         group, name, url, res = await coro
         completed += 1
-        
+
         new_cache_entries[url] = {
-            "ok": res["ok"], "fps": res["fps"], 
+            "ok": res["ok"], "fps": res["fps"],
             "frames": res.get("frames", 0), "timestamp": time.time()
         }
-
 
         if res["ok"]:
             success_count += 1
@@ -393,17 +424,12 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
         else:
             failed_count += 1
 
-
-        # 检查并打印
         last_printed_percent = print_progress_bar(completed, total_pending, success_count, failed_count, last_printed_percent)
 
-
-    # 4. 收尾
     if new_cache_entries:
         cache.update(new_cache_entries)
         save_cache(cache)
         logger.info(f"缓存更新：新增 {len(new_cache_entries)} 条记录")
-
 
     return finalize_results(result_map)
 
@@ -413,7 +439,7 @@ def finalize_results(result_map):
     for key, items in result_map.items():
         items.sort(key=lambda x: -x[1])
         final_map[key] = [url for url, _ in items[:MAX_LINKS_PER_CHANNEL]]
-    
+
     total_final = sum(len(v) for v in final_map.values())
     logger.info(f"测速筛选完成，最终保留 {total_final} 条优质链接")
     return final_map
@@ -454,30 +480,30 @@ async def extract_one_ip(page, row, ip_index):
         addr_elem = row.locator("div.item-title").first
         addr = await addr_elem.inner_text(timeout=3000)
         addr = addr.strip()
-        if not addr: return []
+        if not addr:
+            return []
         logger.info(f"处理地址 [{ip_index}]: {addr}")
     except Exception as e:
         logger.warning(f"提取地址失败: {e}")
         return []
 
-
     try:
         list_btn = row.locator("button:has(i.fa-list)").first
         if await list_btn.count() > 0:
-            if not await robust_click(list_btn): await row.click(timeout=3000)
+            if not await robust_click(list_btn):
+                await row.click(timeout=3000)
         else:
             await row.click(timeout=3000)
         await asyncio.sleep(DELAY_AFTER_CLICK)
 
-
         modal = page.locator(".modal-dialog").first
-        if not await wait_for_element(page, ".modal-dialog", timeout=5000): return []
-
+        if not await wait_for_element(page, ".modal-dialog", timeout=5000):
+            return []
 
         items = modal.locator(".item-content")
         total = await items.count()
-        if MAX_CHANNELS_PER_IP > 0: total = min(total, MAX_CHANNELS_PER_IP)
-
+        if MAX_CHANNELS_PER_IP > 0:
+            total = min(total, MAX_CHANNELS_PER_IP)
 
         for i in range(total):
             try:
@@ -486,18 +512,19 @@ async def extract_one_ip(page, row, ip_index):
                 name = await name_elem.inner_text(timeout=2000)
                 link = await link_elem.inner_text(timeout=2000)
                 name, link = name.strip(), link.strip()
-                if not name or not link: continue
-
+                if not name or not link:
+                    continue
 
                 if not link.startswith(('http://', 'https://', 'rtsp://', 'rtmp://')):
                     link = DEFAULT_PROTOCOL + link
 
-
                 norm = normalize_cctv(name)
                 group = classify_channel(norm)
-                if not group: continue
+                if not group:
+                    continue
                 final_name = norm if group == "央视频道" else (clean_chinese_only(name) if ENABLE_CHINESE_CLEAN else name)
-                if final_name: entries.append((group, final_name, link))
+                if final_name:
+                    entries.append((group, final_name, link))
             except Exception:
                 continue
     except Exception as e:
@@ -530,52 +557,65 @@ async def wait_data(page):
 def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]]):
     now = datetime.datetime.now()
     time_str = now.strftime("%Y-%m-%d %H:%M:%S")
-    # 使用配置的占位流 URL
     update_url = UPDATE_STREAM_URL
-
 
     grouped = defaultdict(list)
     for (group, name), urls in channel_map.items():
         for url in urls:
             grouped[group].append((name, url))
 
-
     # --- 导出 M3U ---
     with open(OUTPUT_M3U_FILENAME, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         if TIME_DISPLAY_AT_TOP:
-            # 顶部写入更新时间条目
-            f.write(f'#EXTINF:-1 tvg-name="{time_str}" tvg-id="更新时间" tvg-logo="" group-title="更新时间", {time_str}\n')
-            f.write(f"{update_url}\n\n")
-        for group in GROUP_ORDER:
-            if group in grouped:
-                for name, url in grouped[group]:
-                    f.write(f'#EXTINF:-1 group-title="{group}",{name}\n{url}\n')
-                f.write("\n")
-        if not TIME_DISPLAY_AT_TOP:
-            # 底部写入更新时间条目
             f.write(f'#EXTINF:-1 tvg-name="{time_str}" tvg-id="更新时间" tvg-logo="" group-title="更新时间", {time_str}\n')
             f.write(f"{update_url}\n\n")
 
+        for group in GROUP_ORDER:
+            if group not in grouped:
+                continue
+
+            # 央视频道严格排序
+            if group == "央视频道":
+                name_url_dict = {name: url for name, url in grouped[group]}
+                sorted_channels = [(name, name_url_dict[name]) for name in CCTV_ORDER if name in name_url_dict]
+            else:
+                sorted_channels = grouped[group]
+
+            for name, url in sorted_channels:
+                f.write(f'#EXTINF:-1 group-title="{group}",{name}\n{url}\n')
+            f.write("\n")
+
+        if not TIME_DISPLAY_AT_TOP:
+            f.write(f'#EXTINF:-1 tvg-name="{time_str}" tvg-id="更新时间" tvg-logo="" group-title="更新时间", {time_str}\n')
+            f.write(f"{update_url}\n\n")
 
     # --- 导出 TXT ---
     with open(OUTPUT_TXT_FILENAME, "w", encoding="utf-8") as f:
         if TIME_DISPLAY_AT_TOP:
             f.write("更新时间,#genre#\n")
             f.write(f"{time_str},{update_url}\n\n")
+
         for group in GROUP_ORDER:
             if group not in grouped:
                 continue
+
+            if group == "央视频道":
+                name_url_dict = {name: url for name, url in grouped[group]}
+                sorted_channels = [(name, name_url_dict[name]) for name in CCTV_ORDER if name in name_url_dict]
+            else:
+                sorted_channels = grouped[group]
+
             f.write(f"{group},#genre#\n")
-            for name, url in grouped[group]:
+            for name, url in sorted_channels:
                 f.write(f"{name},{url}\n")
             f.write("\n")
+
         if not TIME_DISPLAY_AT_TOP:
             f.write("更新时间,#genre#\n")
             f.write(f"{time_str},{update_url}\n\n")
 
-
-    total_links = sum(len(v) for v in grouped.values()) + 1  # +1 为更新时间条目
+    total_links = sum(len(v) for v in grouped.values()) + 1
     position_text = "顶部" if TIME_DISPLAY_AT_TOP else "底部"
     logger.info(f"导出完成！共 {total_links} 条链接（含更新时间），更新时间已放在{position_text}")
 
@@ -589,7 +629,6 @@ async def main():
     if ENABLE_SCREENSHOTS:
         (OUTPUT_DIR / "screenshots").mkdir(exist_ok=True)
 
-
     async with async_playwright() as p:
         browser = await getattr(p, BROWSER_TYPE).launch(
             headless=HEADLESS, args=["--no-sandbox", "--disable-setuid-sandbox"]
@@ -597,29 +636,26 @@ async def main():
         ctx = await browser.new_context(viewport={"width": 1920, "height": 1080})
         page = await ctx.new_page()
 
-
         try:
             logger.info(f"正在访问 {TARGET_URL}")
             await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT, wait_until="networkidle")
 
-
             if ENGINE_SELECTOR:
                 eng = page.locator(ENGINE_SELECTOR).first
-                if await eng.count() > 0: await robust_click(eng)
-            
+                if await eng.count() > 0:
+                    await robust_click(eng)
+
             if MCAST_SELECTOR:
                 mcast = page.locator(MCAST_SELECTOR).first
                 await robust_click(mcast)
-            
+
             if START_SELECTOR:
                 start = page.locator(START_SELECTOR).first
                 await robust_click(start)
 
-
             if not await wait_data(page):
                 logger.error("数据加载失败")
                 return
-
 
             rows = page.locator("div.ios-list-item").filter(has_text="频道:")
             total_rows = await rows.count()
@@ -627,20 +663,17 @@ async def main():
                 logger.error("未找到任何地址")
                 return
 
-
             process_count = min(total_rows, MAX_IPS) if MAX_IPS > 0 else total_rows
             logger.info(f"找到 {total_rows} 个地址，处理前 {process_count} 个")
-
 
             raw_entries = []
             for i in range(process_count):
                 entries = await extract_one_ip(page, rows.nth(i), i+1)
                 raw_entries.extend(entries)
-                if i < process_count - 1: await asyncio.sleep(DELAY_BETWEEN_IPS)
-
+                if i < process_count - 1:
+                    await asyncio.sleep(DELAY_BETWEEN_IPS)
 
             logger.info(f"原始提取：{len(raw_entries)} 条")
-
 
             # 去重
             channel_map = defaultdict(list)
@@ -648,19 +681,17 @@ async def main():
             for group, name, url in raw_entries:
                 if ENABLE_DEDUPLICATION:
                     key = (group, name, url)
-                    if key in seen: continue
+                    if key in seen:
+                        continue
                     seen.add(key)
                 channel_map[(group, name)].append(url)
-
 
             # FFmpeg测速
             if ENABLE_FFMPEG_TEST and channel_map:
                 channel_map = await run_ffmpeg_test(channel_map)
 
-
-            # 导出 (带时间戳)
+            # 导出
             export_results_with_timestamp(channel_map)
-
 
         except Exception as e:
             logger.exception("主流程异常")
