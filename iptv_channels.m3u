@@ -1,4 +1,10 @@
 #EXTM3U
-#EXTINF:-1 tvg-name="2026-03-01 16:04:33" tvg-id="更新时间" tvg-logo="" group-title="更新时间", 2026-03-01 16:04:33
+#EXTINF:-1 group-title="电影频道",倩女幽魂妖魔道
+http://jsmov2.a.yximgs.com/bs3/video-hls/5232901391302199073_hlsb.m3u8
+
+#EXTINF:-1 group-title="儿童频道",南京少儿
+http://nklive.nbs.cn/hls/e0981f3f-1a20-4a59-b8d1-17feb83a4610/index.m3u8
+
+#EXTINF:-1 tvg-name="2026-03-01 16:35:12" tvg-id="更新时间" tvg-logo="" group-title="更新时间", 2026-03-01 16:35:12
 https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
 
