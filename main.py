@@ -30,7 +30,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 TARGET_URL = "https://iptv.809899.xyz"    # 目标网站地址
 HEADLESS = True                               # 是否隐藏浏览器窗口 (True=后台运行, False=显示窗口)
 BROWSER_TYPE = "chromium"                     # 浏览器内核类型 (chromium/firefox/webkit)
-MAX_IPS = 10                                   # 最多处理前N个IP/地址 (0表示不限制)
+MAX_IPS = 1                                   # 最多处理前N个IP/地址 (0表示不限制)
 PAGE_LOAD_TIMEOUT = 120000                    # 页面加载最长等待时间 (毫秒)
 
 # 文件输出设置
@@ -46,10 +46,10 @@ FFMPEG_CONCURRENCY = 3                         # 同时测试的链接数
 
 # HLS 预检设置
 ENABLE_HLS_PRECHECK = True                     # 是否开启轻量级预检 (快速淘汰死链)
-HLS_MIN_BANDWIDTH_MBPS = 0.125                # 最低带宽要求 (MB/s)，低于此值直接淘汰
+HLS_MIN_BANDWIDTH_MBPS = 1.5                # 最低带宽要求 (MB/s)，低于此值直接淘汰
 
 # FFmpeg 短测设置
-FFMPEG_TEST_DURATION_SHORT = 5                 # 短测时长 (秒)
+FFMPEG_TEST_DURATION_SHORT = 4                 # 短测时长 (秒)
 MIN_FRAMES_SHORT = 80                          # 短测最低解码帧数
 
 # FFmpeg 长测设置
@@ -105,7 +105,7 @@ UPDATE_STREAM_URL = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8"
 
 PAGE_CONFIG = {
     "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
-    "multicast_tab": ["酒店提取"],
+    "multicast_tab": ["组播提取"],
     "start_button": ["开始播放", "开始搜索", "开始提取"],
 }
 
