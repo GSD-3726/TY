@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 必须加，否则拉不到完整远程分支，无法pull
 
       - name: 设置 Python 3.11
         uses: actions/setup-python@v5
@@ -46,7 +48,7 @@ jobs:
             iptv-cache-v2-
 
       - name: 运行采集脚本
-        run: python3 main.py # 请确保脚本文件名与此一致
+        run: python3 main.py
 
       - name: 上传生成的结果 (Artifacts)
         uses: actions/upload-artifact@v4
@@ -57,10 +59,19 @@ jobs:
             iptv_channels.txt
           retention-days: 30
 
-      - name: 提交文件到仓库
+      - name: 提交并推送文件到仓库（已修复冲突）
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          
+          # 先拉取远程最新代码，解决冲突（核心修复）
+          git pull origin main --rebase
+          
+          # 添加变更文件
           git add iptv_channels.m3u iptv_channels.txt iptv_speed_cache.json
-          git commit -m "chore: 自动更新直播源" || echo "未发生变化，无需提交"
+          
+          # 提交（无变化则跳过）
+          git commit -m "chore: 自动更新直播源" || exit 0
+          
+          # 推送到远程
           git push
