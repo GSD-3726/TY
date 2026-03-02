@@ -40,9 +40,9 @@ def load_config(config_file: str = "config.ini") -> configparser.ConfigParser:
     # 设置默认值
     config["General"] = {
         "TARGET_URL": "https://iptv.809899.xyz",
-        "HEADLESS": "True",
+        "HEADLESS": "False",  # 默认显示浏览器，方便调试
         "BROWSER_TYPE": "chromium",
-        "MAX_IPS": "25",
+        "MAX_IPS": "5",       # 默认只处理5个IP，快速验证
         "MAX_TOTAL_CHANNELS": "0",
         "PAGE_LOAD_TIMEOUT": "120000"
     }
@@ -55,7 +55,7 @@ def load_config(config_file: str = "config.ini") -> configparser.ConfigParser:
     }
     
     config["FFmpeg"] = {
-        "ENABLE_FFMPEG_TEST": "True",
+        "ENABLE_FFMPEG_TEST": "False",  # 默认关闭测速，先验证爬取
         "FFMPEG_PATH": "ffmpeg",
         "FFMPEG_TEST_DURATION": "10",
         "FFMPEG_CONCURRENCY": "2",
@@ -65,7 +65,7 @@ def load_config(config_file: str = "config.ini") -> configparser.ConfigParser:
     }
     
     config["GitHub"] = {
-        "GITHUB_M3U_LINKS": ""
+        "GITHUB_M3U_LINKS": ""  # 默认清空，只爬网站
     }
     
     config["Delay"] = {
@@ -97,9 +97,9 @@ def load_config(config_file: str = "config.ini") -> configparser.ConfigParser:
     }
     
     config["PageElements"] = {
-        "engine_search": "引索搜索\n引擎搜索\n关键词搜索",
-        "multicast_tab": "酒店提取\n组播提取",
-        "start_button": "开始播放\n开始搜索\n开始提取"
+        "engine_search": "引擎搜索",
+        "multicast_tab": "组播提取",
+        "start_button": "开始搜索"
     }
     
     # 读取配置文件
@@ -344,13 +344,16 @@ def clean_chinese_only(name: str) -> str:
     return CHINESE_ONLY_PATTERN.sub('', name)
 
 
-def build_selector(text_list, element_type="button"):
+def build_selector(text_list, element_type="a"):
+    """适配新版页面的选择器构建，优先匹配a标签/button标签"""
     if not text_list:
         return ""
+    # 新版页面核心元素是a.sidebar-link 或 div.segment-item
+    base_selector = f"{element_type}.sidebar-link,div.segment-item,button"
     if len(text_list) == 1:
-        return f"{element_type}:has-text('{text_list[0]}')"
+        return f"{base_selector}:has-text('{text_list[0]}')"
     pattern = "|".join(re.escape(t) for t in text_list)
-    return f"{element_type}:text-matches('{pattern}')"
+    return f"{base_selector}:text-matches('{pattern}')"
 
 
 # ============================================================================
@@ -650,6 +653,7 @@ async def extract_one_ip(page, row, ip_index):
     entries = []
     addr = None
     try:
+        # 新版页面：IP地址在item-title中
         addr_elem = row.locator("div.item-title").first
         addr = await addr_elem.inner_text(timeout=3000)
         addr = addr.strip()
@@ -662,20 +666,24 @@ async def extract_one_ip(page, row, ip_index):
         return []
 
     try:
+        # 新版页面：查看频道的按钮是带fa-list图标的按钮
         list_btn = row.locator("button:has(i.fa-list)").first
         if await list_btn.count() > 0:
-            if not await robust_click(list_btn):
+            if not await robust_click(list_btn): 
                 await row.click(timeout=3000)
         else:
+            # 新版页面：直接点击行触发弹窗
             await row.click(timeout=3000)
         await asyncio.sleep(DELAY_AFTER_CLICK)
 
-        modal = page.locator(".modal-dialog").first
-        if not await wait_for_element(page, ".modal-dialog", timeout=5000):
+        # 新版页面：频道弹窗是 #channelListModal 下的 .modal-content
+        modal = page.locator("#channelListModal .modal-content").first
+        if not await wait_for_element(page, "#channelListModal", timeout=5000):
             logger.warning(f"第 {ip_index} 行地址 {addr} 未弹出频道弹窗，跳过")
             return []
 
-        items = modal.locator(".item-content")
+        # 新版页面：频道列表在弹窗内的ios-list-item中
+        items = modal.locator(".ios-list-item")
         total = await items.count()
         if total == 0:
             logger.warning(f"第 {ip_index} 行地址 {addr} 无频道数据，跳过")
@@ -714,16 +722,16 @@ async def extract_one_ip(page, row, ip_index):
 
 
 async def wait_data(page):
-    """优化数据等待逻辑，确保页面完全加载"""
+    """适配新版页面的数据加载等待逻辑"""
     for retry in range(3):
-        logger.info(f"等待30秒加载数据... (重试 {retry+1}/3)")
-        await asyncio.sleep(30)
+        logger.info(f"等待数据加载... (重试 {retry+1}/3)")
+        await asyncio.sleep(20)  # 新版页面加载稍慢，延长等待
+        # 新版页面：检测是否有包含频道数的搜索结果
         has_data = await page.evaluate('''()=>{
             const items = document.querySelectorAll('div.ios-list-item');
             for(let item of items) {
-                const title = item.querySelector('.item-title')?.innerText?.trim();
                 const subtitle = item.querySelector('.item-subtitle')?.innerText?.trim();
-                if(title && subtitle && subtitle.includes('频道:')) {
+                if(subtitle && subtitle.includes('频道:')) {
                     return true;
                 }
             }
@@ -732,7 +740,7 @@ async def wait_data(page):
         if has_data:
             logger.info("数据加载完成")
             return True
-    logger.error("数据加载超时（90秒）")
+    logger.error("数据加载超时（60秒）")
     return False
 
 
@@ -868,13 +876,13 @@ async def main():
 
             if START_SELECTOR:
                 start = page.locator(START_SELECTOR).first
-                logger.info("点击开始提取按钮")
+                logger.info("点击开始搜索按钮")
                 await robust_click(start)
 
             if not await wait_data(page):
                 logger.error("网站数据加载失败，跳过网站爬取")
             else:
-                # 精准筛选IP行
+                # 新版页面：精准匹配搜索结果中的IP行（包含频道数信息）
                 rows = page.locator("div.ios-list-item").filter(
                     has=page.locator("div.item-subtitle:has-text('频道:')")
                 )
