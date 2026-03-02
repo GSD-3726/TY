@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具（增强版）
+IPTV 组播提取工具（Vue SPA适配版）
+仅从config.ini读取配置，无硬编码默认值
 核心功能：
-1. 同时从GitHub M3U链接和目标网站爬取频道（双来源）
-2. 支持配置文件中每行一个URL/关键词
+1. 适配Vue SPA单页应用的segment-item选项卡切换
+2. 同时从GitHub M3U链接和目标网站爬取频道（双来源）
 3. FFmpeg测速筛选优质源
 4. 自动分类、去重、导出M3U/TXT格式
 """
@@ -34,79 +35,23 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 # ============================================================================
 
 def load_config(config_file: str = "config.ini") -> configparser.ConfigParser:
-    """从INI文件加载配置"""
+    """仅从INI文件加载配置，无任何默认值"""
     config = configparser.ConfigParser()
     
-    # 设置默认值
-    config["General"] = {
-        "TARGET_URL": "https://iptv.809899.xyz",
-        "HEADLESS": "True",  # GitHub Actions默认后台运行
-        "BROWSER_TYPE": "chromium",
-        "MAX_IPS": "25",       # 默认处理25个IP
-        "MAX_TOTAL_CHANNELS": "0",
-        "PAGE_LOAD_TIMEOUT": "120000"
-    }
+    # 读取配置文件（必须存在且包含所有必要配置）
+    if not os.path.exists(config_file):
+        raise FileNotFoundError(f"配置文件 {config_file} 不存在，请创建并配置所有必要项")
     
-    config["Output"] = {
-        "OUTPUT_DIR": "",
-        "OUTPUT_M3U_FILENAME": "iptv_channels.m3u",
-        "OUTPUT_TXT_FILENAME": "iptv_channels.txt",
-        "MAX_LINKS_PER_CHANNEL": "10"
-    }
+    config.read(config_file, encoding='utf-8')
     
-    config["FFmpeg"] = {
-        "ENABLE_FFMPEG_TEST": "False",
-        "FFMPEG_PATH": "ffmpeg",
-        "FFMPEG_TEST_DURATION": "10",
-        "FFMPEG_CONCURRENCY": "8",
-        "MIN_AVG_FPS": "25.0",
-        "MIN_FRAMES": "210",
-        "MIN_STABILITY_PERCENT": "15.0"
-    }
-    
-    config["GitHub"] = {
-        "GITHUB_M3U_LINKS": ""
-    }
-    
-    config["Delay"] = {
-        "DELAY_BETWEEN_IPS": "1.0",
-        "DELAY_AFTER_CLICK": "0.5",
-        "MAX_CHANNELS_PER_IP": "0"
-    }
-    
-    config["Cleaning"] = {
-        "ENABLE_CHINESE_CLEAN": "True",
-        "ENABLE_DEDUPLICATION": "True",
-        "ENABLE_SCREENSHOTS": "False",
-        "CCTV_USE_MAPPING": "True"
-    }
-    
-    config["Network"] = {
-        "DEFAULT_PROTOCOL": "http://"
-    }
-    
-    config["Cache"] = {
-        "ENABLE_CACHE": "True",
-        "CACHE_FILE": "iptv_speed_cache.json",
-        "CACHE_EXPIRE_HOURS": "48"
-    }
-    
-    config["UpdateTime"] = {
-        "TIME_DISPLAY_AT_TOP": "False",
-        "UPDATE_STREAM_URL": "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8"
-    }
-    
-    config["PageElements"] = {
-        "engine_search": "",
-        "multicast_tab": "",
-        "start_button": ""
-    }
-    
-    # 读取配置文件
-    if os.path.exists(config_file):
-        config.read(config_file, encoding='utf-8')
-    else:
-        print(f"警告: 配置文件 {config_file} 不存在，使用默认配置")
+    # 验证必要的配置节是否存在
+    required_sections = [
+        "General", "Output", "FFmpeg", "GitHub", "Delay", 
+        "Cleaning", "Network", "Cache", "UpdateTime", "PageElements"
+    ]
+    missing_sections = [sec for sec in required_sections if sec not in config.sections()]
+    if missing_sections:
+        raise ValueError(f"配置文件缺少必要节：{', '.join(missing_sections)}")
     
     return config
 
@@ -141,6 +86,7 @@ def parse_list(value: str) -> List[str]:
 # ======================== 全局配置变量 ======================================
 # ============================================================================
 
+# 加载配置（无默认值，全部从INI读取）
 config = load_config()
 
 # -------------------------- 1. 基础爬取设置 --------------------------
@@ -202,8 +148,9 @@ UPDATE_STREAM_URL = config.get("UpdateTime", "UPDATE_STREAM_URL")
 # ============================ 频道分类规则 ==================================
 # ============================================================================
 
-# 页面元素定位关键词（支持每行一个）
+# 页面元素定位关键词（支持每行一个，全部从INI读取）
 PAGE_CONFIG = {
+    "search_tab": parse_list(config.get("PageElements", "search_tab")),
     "engine_search": parse_list(config.get("PageElements", "engine_search")),
     "multicast_tab": parse_list(config.get("PageElements", "multicast_tab")),
     "start_button": parse_list(config.get("PageElements", "start_button")),
@@ -344,12 +291,15 @@ def clean_chinese_only(name: str) -> str:
     return CHINESE_ONLY_PATTERN.sub('', name)
 
 
-def build_selector(text_list, element_type="a"):
-    """适配新版页面的选择器构建，优先匹配a标签/button标签"""
+def build_selector(text_list, element_type="div"):
+    """
+    适配Vue SPA页面的选择器构建
+    元素类型从调用处指定，无默认值（实际使用时从业务逻辑确定）
+    """
     if not text_list:
         return ""
-    # 新版页面核心元素是a.sidebar-link 或 div.segment-item
-    base_selector = f"{element_type}.sidebar-link,div.segment-item,button"
+    # SPA页面核心元素是div.segment-item（模式选项卡）
+    base_selector = f"{element_type}.segment-item,div.ios-tab-item,button,a.sidebar-link"
     if len(text_list) == 1:
         return f"{base_selector}:has-text('{text_list[0]}')"
     pattern = "|".join(re.escape(t) for t in text_list)
@@ -627,16 +577,22 @@ def parse_m3u_file(content: str) -> List[Tuple[str, str, str]]:
 # ============================================================================
 
 async def robust_click(locator, timeout=10000):
+    """
+    增强版点击函数，适配Vue SPA的div元素点击
+    """
     try:
         await locator.scroll_into_view_if_needed(timeout=3000)
         await asyncio.sleep(0.2)
+        # 优先使用playwright点击
         await locator.click(force=True, timeout=timeout)
         return True
     except Exception:
         try:
-            await locator.evaluate("el => el.click()")
+            # 备用方案：JS原生点击（适配SPA）
+            await locator.evaluate("el => { el.click(); el.classList.add('active'); }")
             return True
-        except Exception:
+        except Exception as e:
+            logger.error(f"点击失败: {e}")
             return False
 
 
@@ -648,12 +604,28 @@ async def wait_for_element(page, selector, timeout=30000):
         return False
 
 
+async def wait_for_spa_state(page, state_check_js: str, timeout=30000):
+    """
+    等待Vue SPA状态变更（如currentTab切换）
+    """
+    start_time = time.time()
+    while time.time() - start_time < timeout / 1000:
+        try:
+            is_ready = await page.evaluate(state_check_js)
+            if is_ready:
+                return True
+            await asyncio.sleep(0.5)
+        except Exception:
+            await asyncio.sleep(0.5)
+    return False
+
+
 @retry_async(max_retries=2, delay=1.0)
 async def extract_one_ip(page, row, ip_index):
     entries = []
     addr = None
     try:
-        # 新版页面：IP地址在item-title中
+        # SPA页面：IP地址在item-title中
         addr_elem = row.locator("div.item-title").first
         addr = await addr_elem.inner_text(timeout=3000)
         addr = addr.strip()
@@ -666,23 +638,23 @@ async def extract_one_ip(page, row, ip_index):
         return []
 
     try:
-        # 新版页面：查看频道的按钮是带fa-list图标的按钮
+        # SPA页面：查看频道的按钮是带fa-list图标的按钮
         list_btn = row.locator("button:has(i.fa-list)").first
         if await list_btn.count() > 0:
             if not await robust_click(list_btn): 
                 await row.click(timeout=3000)
         else:
-            # 新版页面：直接点击行触发弹窗
+            # SPA页面：直接点击行触发弹窗
             await row.click(timeout=3000)
         await asyncio.sleep(DELAY_AFTER_CLICK)
 
-        # 新版页面：频道弹窗是 #channelListModal 下的 .modal-content
+        # SPA页面：频道弹窗是 #channelListModal 下的 .modal-content
         modal = page.locator("#channelListModal .modal-content").first
         if not await wait_for_element(page, "#channelListModal", timeout=5000):
             logger.warning(f"第 {ip_index} 行地址 {addr} 未弹出频道弹窗，跳过")
             return []
 
-        # 新版页面：频道列表在弹窗内的ios-list-item中
+        # SPA页面：频道列表在弹窗内的ios-list-item中
         items = modal.locator(".ios-list-item")
         total = await items.count()
         if total == 0:
@@ -722,11 +694,11 @@ async def extract_one_ip(page, row, ip_index):
 
 
 async def wait_data(page):
-    """适配新版页面的数据加载等待逻辑"""
+    """适配Vue SPA页面的数据加载等待逻辑"""
     for retry in range(3):
-        logger.info(f"等待数据加载... (重试 {retry+1}/3)")
-        await asyncio.sleep(20)  # 新版页面加载稍慢，延长等待
-        # 新版页面：检测是否有包含频道数的搜索结果
+        logger.info(f"等待SPA数据加载... (重试 {retry+1}/3)")
+        await asyncio.sleep(20)  # SPA加载稍慢，延长等待
+        # SPA页面：检测是否有包含频道数的搜索结果
         has_data = await page.evaluate('''()=>{
             const items = document.querySelectorAll('div.ios-list-item');
             for(let item of items) {
@@ -738,9 +710,9 @@ async def wait_data(page):
             return false;
         }''')
         if has_data:
-            logger.info("数据加载完成")
+            logger.info("SPA数据加载完成")
             return True
-    logger.error("数据加载超时（60秒）")
+    logger.error("SPA数据加载超时（60秒）")
     return False
 
 
@@ -822,10 +794,11 @@ async def main():
     if ENABLE_SCREENSHOTS:
         (OUTPUT_DIR / "screenshots").mkdir(exist_ok=True)
 
-    # 构建选择器
-    ENGINE_SELECTOR = build_selector(PAGE_CONFIG["engine_search"])
-    MCAST_SELECTOR = build_selector(PAGE_CONFIG["multicast_tab"])
-    START_SELECTOR = build_selector(PAGE_CONFIG["start_button"])
+    # 构建选择器（全部从INI读取配置，无硬编码默认值）
+    SEARCH_TAB_SELECTOR = build_selector(PAGE_CONFIG["search_tab"], element_type="div")
+    ENGINE_SELECTOR = build_selector(PAGE_CONFIG["engine_search"], element_type="div")
+    MCAST_SELECTOR = build_selector(PAGE_CONFIG["multicast_tab"], element_type="div")
+    START_SELECTOR = build_selector(PAGE_CONFIG["start_button"], element_type="button")
 
     # 存储所有来源的频道数据
     all_channels = []
@@ -850,8 +823,8 @@ async def main():
     else:
         logger.info("未配置GitHub M3U链接，跳过该来源")
 
-    # ========== 2. 从目标网站爬取频道 ==========
-    logger.info("\n=== 开始从目标网站爬取频道 ===")
+    # ========== 2. 从Vue SPA网站爬取频道 ==========
+    logger.info("\n=== 开始从Vue SPA网站爬取频道 ===")
     async with async_playwright() as p:
         browser = await getattr(p, BROWSER_TYPE).launch(
             headless=HEADLESS, args=["--no-sandbox", "--disable-setuid-sandbox"]
@@ -860,34 +833,60 @@ async def main():
         page = await ctx.new_page()
 
         try:
-            logger.info(f"正在访问 {TARGET_URL}")
+            logger.info(f"正在访问Vue SPA网站: {TARGET_URL}")
             await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT, wait_until="networkidle")
 
+            # ========== SPA标签页切换（全部从INI配置读取） ==========
+            # 第一步：切换到"搜索"标签页
+            if SEARCH_TAB_SELECTOR:
+                search_tab = page.locator(SEARCH_TAB_SELECTOR).first
+                if await search_tab.count() > 0:
+                    logger.info("切换到SPA的搜索标签页")
+                    if await robust_click(search_tab):
+                        # 等待SPA状态变更
+                        await wait_for_spa_state(page, "() => window.currentTab === 'search' || document.querySelector('.segment-item.active')?.textContent?.includes('搜索')")
+                    else:
+                        logger.warning("搜索标签页点击失败，尝试自动检测")
+
+            # 第二步：选择引擎搜索/关键词搜索
             if ENGINE_SELECTOR:
                 eng = page.locator(ENGINE_SELECTOR).first
                 if await eng.count() > 0:
-                    logger.info("点击引擎搜索按钮")
+                    logger.info("选择关键词搜索模式")
                     await robust_click(eng)
+                    await asyncio.sleep(1.0)
 
+            # 第三步：选择组播提取/酒店提取模式
             if MCAST_SELECTOR:
                 mcast = page.locator(MCAST_SELECTOR).first
-                logger.info("点击组播提取标签")
-                await robust_click(mcast)
+                if await mcast.count() > 0:
+                    logger.info("选择组播/酒店提取模式")
+                    await robust_click(mcast)
+                    await asyncio.sleep(1.0)
 
+            # 第四步：点击开始按钮
             if START_SELECTOR:
                 start = page.locator(START_SELECTOR).first
-                logger.info("点击开始搜索按钮")
-                await robust_click(start)
+                if await start.count() > 0:
+                    logger.info("点击开始搜索按钮")
+                    await robust_click(start)
+                else:
+                    # 备用方案：查找包含开始文本的div
+                    start_div = page.locator(build_selector(PAGE_CONFIG["start_button"], element_type="div")).first
+                    if await start_div.count() > 0:
+                        logger.info("点击SPA的开始搜索div元素")
+                        await robust_click(start_div)
 
+            # 等待SPA加载数据
             if not await wait_data(page):
-                logger.error("网站数据加载失败，跳过网站爬取")
+                logger.error("SPA网站数据加载失败，跳过网站爬取")
             else:
-                # 新版页面：精准匹配搜索结果中的IP行（包含频道数信息）
+                # SPA页面：精准匹配搜索结果中的IP行（包含频道数信息）
                 rows = page.locator("div.ios-list-item").filter(
                     has=page.locator("div.item-subtitle:has-text('频道:')")
                 )
                 total_rows = await rows.count()
-                logger.info(f"【精准筛选】找到包含频道信息的IP行总数：{total_rows}")
+                logger.info(f"【SPA精准筛选】找到包含频道信息的IP行总数：{total_rows}")
                 
                 if total_rows > 0:
                     # 计算实际要处理的IP行数
@@ -915,12 +914,12 @@ async def main():
                         if i < process_count - 1:
                             await asyncio.sleep(DELAY_BETWEEN_IPS)
 
-                    logger.info(f"从网站实际处理IP行数：{processed_ip_count} / {process_count}")
-                    logger.info(f"从网站提取频道总数：{len(website_channels)} 条")
+                    logger.info(f"从SPA网站实际处理IP行数：{processed_ip_count} / {process_count}")
+                    logger.info(f"从SPA网站提取频道总数：{len(website_channels)} 条")
                     all_channels.extend(website_channels)
 
         except Exception as e:
-            logger.exception("网站爬取过程异常，跳过网站爬取")
+            logger.exception("SPA网站爬取过程异常，跳过网站爬取")
         finally:
             await browser.close()
 
