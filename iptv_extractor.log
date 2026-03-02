@@ -238,3 +238,27 @@
 2026-03-02 06:54:05,857 - INFO - 测速筛选完成，最终保留 50 条优质链接
 2026-03-02 06:54:05,858 - INFO - 导出完成！共 51 条链接（含更新时间），更新时间已放在底部
 2026-03-02 06:54:05,859 - INFO - 任务完成！
+2026-03-02 09:07:59,826 - INFO - 正在从GitHub下载M3U文件: https://gh-proxy.com/https://github.com/develop202/migu_video/blob/main/interface.txt
+https://gh-proxy.com/https://github.com/9527xiao9527/iptv/blob/main/iptv.txt
+https://gh.llkk.cc/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u
+https://ds65.tv1288.xyz
+https://gh-proxy.com/https://github.com/vbskycn/iptv/blob/master/tv/iptv4.m3u
+2026-03-02 09:08:00,156 - ERROR - 下载失败，状态码: 403，URL: https://gh-proxy.com/https://github.com/develop202/migu_video/blob/main/interface.txt
+https://gh-proxy.com/https://github.com/9527xiao9527/iptv/blob/main/iptv.txt
+https://gh.llkk.cc/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u
+https://ds65.tv1288.xyz
+https://gh-proxy.com/https://github.com/vbskycn/iptv/blob/master/tv/iptv4.m3u
+2026-03-02 09:08:00,157 - WARNING - 从 https://gh-proxy.com/https://github.com/develop202/migu_video/blob/main/interface.txt
+https://gh-proxy.com/https://github.com/9527xiao9527/iptv/blob/main/iptv.txt
+https://gh.llkk.cc/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u
+https://ds65.tv1288.xyz
+https://gh-proxy.com/https://github.com/vbskycn/iptv/blob/master/tv/iptv4.m3u 未提取到任何频道
+2026-03-02 09:08:00,157 - INFO - GitHub未提取到任何频道，将使用原有爬取方式
+2026-03-02 09:08:00,819 - INFO - 正在访问 https://iptv.809899.xyz
+2026-03-02 09:08:04,423 - INFO - 点击组播提取标签
+2026-03-02 09:08:37,425 - INFO - 点击开始提取按钮
+2026-03-02 09:08:40,443 - INFO - 等待30秒加载数据... (重试 1/3)
+2026-03-02 09:09:10,465 - INFO - 等待30秒加载数据... (重试 2/3)
+2026-03-02 09:09:40,491 - INFO - 等待30秒加载数据... (重试 3/3)
+2026-03-02 09:10:10,496 - ERROR - 数据加载超时（90秒）
+2026-03-02 09:10:10,497 - ERROR - 数据加载失败，退出程序
