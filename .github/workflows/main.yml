@@ -27,7 +27,7 @@ jobs:
           sudo apt update && sudo apt install -y ffmpeg
 
       - name: 运行IPTV提取脚本
-        run: python main.py  # 替换为你的脚本文件名
+        run: python main.py
 
       - name: 配置Git用户信息
         run: |
@@ -43,6 +43,7 @@ jobs:
           fi
           git commit -m "chore: 自动更新直播源"
           git pull --rebase origin main
-          git push origin main --force-with-lease
+          git push origin main
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 替换为自定义的PAT_TOKEN
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
