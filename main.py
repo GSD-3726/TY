@@ -51,7 +51,7 @@ MAX_LINKS_PER_CHANNEL = 5                               # 每个频道最多保�
 ENABLE_FFMPEG_TEST    = True                            # 是否启用测速
 FFMPEG_PATH           = "ffmpeg"                        # FFmpeg 路径
 FFMPEG_TEST_DURATION  = 10                              # 每条链接测速时长（秒）
-FFMPEG_CONCURRENCY    = 5                              # 并发测速数量
+FFMPEG_CONCURRENCY    = 10                              # 并发测速数量
 MIN_AVG_FPS           = 20.0                            # 最低有效平均帧率
 MIN_FRAMES            = 140                             # 最低有效帧数
 
