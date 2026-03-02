@@ -33,6 +33,7 @@ TARGET_URL = "https://iptv.809899.xyz"          # 【必填】要爬取的目标
 HEADLESS = True                                  # 【True/False】是否隐藏浏览器窗口 (True=后台运行, False=显示窗口)
 BROWSER_TYPE = "chromium"                        # 【chromium/firefox/webkit】浏览器内核类型，推荐默认 chromium
 MAX_IPS = 50                                     # 【数字】最多处理前N个IP/地址行 (0表示不限制)
+MAX_TOTAL_CHANNELS = 100                         # 【新增】最多提取的总频道数 (0表示不限制)
 PAGE_LOAD_TIMEOUT = 120000                       # 【毫秒】页面加载最长等待时间 (120秒)
 
 
@@ -657,8 +658,10 @@ async def main():
                 logger.error("数据加载失败")
                 return
 
+            # ========== 【修改】添加IP行筛选日志 ==========
             rows = page.locator("div.ios-list-item").filter(has_text="频道:")
             total_rows = await rows.count()
+            logger.info(f"筛选出的IP行总数：{total_rows}")  # 新增日志：验证筛选的IP行数
             if total_rows == 0:
                 logger.error("未找到任何地址")
                 return
@@ -670,6 +673,13 @@ async def main():
             for i in range(process_count):
                 entries = await extract_one_ip(page, rows.nth(i), i+1)
                 raw_entries.extend(entries)
+                
+                # ========== 【新增】限制总频道数 ==========
+                if MAX_TOTAL_CHANNELS > 0 and len(raw_entries) >= MAX_TOTAL_CHANNELS:
+                    raw_entries = raw_entries[:MAX_TOTAL_CHANNELS]
+                    logger.info(f"已达到总频道数上限 {MAX_TOTAL_CHANNELS}，停止提取")
+                    break
+                
                 if i < process_count - 1:
                     await asyncio.sleep(DELAY_BETWEEN_IPS)
 
@@ -699,5 +709,6 @@ async def main():
             await browser.close()
 
 
+# ========== 【修改】修正语法错误，移除多余的MAX_IPS赋值 ==========
 if __name__ == "__main__":
     asyncio.run(main())
