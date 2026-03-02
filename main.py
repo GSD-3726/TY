@@ -2,6 +2,7 @@
 """
 IPTV 组播提取工具（增强版）
 新增功能：从指定GitHub链接获取M3U文件并进行测速
+支持从INI配置文件读取配置
 """
 
 import asyncio
@@ -14,6 +15,7 @@ import time
 import shutil
 import datetime
 import aiohttp
+import configparser
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
@@ -25,88 +27,165 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 
 
 # ============================================================================
-# ======================== 【配置区 · 全中文详细说明】 =========================
+# ========================= 配置加载函数 =====================================
 # ============================================================================
 
+def load_config(config_file: str = "config.ini") -> configparser.ConfigParser:
+    """从INI文件加载配置"""
+    config = configparser.ConfigParser()
+    
+    # 设置默认值
+    config["General"] = {
+        "TARGET_URL": "https://iptv.809899.xyz",
+        "HEADLESS": "True",
+        "BROWSER_TYPE": "chromium",
+        "MAX_IPS": "25",
+        "MAX_TOTAL_CHANNELS": "0",
+        "PAGE_LOAD_TIMEOUT": "120000"
+    }
+    
+    config["Output"] = {
+        "OUTPUT_DIR": "",
+        "OUTPUT_M3U_FILENAME": "iptv_channels.m3u",
+        "OUTPUT_TXT_FILENAME": "iptv_channels.txt",
+        "MAX_LINKS_PER_CHANNEL": "10"
+    }
+    
+    config["FFmpeg"] = {
+        "ENABLE_FFMPEG_TEST": "True",
+        "FFMPEG_PATH": "ffmpeg",
+        "FFMPEG_TEST_DURATION": "10",
+        "FFMPEG_CONCURRENCY": "2",
+        "MIN_AVG_FPS": "25.0",
+        "MIN_FRAMES": "210",
+        "MIN_STABILITY_PERCENT": "15.0"
+    }
+    
+    config["GitHub"] = {
+        "GITHUB_M3U_LINKS": ""
+    }
+    
+    config["Delay"] = {
+        "DELAY_BETWEEN_IPS": "1.0",
+        "DELAY_AFTER_CLICK": "0.5",
+        "MAX_CHANNELS_PER_IP": "0"
+    }
+    
+    config["Cleaning"] = {
+        "ENABLE_CHINESE_CLEAN": "True",
+        "ENABLE_DEDUPLICATION": "True",
+        "ENABLE_SCREENSHOTS": "False",
+        "CCTV_USE_MAPPING": "True"
+    }
+    
+    config["Network"] = {
+        "DEFAULT_PROTOCOL": "http://"
+    }
+    
+    config["Cache"] = {
+        "ENABLE_CACHE": "True",
+        "CACHE_FILE": "iptv_speed_cache.json",
+        "CACHE_EXPIRE_HOURS": "48"
+    }
+    
+    config["UpdateTime"] = {
+        "TIME_DISPLAY_AT_TOP": "False",
+        "UPDATE_STREAM_URL": "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8"
+    }
+    
+    config["PageElements"] = {
+        "engine_search": "引索搜索, 引擎搜索, 关键词搜索",
+        "multicast_tab": "酒店提取, 组播提取",
+        "start_button": "开始播放, 开始搜索, 开始提取"
+    }
+    
+    # 读取配置文件
+    if os.path.exists(config_file):
+        config.read(config_file, encoding='utf-8')
+    else:
+        print(f"警告: 配置文件 {config_file} 不存在，使用默认配置")
+    
+    return config
+
+
+def parse_list(value: str) -> List[str]:
+    """解析逗号分隔的列表"""
+    if not value:
+        return []
+    return [item.strip() for item in value.split(',') if item.strip()]
+
+
+# ============================================================================
+# ======================== 全局配置变量 ======================================
+# ============================================================================
+
+config = load_config()
 
 # -------------------------- 1. 基础爬取设置 --------------------------
-TARGET_URL = "https://iptv.809899.xyz"          # 【必填】要爬取的目标网站地址
-HEADLESS = True                                  # 【True/False】是否隐藏浏览器窗口 (True=后台运行, False=显示窗口)
-BROWSER_TYPE = "chromium"                        # 【chromium/firefox/webkit】浏览器内核类型，推荐默认 chromium
-MAX_IPS = 25                                     # 【数字】最多处理前N个IP/地址行 (0表示不限制)
-MAX_TOTAL_CHANNELS = 0                         # 【新增】最多提取的总频道数 (0表示不限制)
-PAGE_LOAD_TIMEOUT = 120000                       # 【毫秒】页面加载最长等待时间 (120秒)
-
+TARGET_URL = config.get("General", "TARGET_URL")
+HEADLESS = config.getboolean("General", "HEADLESS")
+BROWSER_TYPE = config.get("General", "BROWSER_TYPE")
+MAX_IPS = config.getint("General", "MAX_IPS")
+MAX_TOTAL_CHANNELS = config.getint("General", "MAX_TOTAL_CHANNELS")
+PAGE_LOAD_TIMEOUT = config.getint("General", "PAGE_LOAD_TIMEOUT")
 
 # -------------------------- 2. 文件输出设置 --------------------------
-OUTPUT_DIR = Path(__file__).parent               # 【路径】结果保存目录 (默认为脚本所在文件夹)
-OUTPUT_M3U_FILENAME = OUTPUT_DIR / "iptv_channels.m3u"  # M3U播放列表文件名
-OUTPUT_TXT_FILENAME = OUTPUT_DIR / "iptv_channels.txt"  # TXT格式文件名
-MAX_LINKS_PER_CHANNEL = 10                       # 【数字】每个频道最多保留多少个最快的源
-
+output_dir_str = config.get("Output", "OUTPUT_DIR")
+if output_dir_str:
+    OUTPUT_DIR = Path(output_dir_str)
+else:
+    OUTPUT_DIR = Path(__file__).parent
+OUTPUT_M3U_FILENAME = OUTPUT_DIR / config.get("Output", "OUTPUT_M3U_FILENAME")
+OUTPUT_TXT_FILENAME = OUTPUT_DIR / config.get("Output", "OUTPUT_TXT_FILENAME")
+MAX_LINKS_PER_CHANNEL = config.getint("Output", "MAX_LINKS_PER_CHANNEL")
 
 # -------------------------- 3. FFmpeg 测速设置 --------------------------
-ENABLE_FFMPEG_TEST = True                         # 【True/False】总开关：是否开启测速 (False直接保存所有链接)
-FFMPEG_PATH = "ffmpeg"                            # 【路径】FFmpeg程序位置 (Windows需写完整路径，如 r"C:\ffmpeg\bin\ffmpeg.exe")
-FFMPEG_TEST_DURATION = 10                          # 【秒】单个链接的测试时长 (已从10秒提高到30秒)
-FFMPEG_CONCURRENCY = 10                            # 【数字】同时测试的链接数 (GitHub Actions建议<=2，本地电脑建议<=CPU核心数)
-MIN_AVG_FPS = 25.0                                # 【数字】最低平均帧率 (已从24.0提高到25.0)
-MIN_FRAMES = 210                                    # 【数字】最低解码帧数 (已从210提高到750)
-MIN_STABILITY_PERCENT = 15.0                      # 【数字】帧率稳定性阈值（标准差不超过平均值的百分比）
+ENABLE_FFMPEG_TEST = config.getboolean("FFmpeg", "ENABLE_FFMPEG_TEST")
+FFMPEG_PATH = config.get("FFmpeg", "FFMPEG_PATH")
+FFMPEG_TEST_DURATION = config.getint("FFmpeg", "FFMPEG_TEST_DURATION")
+FFMPEG_CONCURRENCY = config.getint("FFmpeg", "FFMPEG_CONCURRENCY")
+MIN_AVG_FPS = config.getfloat("FFmpeg", "MIN_AVG_FPS")
+MIN_FRAMES = config.getint("FFmpeg", "MIN_FRAMES")
+MIN_STABILITY_PERCENT = config.getfloat("FFmpeg", "MIN_STABILITY_PERCENT")
 
 # 从GitHub获取的M3U链接
-GITHUB_M3U_LINKS = [
-    "https://gh-proxy.com/https://github.com/develop202/migu_video/blob/main/interface.txt",
-    "https://gh-proxy.com/https://github.com/9527xiao9527/iptv/blob/main/iptv.txt",
-    "https://gh.llkk.cc/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u",
-    "https://ds65.tv1288.xyz",
-    "https://gh-proxy.com/https://github.com/vbskycn/iptv/blob/master/tv/iptv4.m3u"
-]
-
+GITHUB_M3U_LINKS = parse_list(config.get("GitHub", "GITHUB_M3U_LINKS"))
 
 # -------------------------- 4. 网页操作延时 --------------------------
-DELAY_BETWEEN_IPS = 1.0                             # 【秒】处理完一个IP后等待多久
-DELAY_AFTER_CLICK = 0.5                             # 【秒】点击按钮后等待弹窗多久
-MAX_CHANNELS_PER_IP = 0                              # 【数字】单个IP最多提取多少个频道 (0表示不限制)
-
+DELAY_BETWEEN_IPS = config.getfloat("Delay", "DELAY_BETWEEN_IPS")
+DELAY_AFTER_CLICK = config.getfloat("Delay", "DELAY_AFTER_CLICK")
+MAX_CHANNELS_PER_IP = config.getint("Delay", "MAX_CHANNELS_PER_IP")
 
 # -------------------------- 5. 数据清洗 --------------------------
-ENABLE_CHINESE_CLEAN = True                         # 【True/False】是否移除频道名中的非中文字符 (仅对非央视频道)
-ENABLE_DEDUPLICATION = True                          # 【True/False】是否去重 (相同的频道名+链接只保留一个)
-ENABLE_SCREENSHOTS = False                           # 【True/False】是否在关键步骤截图 (用于调试)
-CCTV_USE_MAPPING = True                              # 【True/False】是否将CCTV数字转为中文 (如 "CCTV-1" 变为 "CCTV-1综合")
-
+ENABLE_CHINESE_CLEAN = config.getboolean("Cleaning", "ENABLE_CHINESE_CLEAN")
+ENABLE_DEDUPLICATION = config.getboolean("Cleaning", "ENABLE_DEDUPLICATION")
+ENABLE_SCREENSHOTS = config.getboolean("Cleaning", "ENABLE_SCREENSHOTS")
+CCTV_USE_MAPPING = config.getboolean("Cleaning", "CCTV_USE_MAPPING")
 
 # -------------------------- 6. 网络协议 --------------------------
-DEFAULT_PROTOCOL = "http://"                         # 【http:///https:///rtsp://】当链接缺少协议头时，自动补全
-
+DEFAULT_PROTOCOL = config.get("Network", "DEFAULT_PROTOCOL")
 
 # -------------------------- 7. 缓存设置 --------------------------
-ENABLE_CACHE = True                                  # 【True/False】是否启用缓存 (开启后，测过的链接24小时内不再重测)
-CACHE_FILE = OUTPUT_DIR / "iptv_speed_cache.json"  # 【路径】缓存文件保存位置
-CACHE_EXPIRE_HOURS = 48                              # 【小时】缓存过期时间 (0表示永不过期)
-
+ENABLE_CACHE = config.getboolean("Cache", "ENABLE_CACHE")
+CACHE_FILE = OUTPUT_DIR / config.get("Cache", "CACHE_FILE")
+CACHE_EXPIRE_HOURS = config.getint("Cache", "CACHE_EXPIRE_HOURS")
 
 # -------------------------- 8. 更新时间显示 --------------------------
-TIME_DISPLAY_AT_TOP = False                          # 【True/False】更新时间显示位置 (True=文件最上面, False=文件最后面)
-
+TIME_DISPLAY_AT_TOP = config.getboolean("UpdateTime", "TIME_DISPLAY_AT_TOP")
 
 # -------------------------- 9. 更新时间条目占位流 --------------------------
-UPDATE_STREAM_URL = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8"
-
+UPDATE_STREAM_URL = config.get("UpdateTime", "UPDATE_STREAM_URL")
 
 # ============================================================================
 # ============================ 频道分类规则 ==================================
 # ============================================================================
 
-
 # 页面元素定位关键词 (如果网站改版了，修改这里的文字即可)
 PAGE_CONFIG = {
-    "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
-    "multicast_tab": ["酒店提取"],
-    "start_button": ["开始播放", "开始搜索", "开始提取"],
+    "engine_search": parse_list(config.get("PageElements", "engine_search")),
+    "multicast_tab": parse_list(config.get("PageElements", "multicast_tab")),
+    "start_button": parse_list(config.get("PageElements", "start_button")),
 }
-
 
 # 频道自动分类规则 (按关键词匹配)
 CATEGORY_RULES = [
@@ -118,10 +197,8 @@ CATEGORY_RULES = [
     {"name": "儿童频道",    "keywords": ["少儿", "动画", "卡通"]},
 ]
 
-
 # 导出文件时的分组排序
 GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "4K专区", "儿童频道", "轮播频道"]
-
 
 # CCTV 台标映射表
 CCTV_NAME_MAPPING = {
@@ -158,11 +235,9 @@ CCTV_ORDER = [
     "CETV5"
 ]
 
-
 # ============================================================================
 # ============================= 日志配置 =====================================
 # ============================================================================
-
 
 logging.basicConfig(
     level=logging.INFO,
@@ -174,11 +249,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger('IPTV-Extractor')
 
-
 # ============================================================================
 # ============================= 缓存工具函数 ==================================
 # ============================================================================
-
 
 def load_cache() -> Dict[str, Dict[str, Any]]:
     if not ENABLE_CACHE:
@@ -722,6 +795,11 @@ async def main():
     if ENABLE_SCREENSHOTS:
         (OUTPUT_DIR / "screenshots").mkdir(exist_ok=True)
 
+    # 构建选择器
+    ENGINE_SELECTOR = build_selector(PAGE_CONFIG["engine_search"])
+    MCAST_SELECTOR = build_selector(PAGE_CONFIG["multicast_tab"])
+    START_SELECTOR = build_selector(PAGE_CONFIG["start_button"])
+
     # 1. 从GitHub下载M3U文件并解析
     github_channels = []
     for url in GITHUB_M3U_LINKS:
@@ -756,7 +834,7 @@ async def main():
 
                 if MCAST_SELECTOR:
                     mcast = page.locator(MCAST_SELECTOR).first
-                    logger.info("点击酒店提取标签")
+                    logger.info("点击组播提取标签")
                     await robust_click(mcast)
 
                 if START_SELECTOR:
