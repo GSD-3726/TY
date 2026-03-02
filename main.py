@@ -32,7 +32,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 TARGET_URL = "https://iptv.809899.xyz"          # 【必填】要爬取的目标网站地址
 HEADLESS = True                                  # 【True/False】是否隐藏浏览器窗口 (True=后台运行, False=显示窗口)
 BROWSER_TYPE = "chromium"                        # 【chromium/firefox/webkit】浏览器内核类型，推荐默认 chromium
-MAX_IPS = 1                                     # 【数字】最多处理前N个IP/地址行 (0表示不限制)
+MAX_IPS = 25                                     # 【数字】最多处理前N个IP/地址行 (0表示不限制)
 MAX_TOTAL_CHANNELS = 0                         # 【新增】最多提取的总频道数 (0表示不限制)
 PAGE_LOAD_TIMEOUT = 120000                       # 【毫秒】页面加载最长等待时间 (120秒)
 
@@ -73,7 +73,7 @@ DEFAULT_PROTOCOL = "http://"                         # 【http:///https:///rtsp:
 # -------------------------- 7. 缓存设置 --------------------------
 ENABLE_CACHE = True                                  # 【True/False】是否启用缓存 (开启后，测过的链接24小时内不再重测)
 CACHE_FILE = OUTPUT_DIR / "iptv_speed_cache.json"  # 【路径】缓存文件保存位置
-CACHE_EXPIRE_HOURS = 24                              # 【小时】缓存过期时间 (0表示永不过期)
+CACHE_EXPIRE_HOURS = 48                              # 【小时】缓存过期时间 (0表示永不过期)
 
 
 # -------------------------- 8. 更新时间显示 --------------------------
