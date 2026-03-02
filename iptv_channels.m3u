@@ -1,4 +1,9 @@
 #EXTM3U
-#EXTINF:-1 tvg-name="2026-03-02 09:29:32" tvg-id="更新时间" tvg-logo="" group-title="更新时间", 2026-03-02 09:29:32
+#EXTINF:-1 group-title="卫视频道",延边卫视
+https://srs.iyb983.cn:443/video/CYS/index.m3u8
+#EXTINF:-1 group-title="卫视频道",浙江遂昌
+http://l.cztvcloud.com/channels/lantian/SXsuichang1/720p.m3u8
+
+#EXTINF:-1 tvg-name="2026-03-02 09:43:56" tvg-id="更新时间" tvg-logo="" group-title="更新时间", 2026-03-02 09:43:56
 https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
 
