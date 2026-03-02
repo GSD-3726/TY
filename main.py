@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具（修复优化版）
+IPTV 组播提取工具（修复优化版 - 取消预过滤）
 - 支持从 GitHub 链接下载 M3U
 - 适配目标网站 Vue SPA 结构，修复核心爬取逻辑
-- 集成预过滤、多维度 FFmpeg 测速（帧率+比特率+丢包率）
+- 集成多维度 FFmpeg 测速（帧率+比特率+丢包率）
+- 取消预过滤，所有链接直接测速
+- 优化：FFmpeg 无有效帧判定时间改为5秒
 - 针对 GitHub Actions 优化：低并发、超时保护、内存限制
 - 所有配置从 config.ini 读取，无硬编码
 """
@@ -21,7 +23,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 import functools
-from urllib.parse import urlparse  # 修复：补充缺失的urlparse导入
+from urllib.parse import urlparse
 
 import aiohttp
 import configparser
@@ -222,7 +224,6 @@ def clean_chinese_only(name: str) -> str:
     return CHINESE_ONLY_PATTERN.sub('', name)
 
 
-# 修复：恢复正确的选择器构建逻辑，完全对齐可运行版本
 def build_selector(text_list, element_type="button"):
     """构建精准的元素选择器，支持指定元素类型"""
     if not text_list:
@@ -233,7 +234,7 @@ def build_selector(text_list, element_type="button"):
     return f"{element_type}:text-matches('{pattern}')"
 
 
-# 修复：预先生成正确的页面元素选择器，对齐可运行版本
+# 预先生成页面元素选择器
 ENGINE_SELECTOR = build_selector(PAGE_CONFIG["engine_search"], "a.sidebar-link,button,div.segment-item")
 MCAST_SELECTOR = build_selector(PAGE_CONFIG["multicast_tab"], "div.segment-item")
 START_SELECTOR = build_selector(PAGE_CONFIG["start_button"], "button")
@@ -310,32 +311,13 @@ FFMPEG_PATH = find_ffmpeg()
 
 
 # ============================================================================
-# ========================= 预过滤函数（快速排除无效链接） ====================
+# ========================= 预过滤函数（已取消，保留定义但未使用） ============
 # ============================================================================
-
 async def pre_check_url(url: str) -> bool:
     """
-    轻量预检测：在调用FFmpeg前快速排除无效链接（减少资源消耗）
+    原预过滤函数，现已被取消调用，保留仅用于兼容性
     """
-    try:
-        # 1. 解析域名，3秒超时
-        parsed = urlparse(url)
-        if not parsed.hostname:
-            return False
-        await asyncio.get_event_loop().getaddrinfo(parsed.hostname, None, timeout=3)
-
-        # 2. HTTP/HTTPS链接额外检测头信息
-        if url.startswith(('http://', 'https://')):
-            async with aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(total=3),
-                connector=aiohttp.TCPConnector(verify_ssl=False)
-            ) as session:
-                async with session.head(url, allow_redirects=True) as resp:
-                    return resp.status < 500  # 5xx直接排除
-        return True
-    except Exception as e:
-        logger.debug(f"预过滤排除无效链接：{url[:50]} | 原因：{str(e)[:30]}")
-        return False
+    return True  # 总是返回True，表示全部通过
 
 
 # ============================================================================
@@ -373,7 +355,7 @@ def parse_ffmpeg_output(output: str) -> Tuple[int, float, float, float]:
 async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
     """
     优化点：
-    1. 动态缩短测试时长（3秒无有效帧直接终止）
+    1. 动态缩短测试时长（5秒无有效帧直接终止）【修改点：3秒→5秒】
     2. 双重超时保护
     3. 多维度判定（帧率+帧数+比特率+丢包率）
     """
@@ -393,19 +375,19 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
             *cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
         )
 
-        # 3秒监控：若无有效帧则提前终止
+        # 5秒监控：若无有效帧则提前终止
         kill_trigger = False
 
         async def monitor_proc():
             nonlocal kill_trigger
-            await asyncio.sleep(3)
+            await asyncio.sleep(5)  # 【修改点】从3秒改为5秒
             if proc.returncode is None:
                 try:
                     stderr_part = await proc.stderr.readline()
                     if b"frame=0" in stderr_part or b"Invalid data" in stderr_part:
                         kill_trigger = True
                         proc.kill()
-                        logger.debug(f"提前终止无效链接：{url[:50]}（3秒无有效帧）")
+                        logger.debug(f"提前终止无效链接：{url[:50]}（5秒无有效帧）")
                 except:
                     pass
 
@@ -453,7 +435,7 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
 
 
 # ============================================================================
-# ========================= 批量测速（预过滤 + 低并发） =======================
+# ========================= 批量测速（取消预过滤） ============================
 # ============================================================================
 
 async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
@@ -483,17 +465,10 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     if not pending_tasks_data:
         return finalize_results(result_map)
 
-    # 预过滤
-    filtered_tasks = []
-    for item in pending_tasks_data:
-        group, name, url = item
-        if await pre_check_url(url):
-            filtered_tasks.append(item)
-        else:
-            logger.debug(f"预过滤排除：{url[:50]}")
-
+    # 【取消预过滤】直接使用所有待测速链接
+    filtered_tasks = pending_tasks_data
     total_pending = len(filtered_tasks)
-    logger.info(f"预过滤后需测速：{total_pending} 条（减少 {len(pending_tasks_data) - total_pending} 条无效测试）")
+    logger.info(f"取消预过滤，全部 {total_pending} 条链接进入测速")
 
     if total_pending == 0:
         return finalize_results(result_map)
@@ -553,7 +528,7 @@ def finalize_results(result_map):
 
 
 # ============================================================================
-# ========================= 缓存工具函数（保留） ==============================
+# ========================= 缓存工具函数 ======================================
 # ============================================================================
 
 def load_cache() -> Dict[str, Dict[str, Any]]:
@@ -586,7 +561,7 @@ def save_cache(cache: Dict[str, Dict[str, Any]]) -> None:
 
 
 # ============================================================================
-# ========================= GitHub M3U 处理（保留） ===========================
+# ========================= GitHub M3U 处理 ==================================
 # ============================================================================
 
 @retry_async(max_retries=3, delay=2.0)
@@ -663,7 +638,6 @@ async def wait_for_element(page, selector, timeout=30000):
         return False
 
 
-# 修复：完全对齐可运行版本的频道提取逻辑，修复弹窗和频道项选择器
 @retry_async(max_retries=2, delay=1.0)
 async def extract_one_ip(page, row, ip_index):
     entries = []
@@ -689,13 +663,13 @@ async def extract_one_ip(page, row, ip_index):
             await row.click(timeout=3000)
         await asyncio.sleep(DELAY_AFTER_CLICK)
 
-        # 修复：恢复通用弹窗选择器，移除错误的id限定
+        # 弹窗选择器
         modal = page.locator(".modal-dialog").first
         if not await wait_for_element(page, ".modal-dialog", timeout=5000):
             logger.warning(f"第 {ip_index} 行地址 {addr} 未弹出频道弹窗，跳过")
             return []
 
-        # 修复：恢复正确的频道项选择器，和可运行版本一致
+        # 频道项选择器
         items = modal.locator(".item-content")
         total = await items.count()
         if total == 0:
@@ -858,7 +832,7 @@ async def main():
     else:
         logger.info("未配置GitHub M3U链接，跳过")
 
-    # ========== 2. 从目标网站爬取频道（完全对齐可运行版本的流程） ==========
+    # ========== 2. 从目标网站爬取频道 ==========
     logger.info("\n=== 开始从目标网站爬取频道 ===")
     async with async_playwright() as p:
         browser = await getattr(p, BROWSER_TYPE).launch(
@@ -877,7 +851,6 @@ async def main():
             logger.info(f"正在访问: {TARGET_URL}")
             await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT, wait_until="networkidle")
 
-            # 修复：对齐可运行版本的页面操作流程，移除多余的search_tab点击
             if ENGINE_SELECTOR:
                 eng = page.locator(ENGINE_SELECTOR).first
                 if await eng.count() > 0:
@@ -981,7 +954,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    # 修复：对齐可运行版本的事件循环策略，兼容Windows和Linux
+    # 事件循环策略适配
     if sys.platform == 'linux':
         asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
     elif sys.platform == 'win32':
