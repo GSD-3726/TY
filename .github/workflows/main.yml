@@ -1,77 +1,48 @@
-name: 自动更新
+name: IPTV自动更新
 
 on:
   schedule:
-    # 每12小时运行一次 (UTC时间 00:00 和 12:00，对应北京时间早8点晚8点)
-    - cron: '0 */12 * * *'
-  workflow_dispatch: # 允许在网页手动点击运行
+    - cron: '0 0 * * *'  # 每天0点运行
+  workflow_dispatch:  # 手动触发
 
 jobs:
-  build:
+  update-iptv:
     runs-on: ubuntu-latest
-    timeout-minutes: 180 # 超时时间设置为3小时
-    permissions:
-      contents: write
-
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 必须加，否则拉不到完整远程分支，无法pull
+          fetch-depth: 0  # 必须拉取完整历史
 
-      - name: 设置 Python 3.11
+      - name: 安装Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: '3.10'
 
-      - name: 安装系统级依赖 (FFmpeg & 中文字体)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg fonts-wqy-microhei
-
-      - name: 安装 Python 依赖
+      - name: 安装依赖
         run: |
           python -m pip install --upgrade pip
-          pip install playwright pytz aiohttp pyee
+          pip install playwright
+          playwright install chromium
+          sudo apt update && sudo apt install -y ffmpeg
 
-      - name: 安装 Playwright 浏览器 (Chromium)
-        run: playwright install --with-deps chromium
+      - name: 运行IPTV提取脚本
+        run: python main.py  # 替换为你的脚本文件名
 
-      - name: 恢复测速缓存 (关键！节省大量时间)
-        uses: actions/cache@v4
-        with:
-          path: |
-            iptv_speed_cache.json
-          key: iptv-cache-v2-${{ github.run_id }}
-          restore-keys: |
-            iptv-cache-v2-
-
-      - name: 运行采集脚本
-        run: python3 main.py
-
-      - name: 上传生成的结果 (Artifacts)
-        uses: actions/upload-artifact@v4
-        with:
-          name: iptv-results
-          path: |
-            iptv_channels.m3u
-            iptv_channels.txt
-          retention-days: 30
-
-      - name: 提交并推送文件到仓库（已修复冲突）
+      - name: 配置Git用户信息
         run: |
-          git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
-          # 先拉取远程最新代码，解决冲突（核心修复）
-          git pull origin main --rebase
-          
-          # 添加变更文件
-          git add iptv_channels.m3u iptv_channels.txt iptv_speed_cache.json
-          
-          # 提交（无变化则跳过）
-          git commit -m "chore: 自动更新直播源" || exit 0
-          
-          # 推送到远程
-          git push
+          git config --local user.email "action@github.com"
+
+      - name: 提交并推送更改
+        run: |
+          git add .
+          if git diff --cached --quiet; then
+              echo "无文件更改，无需提交"
+              exit 0
+          fi
+          git commit -m "chore: 自动更新直播源"
+          git pull --rebase origin main
+          git push origin main --force-with-lease
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
