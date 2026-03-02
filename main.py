@@ -734,5 +734,4 @@ if __name__ == "__main__":
     # Actions 中设置事件循环策略（解决Linux异步问题）
     if sys.platform == 'linux':
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy() if sys.platform == 'win32' else asyncio.DefaultEventLoopPolicy())
-    asyncio.run(main())
- 优化代码测速 要求测速准确
+    asyncio.run(main()) 
