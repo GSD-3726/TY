@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具（修复优化版 - 取消预过滤）
+IPTV 组播提取工具（修复优化版 - 取消预过滤 + 放宽测速 + 优化日志）
 - 支持从 GitHub 链接下载 M3U
 - 适配目标网站 Vue SPA 结构，修复核心爬取逻辑
-- 集成多维度 FFmpeg 测速（帧率+比特率+丢包率）
+- 集成多维度 FFmpeg 测速（仅基于帧数与帧率判定）
 - 取消预过滤，所有链接直接测速
-- 优化：FFmpeg 无有效帧判定时间改为5秒
+- 放宽测速要求：移除比特率和丢包率检查
+- 优化日志：分别显示 GitHub 来源和网站来源的原始频道数
 - 针对 GitHub Actions 优化：低并发、超时保护、内存限制
 - 所有配置从 config.ini 读取，无硬编码
 """
@@ -355,9 +356,9 @@ def parse_ffmpeg_output(output: str) -> Tuple[int, float, float, float]:
 async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
     """
     优化点：
-    1. 动态缩短测试时长（5秒无有效帧直接终止）【修改点：3秒→5秒】
+    1. 动态缩短测试时长（5秒无有效帧直接终止）
     2. 双重超时保护
-    3. 多维度判定（帧率+帧数+比特率+丢包率）
+    3. 多维度解析，但判定仅基于帧数和帧率（已移除比特率/丢包率限制）
     """
     cmd = [
         FFMPEG_PATH, "-hide_banner", "-y",
@@ -380,7 +381,7 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
 
         async def monitor_proc():
             nonlocal kill_trigger
-            await asyncio.sleep(5)  # 【修改点】从3秒改为5秒
+            await asyncio.sleep(5)
             if proc.returncode is None:
                 try:
                     stderr_part = await proc.stderr.readline()
@@ -411,13 +412,8 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
         output = stderr.decode('utf-8', errors='ignore')
         frames, avg_fps, bitrate, drop_rate = parse_ffmpeg_output(output)
 
-        # 多维度判定（可根据配置文件调整阈值）
-        is_smooth = (
-            frames >= MIN_FRAMES
-            and avg_fps >= MIN_AVG_FPS
-            and bitrate >= 80  # 最低比特率80kb/s（可配置化）
-            and drop_rate < 0.15  # 丢包率<15%（可配置化）
-        )
+        # 【放宽判定】仅基于帧数和帧率，移除比特率和丢包率限制
+        is_smooth = frames >= MIN_FRAMES and avg_fps >= MIN_AVG_FPS
 
         logger.debug(
             f"测速结果：{url[:50]} | 帧数={frames} | 帧率={avg_fps:.2f} | "
@@ -816,6 +812,7 @@ async def main():
 
     # ========== 1. 从GitHub下载M3U文件并解析 ==========
     logger.info("=== 开始处理GitHub M3U链接 ===")
+    github_total = 0
     if GITHUB_M3U_LINKS:
         for url in GITHUB_M3U_LINKS:
             logger.info(f"正在下载: {url}")
@@ -828,12 +825,16 @@ async def main():
                         link = DEFAULT_PROTOCOL + link
                     github_channels.append((group, name, link))
                 all_channels.extend(github_channels)
-                logger.info(f"提取 {len(github_channels)} 个频道")
+                count = len(github_channels)
+                github_total += count
+                logger.info(f"从 {url} 提取 {count} 个频道")
+        logger.info(f"从GitHub链接总共获取到 {github_total} 个频道（去重前）")
     else:
         logger.info("未配置GitHub M3U链接，跳过")
 
     # ========== 2. 从目标网站爬取频道 ==========
     logger.info("\n=== 开始从目标网站爬取频道 ===")
+    website_total = 0
     async with async_playwright() as p:
         browser = await getattr(p, BROWSER_TYPE).launch(
             headless=HEADLESS,
@@ -902,8 +903,8 @@ async def main():
                     if i < process_count - 1:
                         await asyncio.sleep(DELAY_BETWEEN_IPS)
 
-                logger.info(f"实际处理IP行数：{processed_ip_count} / {process_count}")
-                logger.info(f"从网站提取频道总数：{len(website_channels)} 条")
+                website_total = len(website_channels)
+                logger.info(f"从网站提取频道总数：{website_total} 条")
                 all_channels.extend(website_channels)
 
         except Exception as e:
@@ -916,7 +917,7 @@ async def main():
 
     # ========== 3. 合并并处理所有频道 ==========
     logger.info(f"\n=== 开始合并处理所有频道 ===")
-    logger.info(f"合并后总频道数（含重复）：{len(all_channels)} 条")
+    logger.info(f"GitHub来源：{github_total} 条 | 网站来源：{website_total} 条 | 合并后总频道数（含重复）：{len(all_channels)} 条")
 
     if not all_channels:
         logger.error("未从任何来源提取到频道，程序结束")
