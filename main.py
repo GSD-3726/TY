@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具（优化版）
+IPTV 组播提取工具（修复优化版）
 - 支持从 GitHub 链接下载 M3U
-- 适配 Vue SPA 单页应用（酒店提取模式）
+- 适配目标网站 Vue SPA 结构，修复核心爬取逻辑
 - 集成预过滤、多维度 FFmpeg 测速（帧率+比特率+丢包率）
 - 针对 GitHub Actions 优化：低并发、超时保护、内存限制
 - 所有配置从 config.ini 读取，无硬编码
@@ -21,6 +21,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 import functools
+from urllib.parse import urlparse  # 修复：补充缺失的urlparse导入
 
 import aiohttp
 import configparser
@@ -100,7 +101,7 @@ FFMPEG_TEST_DURATION = config.getint("FFmpeg", "FFMPEG_TEST_DURATION")
 FFMPEG_CONCURRENCY = config.getint("FFmpeg", "FFMPEG_CONCURRENCY")
 MIN_AVG_FPS = config.getfloat("FFmpeg", "MIN_AVG_FPS")
 MIN_FRAMES = config.getint("FFmpeg", "MIN_FRAMES")
-MIN_STABILITY_PERCENT = config.getfloat("FFmpeg", "MIN_STABILITY_PERCENT")
+MIN_STABILITY_PERCENT = config.getfloat("FFmpeg", "MIN_STABILITY_PERCENT", fallback=85.0)
 
 GITHUB_M3U_LINKS = parse_list(config.get("GitHub", "GITHUB_M3U_LINKS"))
 
@@ -134,7 +135,6 @@ UPDATE_STREAM_URL = config.get("UpdateTime", "UPDATE_STREAM_URL")
 
 # 页面元素定位关键词（全部从INI读取）
 PAGE_CONFIG = {
-    "search_tab": parse_list(config.get("PageElements", "search_tab")),
     "engine_search": parse_list(config.get("PageElements", "engine_search")),
     "multicast_tab": parse_list(config.get("PageElements", "multicast_tab")),
     "start_button": parse_list(config.get("PageElements", "start_button")),
@@ -222,16 +222,21 @@ def clean_chinese_only(name: str) -> str:
     return CHINESE_ONLY_PATTERN.sub('', name)
 
 
-def build_selector(text_list, element_type="div"):
-    """构建适配Vue SPA的选择器"""
+# 修复：恢复正确的选择器构建逻辑，完全对齐可运行版本
+def build_selector(text_list, element_type="button"):
+    """构建精准的元素选择器，支持指定元素类型"""
     if not text_list:
         return ""
-    base_selector = f"{element_type}.segment-item,div.ios-tab-item,button,a.sidebar-link"
     if len(text_list) == 1:
-        return f"{base_selector}:has-text('{text_list[0]}')"
+        return f"{element_type}:has-text('{text_list[0]}')"
     pattern = "|".join(re.escape(t) for t in text_list)
-    return f"{base_selector}:text-matches('{pattern}')"
+    return f"{element_type}:text-matches('{pattern}')"
 
+
+# 修复：预先生成正确的页面元素选择器，对齐可运行版本
+ENGINE_SELECTOR = build_selector(PAGE_CONFIG["engine_search"], "a.sidebar-link,button,div.segment-item")
+MCAST_SELECTOR = build_selector(PAGE_CONFIG["multicast_tab"], "div.segment-item")
+START_SELECTOR = build_selector(PAGE_CONFIG["start_button"], "button")
 
 # ============================================================================
 # ========================= 重试装饰器 =======================================
@@ -644,10 +649,9 @@ async def robust_click(locator, timeout=10000):
         return True
     except Exception:
         try:
-            await locator.evaluate("el => { el.click(); }")
+            await locator.evaluate("el => el.click()")
             return True
-        except Exception as e:
-            logger.error(f"点击失败: {e}")
+        except Exception:
             return False
 
 
@@ -659,18 +663,21 @@ async def wait_for_element(page, selector, timeout=30000):
         return False
 
 
+# 修复：完全对齐可运行版本的频道提取逻辑，修复弹窗和频道项选择器
 @retry_async(max_retries=2, delay=1.0)
 async def extract_one_ip(page, row, ip_index):
     entries = []
+    addr = None
     try:
         addr_elem = row.locator("div.item-title").first
         addr = await addr_elem.inner_text(timeout=3000)
         addr = addr.strip()
         if not addr:
+            logger.warning(f"第 {ip_index} 行地址为空，跳过")
             return []
         logger.info(f"处理地址 [{ip_index}]: {addr}")
     except Exception as e:
-        logger.warning(f"提取地址失败: {e}")
+        logger.warning(f"提取第 {ip_index} 行地址失败: {e}")
         return []
 
     try:
@@ -682,20 +689,23 @@ async def extract_one_ip(page, row, ip_index):
             await row.click(timeout=3000)
         await asyncio.sleep(DELAY_AFTER_CLICK)
 
-        modal = page.locator("#channelListModal .modal-content").first
-        if not await wait_for_element(page, "#channelListModal", timeout=5000):
-            logger.warning(f"地址 {addr} 未弹出频道弹窗，跳过")
+        # 修复：恢复通用弹窗选择器，移除错误的id限定
+        modal = page.locator(".modal-dialog").first
+        if not await wait_for_element(page, ".modal-dialog", timeout=5000):
+            logger.warning(f"第 {ip_index} 行地址 {addr} 未弹出频道弹窗，跳过")
             return []
 
-        items = modal.locator(".ios-list-item")
+        # 修复：恢复正确的频道项选择器，和可运行版本一致
+        items = modal.locator(".item-content")
         total = await items.count()
         if total == 0:
+            logger.warning(f"第 {ip_index} 行地址 {addr} 无频道数据，跳过")
             return []
-
+            
         if MAX_CHANNELS_PER_IP > 0:
             total = min(total, MAX_CHANNELS_PER_IP)
 
-        logger.info(f"地址 {addr} 共提取到 {total} 个频道")
+        logger.info(f"第 {ip_index} 行地址 {addr} 共提取到 {total} 个频道")
         for i in range(total):
             try:
                 name_elem = items.nth(i).locator(".item-title").first
@@ -716,10 +726,11 @@ async def extract_one_ip(page, row, ip_index):
                 final_name = norm if group == "央视频道" else (clean_chinese_only(name) if ENABLE_CHINESE_CLEAN else name)
                 if final_name:
                     entries.append((group, final_name, link))
-            except Exception:
+            except Exception as e:
+                logger.warning(f"提取第 {ip_index} 行第 {i+1} 个频道失败: {e}")
                 continue
     except Exception as e:
-        logger.warning(f"提取地址 {addr} 出错: {e}")
+        logger.warning(f"提取第 {ip_index} 行地址 {addr} 出错: {e}")
     return entries
 
 
@@ -847,8 +858,8 @@ async def main():
     else:
         logger.info("未配置GitHub M3U链接，跳过")
 
-    # ========== 2. 从Vue SPA网站爬取频道（酒店提取模式） ==========
-    logger.info("\n=== 开始从Vue SPA网站爬取频道（酒店提取） ===")
+    # ========== 2. 从目标网站爬取频道（完全对齐可运行版本的流程） ==========
+    logger.info("\n=== 开始从目标网站爬取频道 ===")
     async with async_playwright() as p:
         browser = await getattr(p, BROWSER_TYPE).launch(
             headless=HEADLESS,
@@ -866,90 +877,68 @@ async def main():
             logger.info(f"正在访问: {TARGET_URL}")
             await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT, wait_until="networkidle")
 
-            # ------------------ 第一步：进入搜索页面 ------------------
-            # 匹配侧边栏“引擎搜索”或底部导航“搜索”
-            search_terms = PAGE_CONFIG.get("search_tab", ["引擎搜索", "搜索"])
-            pattern = "|".join(re.escape(s) for s in search_terms)
-            search_entry_selector = f"a.sidebar-link:text-matches('{pattern}'), a.tab-item:text-matches('{pattern}')"
-            search_entry = page.locator(search_entry_selector).first
-            if await search_entry.count() > 0:
-                logger.info("点击进入搜索页面")
-                await robust_click(search_entry)
-                await asyncio.sleep(1)
-            else:
-                logger.warning("未找到搜索入口，尝试直接继续")
+            # 修复：对齐可运行版本的页面操作流程，移除多余的search_tab点击
+            if ENGINE_SELECTOR:
+                eng = page.locator(ENGINE_SELECTOR).first
+                if await eng.count() > 0:
+                    logger.info("点击引擎搜索按钮")
+                    await robust_click(eng)
 
-            # ------------------ 第二步：点击酒店提取选项卡 ------------------
-            hotel_terms = PAGE_CONFIG.get("multicast_tab", ["酒店提取"])
-            hotel_selector = build_selector(hotel_terms, element_type="div")
-            hotel_tab = page.locator(hotel_selector).first
-            if await hotel_tab.count() > 0:
-                logger.info("点击酒店提取模式")
-                await robust_click(hotel_tab)
-                await asyncio.sleep(1)
-            else:
-                logger.warning("未找到酒店提取选项卡，可能已默认选中")
+            if MCAST_SELECTOR:
+                mcast = page.locator(MCAST_SELECTOR).first
+                logger.info("点击酒店提取标签")
+                await robust_click(mcast)
 
-            # ------------------ 第三步：点击开始提取按钮 ------------------
-            start_terms = PAGE_CONFIG.get("start_button", ["开始提取"])
-            start_selector = build_selector(start_terms, element_type="button")
-            start_btn = page.locator(start_selector).first
-            if await start_btn.count() > 0:
+            if START_SELECTOR:
+                start = page.locator(START_SELECTOR).first
                 logger.info("点击开始提取按钮")
-                await robust_click(start_btn)
-            else:
-                fallback_selector = build_selector(["开始搜索"], element_type="button")
-                fallback_btn = page.locator(fallback_selector).first
-                if await fallback_btn.count() > 0:
-                    logger.info("点击开始搜索按钮")
-                    await robust_click(fallback_btn)
-                else:
-                    logger.error("未找到开始按钮，无法继续")
-                    return
+                await robust_click(start)
 
-            logger.info(f"当前页面URL: {page.url}")
-            page_title = await page.title()
-            logger.info(f"页面标题: {page_title}")
-
-            # ------------------ 第四步：等待数据加载 ------------------
+            # 等待数据加载
             if not await wait_data(page):
-                logger.error("SPA网站数据加载失败，跳过网站爬取")
+                logger.error("网站数据加载失败，跳过网站爬取")
             else:
-                # 筛选包含频道数的IP行
+                # 精准筛选IP行
                 rows = page.locator("div.ios-list-item").filter(
                     has=page.locator("div.item-subtitle:has-text('频道:')")
                 )
                 total_rows = await rows.count()
-                logger.info(f"找到包含频道信息的IP行总数：{total_rows}")
+                logger.info(f"【精准筛选】找到包含频道信息的IP行总数：{total_rows}")
+                
+                if total_rows == 0:
+                    logger.error("未找到任何包含频道信息的IP行，跳过网站爬取")
+                    return
 
-                if total_rows > 0:
-                    process_count = min(total_rows, MAX_IPS) if MAX_IPS > 0 else total_rows
-                    logger.info(f"将处理前 {process_count} 个IP行")
+                process_count = min(total_rows, MAX_IPS) if MAX_IPS > 0 else total_rows
+                logger.info(f"配置MAX_IPS={MAX_IPS}，实际将处理前 {process_count} 个IP行")
 
-                    website_channels = []
-                    processed_ip_count = 0
-                    for i in range(process_count):
-                        row = rows.nth(i)
-                        entries = await extract_one_ip(page, row, i+1)
-                        if entries:
-                            website_channels.extend(entries)
-                            processed_ip_count += 1
+                website_channels = []
+                processed_ip_count = 0
+                for i in range(process_count):
+                    row = rows.nth(i)
+                    entries = await extract_one_ip(page, row, i+1)
+                    if entries:
+                        website_channels.extend(entries)
+                        processed_ip_count += 1
+                    
+                    if MAX_TOTAL_CHANNELS > 0 and len(website_channels) >= MAX_TOTAL_CHANNELS:
+                        website_channels = website_channels[:MAX_TOTAL_CHANNELS]
+                        logger.info(f"已达到总频道数上限 {MAX_TOTAL_CHANNELS}，停止提取IP行")
+                        break
+                    
+                    if i < process_count - 1:
+                        await asyncio.sleep(DELAY_BETWEEN_IPS)
 
-                        if MAX_TOTAL_CHANNELS > 0 and len(website_channels) >= MAX_TOTAL_CHANNELS:
-                            website_channels = website_channels[:MAX_TOTAL_CHANNELS]
-                            logger.info(f"达到总频道数上限 {MAX_TOTAL_CHANNELS}，停止提取")
-                            break
-
-                        if i < process_count - 1:
-                            await asyncio.sleep(DELAY_BETWEEN_IPS)
-
-                    logger.info(f"实际处理IP行数：{processed_ip_count} / {process_count}")
-                    logger.info(f"从网站提取频道总数：{len(website_channels)} 条")
-                    all_channels.extend(website_channels)
+                logger.info(f"实际处理IP行数：{processed_ip_count} / {process_count}")
+                logger.info(f"从网站提取频道总数：{len(website_channels)} 条")
+                all_channels.extend(website_channels)
 
         except Exception as e:
-            logger.exception("SPA网站爬取过程异常")
+            logger.exception("网站爬取过程异常")
         finally:
+            # 确保浏览器彻底关闭
+            await page.close()
+            await ctx.close()
             await browser.close()
 
     # ========== 3. 合并并处理所有频道 ==========
@@ -992,7 +981,9 @@ async def main():
 
 
 if __name__ == "__main__":
-    # 为Linux设置事件循环策略（Actions环境）
+    # 修复：对齐可运行版本的事件循环策略，兼容Windows和Linux
     if sys.platform == 'linux':
         asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
+    elif sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main())
