@@ -32,7 +32,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 TARGET_URL = "https://iptv.809899.xyz"          # 【必填】要爬取的目标网站地址
 HEADLESS = True                                  # 【True/False】是否隐藏浏览器窗口 (True=后台运行, False=显示窗口)
 BROWSER_TYPE = "chromium"                        # 【chromium/firefox/webkit】浏览器内核类型，推荐默认 chromium
-MAX_IPS = 50                                     # 【数字】最多处理前N个IP/地址行 (0表示不限制)
+MAX_IPS = 5                                     # 【数字】最多处理前N个IP/地址行 (0表示不限制)
 MAX_TOTAL_CHANNELS = 100                         # 【新增】最多提取的总频道数 (0表示不限制)
 PAGE_LOAD_TIMEOUT = 120000                       # 【毫秒】页面加载最长等待时间 (120秒)
 
@@ -482,10 +482,11 @@ async def extract_one_ip(page, row, ip_index):
         addr = await addr_elem.inner_text(timeout=3000)
         addr = addr.strip()
         if not addr:
+            logger.warning(f"第 {ip_index} 行地址为空，跳过")
             return []
         logger.info(f"处理地址 [{ip_index}]: {addr}")
     except Exception as e:
-        logger.warning(f"提取地址失败: {e}")
+        logger.warning(f"提取第 {ip_index} 行地址失败: {e}")
         return []
 
     try:
@@ -499,13 +500,19 @@ async def extract_one_ip(page, row, ip_index):
 
         modal = page.locator(".modal-dialog").first
         if not await wait_for_element(page, ".modal-dialog", timeout=5000):
+            logger.warning(f"第 {ip_index} 行地址 {addr} 未弹出频道弹窗，跳过")
             return []
 
         items = modal.locator(".item-content")
         total = await items.count()
+        if total == 0:
+            logger.warning(f"第 {ip_index} 行地址 {addr} 无频道数据，跳过")
+            return []
+            
         if MAX_CHANNELS_PER_IP > 0:
             total = min(total, MAX_CHANNELS_PER_IP)
 
+        logger.info(f"第 {ip_index} 行地址 {addr} 共提取到 {total} 个频道")
         for i in range(total):
             try:
                 name_elem = items.nth(i).locator(".item-title").first
@@ -526,27 +533,35 @@ async def extract_one_ip(page, row, ip_index):
                 final_name = norm if group == "央视频道" else (clean_chinese_only(name) if ENABLE_CHINESE_CLEAN else name)
                 if final_name:
                     entries.append((group, final_name, link))
-            except Exception:
+            except Exception as e:
+                logger.warning(f"提取第 {ip_index} 行第 {i+1} 个频道失败: {e}")
                 continue
     except Exception as e:
-        logger.warning(f"提取出错 {addr}: {e}")
+        logger.warning(f"提取第 {ip_index} 行地址 {addr} 出错: {e}")
     return entries
 
 
 async def wait_data(page):
-    for _ in range(2):
-        logger.info("等待30秒加载数据...")
+    """优化数据等待逻辑，确保页面完全加载"""
+    for retry in range(3):  # 最多等待90秒
+        logger.info(f"等待30秒加载数据... (重试 {retry+1}/3)")
         await asyncio.sleep(30)
-        has = await page.evaluate('''()=>{
-            for(let e of document.querySelectorAll('div.item-title')){
-                if(e.innerText.trim()) return true;
+        # 检查是否有有效IP行
+        has_data = await page.evaluate('''()=>{
+            const items = document.querySelectorAll('div.ios-list-item');
+            for(let item of items) {
+                const title = item.querySelector('.item-title')?.innerText?.trim();
+                const subtitle = item.querySelector('.item-subtitle')?.innerText?.trim();
+                if(title && subtitle && subtitle.includes('频道:')) {
+                    return true;
+                }
             }
             return false;
         }''')
-        if has:
+        if has_data:
             logger.info("数据加载完成")
             return True
-    logger.warning("数据加载超时")
+    logger.error("数据加载超时（90秒）")
     return False
 
 
@@ -644,61 +659,86 @@ async def main():
             if ENGINE_SELECTOR:
                 eng = page.locator(ENGINE_SELECTOR).first
                 if await eng.count() > 0:
+                    logger.info("点击引擎搜索按钮")
                     await robust_click(eng)
 
             if MCAST_SELECTOR:
                 mcast = page.locator(MCAST_SELECTOR).first
+                logger.info("点击酒店提取标签")
                 await robust_click(mcast)
 
             if START_SELECTOR:
                 start = page.locator(START_SELECTOR).first
+                logger.info("点击开始提取按钮")
                 await robust_click(start)
 
             if not await wait_data(page):
-                logger.error("数据加载失败")
+                logger.error("数据加载失败，退出程序")
                 return
 
-            # ========== 【修改】添加IP行筛选日志 ==========
-            rows = page.locator("div.ios-list-item").filter(has_text="频道:")
+            # ========== 【核心修改】精准筛选IP行 ==========
+            # 筛选条件：包含.item-subtitle且里面有"频道:"的ios-list-item
+            rows = page.locator("div.ios-list-item").filter(
+                has=page.locator("div.item-subtitle:has-text('频道:')")
+            )
             total_rows = await rows.count()
-            logger.info(f"筛选出的IP行总数：{total_rows}")  # 新增日志：验证筛选的IP行数
+            logger.info(f"【精准筛选】找到包含频道信息的IP行总数：{total_rows}")
+            
             if total_rows == 0:
-                logger.error("未找到任何地址")
+                logger.error("未找到任何包含频道信息的IP行，退出程序")
                 return
 
+            # 计算实际要处理的IP行数
             process_count = min(total_rows, MAX_IPS) if MAX_IPS > 0 else total_rows
-            logger.info(f"找到 {total_rows} 个地址，处理前 {process_count} 个")
+            logger.info(f"配置MAX_IPS={MAX_IPS}，实际将处理前 {process_count} 个IP行")
 
             raw_entries = []
+            processed_ip_count = 0  # 记录实际处理的IP行数
             for i in range(process_count):
-                entries = await extract_one_ip(page, rows.nth(i), i+1)
-                raw_entries.extend(entries)
+                row = rows.nth(i)
+                # 提取当前行的地址文本，确认是有效IP行
+                row_text = await row.inner_text(timeout=3000)
+                logger.debug(f"第 {i+1} 行原始文本：{row_text[:100]}...")  # 打印前100字符调试
                 
-                # ========== 【新增】限制总频道数 ==========
+                entries = await extract_one_ip(page, row, i+1)
+                if entries:
+                    raw_entries.extend(entries)
+                    processed_ip_count += 1
+                
+                # ========== 限制总频道数 ==========
                 if MAX_TOTAL_CHANNELS > 0 and len(raw_entries) >= MAX_TOTAL_CHANNELS:
                     raw_entries = raw_entries[:MAX_TOTAL_CHANNELS]
-                    logger.info(f"已达到总频道数上限 {MAX_TOTAL_CHANNELS}，停止提取")
+                    logger.info(f"已达到总频道数上限 {MAX_TOTAL_CHANNELS}，停止提取IP行")
                     break
                 
                 if i < process_count - 1:
                     await asyncio.sleep(DELAY_BETWEEN_IPS)
 
-            logger.info(f"原始提取：{len(raw_entries)} 条")
+            logger.info(f"实际处理IP行数：{processed_ip_count} / {process_count}")
+            logger.info(f"原始提取频道总数：{len(raw_entries)} 条")
 
             # 去重
             channel_map = defaultdict(list)
             seen = set()
+            duplicate_count = 0
             for group, name, url in raw_entries:
                 if ENABLE_DEDUPLICATION:
                     key = (group, name, url)
                     if key in seen:
+                        duplicate_count += 1
                         continue
                     seen.add(key)
                 channel_map[(group, name)].append(url)
+            
+            logger.info(f"去重完成，重复频道数：{duplicate_count} 条")
+            logger.info(f"去重后频道数：{len(channel_map)} 个")
 
             # FFmpeg测速
             if ENABLE_FFMPEG_TEST and channel_map:
+                logger.info("开始FFmpeg测速筛选")
                 channel_map = await run_ffmpeg_test(channel_map)
+            else:
+                logger.info("跳过FFmpeg测速")
 
             # 导出
             export_results_with_timestamp(channel_map)
@@ -709,6 +749,5 @@ async def main():
             await browser.close()
 
 
-# ========== 【修改】修正语法错误，移除多余的MAX_IPS赋值 ==========
 if __name__ == "__main__":
     asyncio.run(main())
