@@ -40,9 +40,9 @@ def load_config(config_file: str = "config.ini") -> configparser.ConfigParser:
     # 设置默认值
     config["General"] = {
         "TARGET_URL": "https://iptv.809899.xyz",
-        "HEADLESS": "False",  # 默认显示浏览器，方便调试
+        "HEADLESS": "True",  # GitHub Actions默认后台运行
         "BROWSER_TYPE": "chromium",
-        "MAX_IPS": "5",       # 默认只处理5个IP，快速验证
+        "MAX_IPS": "25",       # 默认处理25个IP
         "MAX_TOTAL_CHANNELS": "0",
         "PAGE_LOAD_TIMEOUT": "120000"
     }
@@ -55,17 +55,17 @@ def load_config(config_file: str = "config.ini") -> configparser.ConfigParser:
     }
     
     config["FFmpeg"] = {
-        "ENABLE_FFMPEG_TEST": "False",  # 默认关闭测速，先验证爬取
+        "ENABLE_FFMPEG_TEST": "False",
         "FFMPEG_PATH": "ffmpeg",
         "FFMPEG_TEST_DURATION": "10",
-        "FFMPEG_CONCURRENCY": "2",
+        "FFMPEG_CONCURRENCY": "8",
         "MIN_AVG_FPS": "25.0",
         "MIN_FRAMES": "210",
         "MIN_STABILITY_PERCENT": "15.0"
     }
     
     config["GitHub"] = {
-        "GITHUB_M3U_LINKS": ""  # 默认清空，只爬网站
+        "GITHUB_M3U_LINKS": ""
     }
     
     config["Delay"] = {
@@ -97,9 +97,9 @@ def load_config(config_file: str = "config.ini") -> configparser.ConfigParser:
     }
     
     config["PageElements"] = {
-        "engine_search": "引擎搜索",
-        "multicast_tab": "组播提取",
-        "start_button": "开始搜索"
+        "engine_search": "",
+        "multicast_tab": "",
+        "start_button": ""
     }
     
     # 读取配置文件
