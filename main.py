@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具（修复优化版 - 取消预过滤 + 放宽测速 + 优化日志）
-- 支持从 GitHub 链接下载 M3U
-- 适配目标网站 Vue SPA 结构，修复核心爬取逻辑
-- 集成多维度 FFmpeg 测速（仅基于帧数与帧率判定）
-- 取消预过滤，所有链接直接测速
-- 放宽测速要求：移除比特率和丢包率检查
-- 优化日志：分别显示 GitHub 来源和网站来源的原始频道数
-- 针对 GitHub Actions 优化：低并发、超时保护、内存限制
-- 所有配置从 config.ini 读取，无硬编码
+IPTV 组播提取工具（测速优化版）
+- 网站爬取逻辑完全不变
+- 测速模块冗余清理，简化核心逻辑
+- 取消预过滤 + 放宽测速要求 + 优化日志
+- 适配 GitHub Actions 低并发、超时保护
 """
 
 import asyncio
@@ -24,124 +20,80 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 import functools
-from urllib.parse import urlparse
 
 import aiohttp
-import configparser
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 
 # ============================================================================
-# ========================= 配置加载函数 =====================================
+# ======================== 【硬编码配置区】 ==================================
 # ============================================================================
-
-def load_config(config_file: str = "config.ini") -> configparser.ConfigParser:
-    """仅从INI文件加载配置，无任何默认值"""
-    config = configparser.ConfigParser()
-    
-    if not os.path.exists(config_file):
-        raise FileNotFoundError(f"配置文件 {config_file} 不存在，请创建并配置所有必要项")
-    
-    config.read(config_file, encoding='utf-8')
-    
-    # 验证必要的配置节是否存在
-    required_sections = [
-        "General", "Output", "FFmpeg", "GitHub", "Delay", 
-        "Cleaning", "Network", "Cache", "UpdateTime", "PageElements"
-    ]
-    missing_sections = [sec for sec in required_sections if sec not in config.sections()]
-    if missing_sections:
-        raise ValueError(f"配置文件缺少必要节：{', '.join(missing_sections)}")
-    
-    return config
-
-
-def parse_list(value: str) -> List[str]:
-    """解析多行/逗号分隔的列表，支持空行和注释"""
-    if not value:
-        return []
-    
-    lines = [line.strip() for line in value.split('\n') if line.strip()]
-    result = []
-    
-    for line in lines:
-        if line.startswith('#'):
-            continue
-        if ',' in line:
-            items = [item.strip() for item in line.split(',') if item.strip()]
-            result.extend(items)
-        else:
-            result.append(line)
-    
-    return list(dict.fromkeys(result))
-
-
-# ============================================================================
-# ======================== 全局配置变量 ======================================
-# ============================================================================
-
-config = load_config()
 
 # -------------------------- 1. 基础爬取设置 --------------------------
-TARGET_URL = config.get("General", "TARGET_URL")
-HEADLESS = config.getboolean("General", "HEADLESS")
-BROWSER_TYPE = config.get("General", "BROWSER_TYPE")
-MAX_IPS = config.getint("General", "MAX_IPS")
-MAX_TOTAL_CHANNELS = config.getint("General", "MAX_TOTAL_CHANNELS")
-PAGE_LOAD_TIMEOUT = config.getint("General", "PAGE_LOAD_TIMEOUT")
+TARGET_URL = "https://iptv.809899.xyz"          # 目标网站地址
+HEADLESS = True                                  # 是否无头模式
+BROWSER_TYPE = "chromium"                        # 浏览器内核
+MAX_IPS = 10                                      # 最多处理IP行数
+MAX_TOTAL_CHANNELS = 0                            # 总频道数上限（0不限）
+PAGE_LOAD_TIMEOUT = 120000                        # 页面加载超时（毫秒）
 
 # -------------------------- 2. 文件输出设置 --------------------------
-output_dir_str = config.get("Output", "OUTPUT_DIR")
-OUTPUT_DIR = Path(output_dir_str) if output_dir_str else Path(__file__).parent
-OUTPUT_M3U_FILENAME = OUTPUT_DIR / config.get("Output", "OUTPUT_M3U_FILENAME")
-OUTPUT_TXT_FILENAME = OUTPUT_DIR / config.get("Output", "OUTPUT_TXT_FILENAME")
-MAX_LINKS_PER_CHANNEL = config.getint("Output", "MAX_LINKS_PER_CHANNEL")
+OUTPUT_DIR = Path(__file__).parent                # 输出目录（脚本所在目录）
+OUTPUT_M3U_FILENAME = OUTPUT_DIR / "iptv_channels.m3u"
+OUTPUT_TXT_FILENAME = OUTPUT_DIR / "iptv_channels.txt"
+MAX_LINKS_PER_CHANNEL = 5                          # 每个频道保留最多链接数
 
 # -------------------------- 3. FFmpeg 测速设置 --------------------------
-ENABLE_FFMPEG_TEST = config.getboolean("FFmpeg", "ENABLE_FFMPEG_TEST")
-FFMPEG_PATH = config.get("FFmpeg", "FFMPEG_PATH")
-FFMPEG_TEST_DURATION = config.getint("FFmpeg", "FFMPEG_TEST_DURATION")
-FFMPEG_CONCURRENCY = config.getint("FFmpeg", "FFMPEG_CONCURRENCY")
-MIN_AVG_FPS = config.getfloat("FFmpeg", "MIN_AVG_FPS")
-MIN_FRAMES = config.getint("FFmpeg", "MIN_FRAMES")
-MIN_STABILITY_PERCENT = config.getfloat("FFmpeg", "MIN_STABILITY_PERCENT", fallback=85.0)
+ENABLE_FFMPEG_TEST = True                          # 是否启用FFmpeg测速
+FFMPEG_PATH = "ffmpeg"                             # FFmpeg路径（假设在PATH中）
+FFMPEG_TEST_DURATION = 10                           # 单链接测速时长（秒）
+FFMPEG_CONCURRENCY = 2                             # 并发测速数
+MIN_AVG_FPS = 20.0                                  # 最低平均帧率
+MIN_FRAMES = 180                                    # 最低解码帧数
 
-GITHUB_M3U_LINKS = parse_list(config.get("GitHub", "GITHUB_M3U_LINKS"))
+# -------------------------- 4. GitHub 自定义源设置 --------------------------
+ENABLE_GITHUB_SOURCES = False                        # 是否启用GitHub源
+GITHUB_M3U_LINKS = [                                 # GitHub源列表
+    "https://gh-proxy.com/https://raw.githubusercontent.com/develop202/migu_video/main/interface.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/9527xiao9527/iptv/main/iptv.txt",
+    "https://gh.llkk.cc/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.m3u8",
+]
 
-# -------------------------- 4. 网页操作延时 --------------------------
-DELAY_BETWEEN_IPS = config.getfloat("Delay", "DELAY_BETWEEN_IPS")
-DELAY_AFTER_CLICK = config.getfloat("Delay", "DELAY_AFTER_CLICK")
-MAX_CHANNELS_PER_IP = config.getint("Delay", "MAX_CHANNELS_PER_IP")
-DATA_LOAD_TIMEOUT = config.getint("Delay", "DATA_LOAD_TIMEOUT", fallback=120)  # 秒
+# -------------------------- 5. 网页操作延时 --------------------------
+DELAY_BETWEEN_IPS = 1.0                             # IP处理间隔（秒）
+DELAY_AFTER_CLICK = 1.0                             # 点击后等待（秒）
+MAX_CHANNELS_PER_IP = 0                              # 单IP最大频道数（0不限）
+DATA_LOAD_TIMEOUT = 120                              # 数据加载超时（秒）
 
-# -------------------------- 5. 数据清洗 --------------------------
-ENABLE_CHINESE_CLEAN = config.getboolean("Cleaning", "ENABLE_CHINESE_CLEAN")
-ENABLE_DEDUPLICATION = config.getboolean("Cleaning", "ENABLE_DEDUPLICATION")
-ENABLE_SCREENSHOTS = config.getboolean("Cleaning", "ENABLE_SCREENSHOTS")
-CCTV_USE_MAPPING = config.getboolean("Cleaning", "CCTV_USE_MAPPING")
+# -------------------------- 6. 数据清洗 --------------------------
+ENABLE_CHINESE_CLEAN = True                          # 清理非中文字符
+ENABLE_DEDUPLICATION = True                          # 启用去重
+ENABLE_SCREENSHOTS = False                            # 截图调试
+CCTV_USE_MAPPING = True                               # CCTV映射中文名
 
-# -------------------------- 6. 网络协议 --------------------------
-DEFAULT_PROTOCOL = config.get("Network", "DEFAULT_PROTOCOL")
+# -------------------------- 7. 网络协议 --------------------------
+DEFAULT_PROTOCOL = "http://"                          # 默认协议
 
-# -------------------------- 7. 缓存设置 --------------------------
-ENABLE_CACHE = config.getboolean("Cache", "ENABLE_CACHE")
-CACHE_FILE = OUTPUT_DIR / config.get("Cache", "CACHE_FILE")
-CACHE_EXPIRE_HOURS = config.getint("Cache", "CACHE_EXPIRE_HOURS")
+# -------------------------- 8. 缓存设置 --------------------------
+ENABLE_CACHE = True                                   # 启用缓存
+CACHE_FILE = OUTPUT_DIR / "iptv_speed_cache.json"     # 缓存文件
+CACHE_EXPIRE_HOURS = 48                                # 缓存过期小时
 
-# -------------------------- 8. 更新时间显示 --------------------------
-TIME_DISPLAY_AT_TOP = config.getboolean("UpdateTime", "TIME_DISPLAY_AT_TOP")
-UPDATE_STREAM_URL = config.get("UpdateTime", "UPDATE_STREAM_URL")
+# -------------------------- 9. 更新时间显示 --------------------------
+TIME_DISPLAY_AT_TOP = False                            # 更新时间在顶部
+UPDATE_STREAM_URL = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8"  # 占位流
+
+# -------------------------- 10. 页面元素定位关键词 --------------------------
+PAGE_CONFIG = {
+    "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
+    "multicast_tab": ["组播提取"],
+    "start_button": ["开始播放", "开始搜索", "开始提取"],
+}
 
 # ============================================================================
 # ============================ 频道分类规则 ==================================
 # ============================================================================
-
-# 页面元素定位关键词（全部从INI读取）
-PAGE_CONFIG = {
-    "engine_search": parse_list(config.get("PageElements", "engine_search")),
-    "multicast_tab": parse_list(config.get("PageElements", "multicast_tab")),
-    "start_button": parse_list(config.get("PageElements", "start_button")),
-}
 
 # 频道自动分类规则
 CATEGORY_RULES = [
@@ -266,45 +218,33 @@ def retry_async(max_retries=2, delay=1.0, exceptions=(Exception,)):
 # ============================================================================
 
 def print_progress_bar(current: int, total: int, success: int, failed: int, last_percent: int) -> int:
+    """打印测速进度条，5%步进减少日志"""
     if total == 0:
         return 0
-    percent = current / total
-    percent_int = int(percent * 100)
-    should_print = (
-        (percent_int % 5 == 0 and percent_int > last_percent) or
-        current == total or
-        current == 0
-    )
-    if should_print:
-        if percent_int == last_percent and current != total:
-            return last_percent
-        bar_length = 20
-        filled_length = int(bar_length * percent)
-        bar = '█' * filled_length + '░' * (bar_length - filled_length)
-        logger.info(f"[{percent_int:3d}%] {bar} ({current}/{total}) | 成功:{success} | 失败:{failed}")
-        return percent_int
-    return last_percent
+    percent_int = int((current / total) * 100)
+    # 仅在5%步进、开始、结束时打印
+    if not ((percent_int % 5 == 0 and percent_int > last_percent) or current == total or current == 0):
+        return last_percent
+    if percent_int == last_percent and current != total:
+        return last_percent
+
+    bar = '█' * int(20 * current / total) + '░' * (20 - int(20 * current / total))
+    logger.info(f"[{percent_int:3d}%] {bar} ({current}/{total}) | 成功:{success} | 失败:{failed}")
+    return percent_int
 
 
 # ============================================================================
 # ========================= FFmpeg 自动检测（适配Linux） ======================
 # ============================================================================
 
-def find_ffmpeg() -> Optional[str]:
-    """自动搜索FFmpeg路径，如果配置的路径不可用则尝试常见位置"""
-    # 先尝试用户配置的路径
-    if shutil.which(FFMPEG_PATH):
-        logger.info(f"使用配置的FFmpeg路径: {FFMPEG_PATH}")
-        return FFMPEG_PATH
-
-    # 常见路径
-    common_paths = ["ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"]
-    for path in common_paths:
+def find_ffmpeg() -> str:
+    """自动查找FFmpeg可执行文件，找不到则退出"""
+    # 先检查配置路径，再检查常见位置
+    for path in [FFMPEG_PATH, "ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"]:
         if shutil.which(path):
-            logger.info(f"自动找到FFmpeg: {path}")
+            logger.info(f"找到FFmpeg: {path}")
             return path
-
-    logger.error("未找到FFmpeg！请安装或正确配置 FFMPEG_PATH")
+    logger.error("未找到FFmpeg！请安装FFmpeg或正确配置FFMPEG_PATH")
     sys.exit(1)
 
 # 重新设置FFMPEG_PATH为有效路径
@@ -312,62 +252,37 @@ FFMPEG_PATH = find_ffmpeg()
 
 
 # ============================================================================
-# ========================= 预过滤函数（已取消，保留定义但未使用） ============
-# ============================================================================
-async def pre_check_url(url: str) -> bool:
-    """
-    原预过滤函数，现已被取消调用，保留仅用于兼容性
-    """
-    return True  # 总是返回True，表示全部通过
-
-
-# ============================================================================
-# ========================= FFmpeg 输出解析（多维度） =========================
+# ========================= FFmpeg 输出解析（核心精简版） =====================
 # ============================================================================
 
-def parse_ffmpeg_output(output: str) -> Tuple[int, float, float, float]:
-    """
-    优化FFmpeg输出解析：适配不同版本，提取帧数、帧率、比特率、丢包数
-    """
+def parse_ffmpeg_output(output: str) -> Tuple[int, float]:
+    """解析FFmpeg输出，仅提取核心的帧数和平均帧率"""
     frame_pattern = re.compile(r'frame\s*=\s*(\d+)', re.IGNORECASE)
     fps_pattern = re.compile(r'(?:fps|avg_fps)\s*=\s*([\d.]+)', re.IGNORECASE)
-    bitrate_pattern = re.compile(r'bitrate\s*=\s*([\d.]+)\s*kb/s', re.IGNORECASE)
-    drop_pattern = re.compile(r'drop\s*=\s*(\d+)', re.IGNORECASE)
 
     frame_matches = frame_pattern.findall(output)
     fps_matches = fps_pattern.findall(output)
-    bitrate_matches = bitrate_pattern.findall(output)
-    drop_matches = drop_pattern.findall(output)
 
     frames = int(frame_matches[-1]) if frame_matches else 0
-    avg_fps = float(fps_matches[-1]) if fps_matches else (frames / FFMPEG_TEST_DURATION if frames > 0 else 0)
-    bitrate = float(bitrate_matches[-1]) if bitrate_matches else 0.0
-    drop_count = int(drop_matches[-1]) if drop_matches else 0
+    avg_fps = float(fps_matches[-1]) if fps_matches else (frames / FFMPEG_TEST_DURATION if frames > 0 else 0.0)
 
-    drop_rate = drop_count / frames if frames > 0 else 1.0
-
-    return frames, avg_fps, bitrate, drop_rate
+    return frames, avg_fps
 
 
 # ============================================================================
-# ========================= 【核心】FFmpeg测速（优化版） ======================
+# ========================= 【核心】FFmpeg测速（精简优化版） ==================
 # ============================================================================
 
 async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
-    """
-    优化点：
-    1. 动态缩短测试时长（5秒无有效帧直接终止）
-    2. 双重超时保护
-    3. 多维度解析，但判定仅基于帧数和帧率（已移除比特率/丢包率限制）
-    """
+    """FFmpeg流测速，仅基于帧数和帧率判定有效性，提前终止无效流"""
     cmd = [
         FFMPEG_PATH, "-hide_banner", "-y",
         "-fflags", "nobuffer+flush_packets",
         "-flags", "low_delay",
-        "-rw_timeout", "3000000",  # 3秒连接超时
+        "-rw_timeout", "3000000",
         "-i", url,
         "-t", str(FFMPEG_TEST_DURATION),
-        "-vf", "fps=1",  # 每秒仅检测1帧，降低CPU占用
+        "-vf", "fps=1",
         "-f", "null", "-"
     ]
 
@@ -376,9 +291,8 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
             *cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
         )
 
-        # 5秒监控：若无有效帧则提前终止
         kill_trigger = False
-
+        # 5秒无有效帧提前终止
         async def monitor_proc():
             nonlocal kill_trigger
             await asyncio.sleep(5)
@@ -388,18 +302,16 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
                     if b"frame=0" in stderr_part or b"Invalid data" in stderr_part:
                         kill_trigger = True
                         proc.kill()
-                        logger.debug(f"提前终止无效链接：{url[:50]}（5秒无有效帧）")
                 except:
                     pass
 
         monitor_task = asyncio.create_task(monitor_proc())
-
         try:
             _, stderr = await asyncio.wait_for(proc.communicate(), timeout=FFMPEG_TEST_DURATION + 5)
         except asyncio.TimeoutError:
             proc.kill()
             await proc.wait()
-            return {"ok": False, "fps": 0.0, "message": "测速超时", "frames": 0}
+            return {"ok": False, "fps": 0.0, "frames": 0}
         finally:
             monitor_task.cancel()
             if proc.returncode is None:
@@ -407,31 +319,22 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
                 await proc.wait()
 
         if kill_trigger:
-            return {"ok": False, "fps": 0.0, "message": "无有效帧", "frames": 0}
+            return {"ok": False, "fps": 0.0, "frames": 0}
 
         output = stderr.decode('utf-8', errors='ignore')
-        frames, avg_fps, bitrate, drop_rate = parse_ffmpeg_output(output)
-
-        # 【放宽判定】仅基于帧数和帧率，移除比特率和丢包率限制
+        frames, avg_fps = parse_ffmpeg_output(output)
         is_smooth = frames >= MIN_FRAMES and avg_fps >= MIN_AVG_FPS
 
-        logger.debug(
-            f"测速结果：{url[:50]} | 帧数={frames} | 帧率={avg_fps:.2f} | "
-            f"比特率={bitrate:.2f}kb/s | 丢包率={drop_rate:.2%} | 有效={is_smooth}"
-        )
+        logger.debug(f"测速结果：{url[:50]} | 帧数={frames} | 帧率={avg_fps:.2f} | 有效={is_smooth}")
+        return {"ok": is_smooth, "fps": avg_fps, "frames": frames}
 
-        return {
-            "ok": is_smooth, "fps": avg_fps, "frames": frames,
-            "bitrate": bitrate, "drop_rate": drop_rate, "message": "成功"
-        }
     except Exception as e:
-        err_msg = str(e)[:50]
-        logger.debug(f"测速失败：{url[:50]} | 原因：{err_msg}")
-        return {"ok": False, "fps": 0.0, "message": err_msg, "frames": 0}
+        logger.debug(f"测速失败：{url[:50]} | 原因：{str(e)[:50]}")
+        return {"ok": False, "fps": 0.0, "frames": 0}
 
 
 # ============================================================================
-# ========================= 批量测速（取消预过滤） ============================
+# ========================= 批量测速（精简版，取消预过滤） ====================
 # ============================================================================
 
 async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
@@ -439,121 +342,98 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
         return {}
 
     cache = load_cache() if ENABLE_CACHE else {}
-    new_cache_entries = {}
+    new_cache = {}
     result_map = defaultdict(list)
-    pending_tasks_data = []
+    pending_tasks = []
 
+    # 分流缓存与待测速链接
     total_urls = sum(len(urls) for urls in channel_map.values())
-    logger.info(f"总待处理链接：{total_urls} 条")
-
-    # 分流：先检查缓存（如果启用）
-    cached_valid_count = 0
+    cached_valid = 0
     for (group, name), urls in channel_map.items():
         for url in urls:
-            if url in cache and cache[url].get("ok"):
-                result_map[(group, name)].append((url, cache[url].get("fps", 0)))
-                cached_valid_count += 1
+            if url in cache and cache[url]["ok"]:
+                result_map[(group, name)].append((url, cache[url]["fps"]))
+                cached_valid += 1
             else:
-                pending_tasks_data.append((group, name, url))
+                pending_tasks.append((group, name, url))
 
-    logger.info(f"缓存有效：{cached_valid_count} 条，需测速：{len(pending_tasks_data)} 条")
+    logger.info(f"总待处理链接：{total_urls} | 缓存有效：{cached_valid} | 需测速：{len(pending_tasks)}")
+    if not pending_tasks:
+        return {k: [u for u, _ in sorted(v, key=lambda x: -x[1])[:MAX_LINKS_PER_CHANNEL]] for k, v in result_map.items()}
 
-    if not pending_tasks_data:
-        return finalize_results(result_map)
-
-    # 【取消预过滤】直接使用所有待测速链接
-    filtered_tasks = pending_tasks_data
-    total_pending = len(filtered_tasks)
-    logger.info(f"取消预过滤，全部 {total_pending} 条链接进入测速")
-
-    if total_pending == 0:
-        return finalize_results(result_map)
-
-    # 低并发测速
+    # 并发测速控制
     sem = asyncio.Semaphore(FFMPEG_CONCURRENCY)
-
     async def bound_test(item):
         group, name, url = item
         async with sem:
-            result = await test_stream_with_ffmpeg(url)
-            return (group, name, url, result)
+            return group, name, url, await test_stream_with_ffmpeg(url)
 
-    tasks = [bound_test(item) for item in filtered_tasks]
+    tasks = [bound_test(item) for item in pending_tasks]
+    total_pending = len(tasks)
+    completed, success, failed = 0, 0, 0
+    last_percent = -100
 
-    completed = 0
-    success_count = 0
-    failed_count = 0
-    last_printed_percent = -100
-
-    print_progress_bar(0, total_pending, 0, 0, last_printed_percent)
-
+    print_progress_bar(0, total_pending, success, failed, last_percent)
     for coro in asyncio.as_completed(tasks):
         group, name, url, res = await coro
         completed += 1
 
         if ENABLE_CACHE:
-            new_cache_entries[url] = {
-                "ok": res["ok"], "fps": res["fps"],
-                "frames": res.get("frames", 0), "timestamp": time.time(),
-                "bitrate": res.get("bitrate", 0), "drop_rate": res.get("drop_rate", 1.0)
-            }
+            new_cache[url] = {"ok": res["ok"], "fps": res["fps"], "frames": res["frames"], "timestamp": time.time()}
 
         if res["ok"]:
-            success_count += 1
+            success += 1
             result_map[(group, name)].append((url, res["fps"]))
         else:
-            failed_count += 1
+            failed += 1
 
-        last_printed_percent = print_progress_bar(completed, total_pending, success_count, failed_count, last_printed_percent)
+        last_percent = print_progress_bar(completed, total_pending, success, failed, last_percent)
 
-    if new_cache_entries:
-        cache.update(new_cache_entries)
+    # 更新缓存
+    if ENABLE_CACHE and new_cache:
+        cache.update(new_cache)
         save_cache(cache)
 
-    return finalize_results(result_map)
-
-
-def finalize_results(result_map):
+    # 最终排序与截断
     final_map = {}
     for key, items in result_map.items():
         items.sort(key=lambda x: -x[1])
         final_map[key] = [url for url, _ in items[:MAX_LINKS_PER_CHANNEL]]
-    total_final = sum(len(v) for v in final_map.values())
-    logger.info(f"测速筛选完成，最终保留 {total_final} 条优质链接")
+
+    logger.info(f"测速筛选完成，最终保留 {sum(len(v) for v in final_map.values())} 条优质链接")
     return final_map
 
 
 # ============================================================================
-# ========================= 缓存工具函数 ======================================
+# ========================= 缓存工具函数（精简版） ============================
 # ============================================================================
 
 def load_cache() -> Dict[str, Dict[str, Any]]:
+    """加载测速缓存，自动过滤过期条目"""
     if not ENABLE_CACHE or not CACHE_FILE.exists():
         return {}
     try:
         with open(CACHE_FILE, "r", encoding="utf-8") as f:
             cache = json.load(f)
         now = time.time()
-        expire_seconds = CACHE_EXPIRE_HOURS * 3600
-        valid_cache = {}
-        for url, data in cache.items():
-            if expire_seconds == 0 or (now - data.get("timestamp", 0)) < expire_seconds:
-                valid_cache[url] = data
-        logger.info(f"缓存加载完成，有效缓存共 {len(valid_cache)} 条")
+        expire = CACHE_EXPIRE_HOURS * 3600
+        valid_cache = {u: d for u, d in cache.items() if expire == 0 or (now - d.get("timestamp", 0)) < expire}
+        logger.info(f"缓存加载完成，有效条目：{len(valid_cache)}")
         return valid_cache
     except Exception as e:
-        logger.warning(f"加载缓存失败: {e}")
+        logger.warning(f"缓存加载失败: {e}")
         return {}
 
 
 def save_cache(cache: Dict[str, Dict[str, Any]]) -> None:
+    """保存测速缓存"""
     if not ENABLE_CACHE:
         return
     try:
         with open(CACHE_FILE, "w", encoding="utf-8") as f:
             json.dump(cache, f, ensure_ascii=False, indent=2)
     except Exception as e:
-        logger.warning(f"保存缓存失败: {e}")
+        logger.warning(f"缓存保存失败: {e}")
 
 
 # ============================================================================
@@ -609,7 +489,7 @@ def parse_m3u_file(content: str) -> List[Tuple[str, str, str]]:
 
 
 # ============================================================================
-# ============================ 页面交互函数 ==================================
+# ============================ 页面交互函数（完全未修改） =====================
 # ============================================================================
 
 async def robust_click(locator, timeout=10000):
@@ -740,7 +620,7 @@ async def wait_data(page):
 
 
 # ============================================================================
-# ============================ 文件导出函数 ==================================
+# ============================ 文件导出函数（完全未修改） =====================
 # ============================================================================
 
 def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]]):
@@ -800,7 +680,7 @@ def export_results_with_timestamp(channel_map: Dict[Tuple[str, str], List[str]])
 
 
 # ============================================================================
-# ============================= 主流程 =======================================
+# ============================= 主流程（爬取逻辑完全未修改） ==================
 # ============================================================================
 
 async def main():
@@ -810,10 +690,10 @@ async def main():
     # 存储所有来源的频道数据
     all_channels = []
 
-    # ========== 1. 从GitHub下载M3U文件并解析 ==========
+    # ========== 1. 从GitHub下载M3U文件并解析（受开关控制） ==========
     logger.info("=== 开始处理GitHub M3U链接 ===")
     github_total = 0
-    if GITHUB_M3U_LINKS:
+    if ENABLE_GITHUB_SOURCES and GITHUB_M3U_LINKS:
         for url in GITHUB_M3U_LINKS:
             logger.info(f"正在下载: {url}")
             content = await download_github_m3u(url)
@@ -830,7 +710,7 @@ async def main():
                 logger.info(f"从 {url} 提取 {count} 个频道")
         logger.info(f"从GitHub链接总共获取到 {github_total} 个频道（去重前）")
     else:
-        logger.info("未配置GitHub M3U链接，跳过")
+        logger.info("GitHub源已禁用或未配置，跳过")
 
     # ========== 2. 从目标网站爬取频道 ==========
     logger.info("\n=== 开始从目标网站爬取频道 ===")
