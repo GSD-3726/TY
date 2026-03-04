@@ -4,6 +4,7 @@ IPTV 组播提取工具（配置版：酒店/组播 二选一）
 - 配置区直接选择 酒店提取 或 组播提取
 - 点击开始提取后等待30秒再提取数据
 - 无重试、失败直接提示、支持FFmpeg测速、适配GitHub Actions
+- 新增详细日志开关，方便调试
 """
 
 import asyncio
@@ -32,7 +33,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 TARGET_URL            = "https://iptv.809899.xyz"       # 目标网站地址
 HEADLESS              = True                            # 无头模式（GitHub运行必须True）
 BROWSER_TYPE          = "chromium"                      # 浏览器内核
-MAX_IPS               = 50                              # 最多处理多少个IP
+MAX_IPS               = 2                              # 最多处理多少个IP
 MAX_TOTAL_CHANNELS     = 0                               # 总频道上限（0=不限制）
 PAGE_LOAD_TIMEOUT      = 120000                          # 页面加载超时（毫秒）
 
@@ -51,12 +52,12 @@ MAX_LINKS_PER_CHANNEL = 5                               # 每个频道最多保�
 ENABLE_FFMPEG_TEST    = True                            # 是否启用测速
 FFMPEG_PATH           = "ffmpeg"                        # FFmpeg 路径
 FFMPEG_TEST_DURATION  = 10                              # 每条链接测速时长（秒）
-FFMPEG_CONCURRENCY    = 10                              # 并发测速数量
+FFMPEG_CONCURRENCY    = 1                              # 并发测速数量
 MIN_AVG_FPS           = 20.0                            # 最低有效平均帧率
 MIN_FRAMES            = 140                             # 最低有效帧数
 
 # -------------------------- 5. GitHub 源订阅设置 ---------------------------
-ENABLE_GITHUB_SOURCES = True                            # 是否启用GitHub源
+ENABLE_GITHUB_SOURCES = False                            # 是否启用GitHub源
 GITHUB_M3U_LINKS = [
     "https://gh-proxy.com/https://raw.githubusercontent.com/develop202/migu_video/main/interface.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/9527xiao9527/iptv/main/iptv.txt",
@@ -68,7 +69,7 @@ GITHUB_M3U_LINKS = [
 DELAY_BETWEEN_IPS      = 0.5                             # 切换IP间隔（秒）
 DELAY_AFTER_CLICK      = 1.0                             # 点击弹窗等待（秒）
 MAX_CHANNELS_PER_IP    = 0                               # 单个IP最多提取频道数
-DATA_LOAD_TIMEOUT      = 120                             # 数据加载超时（秒）
+DATA_LOAD_TIMEOUT      = 60                             # 数据加载超时（秒）
 AFTER_START_WAIT       = 30                              # 点击【开始提取】后等待秒数
 
 # -------------------------- 7. 数据清洗设置 --------------------------------
@@ -96,6 +97,10 @@ PAGE_CONFIG = {
     "multicast":    ["组播提取"],
     "start_button": ["开始播放", "开始搜索", "开始提取"],
 }
+
+# -------------------------- 12. 详细日志开关 --------------------------------
+ENABLE_VERBOSE_LOGGING = True    # 是否输出详细日志（调试用，会打印大量信息）
+
 
 # ============================================================================
 # ============================ 频道分类规则 ==================================
@@ -130,12 +135,15 @@ CCTV_ORDER = [
 # ============================================================================
 # ============================= 日志配置 =====================================
 # ============================================================================
+log_level = logging.DEBUG if ENABLE_VERBOSE_LOGGING else logging.INFO
 logging.basicConfig(
-    level=logging.INFO,
+    level=log_level,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[logging.StreamHandler(sys.stdout), logging.FileHandler(OUTPUT_DIR / 'iptv_extractor.log', encoding='utf-8')]
 )
 logger = logging.getLogger('IPTV-Extractor')
+if ENABLE_VERBOSE_LOGGING:
+    logger.debug("详细日志模式已开启，将输出大量调试信息")
 
 # ============================================================================
 # ========================= 工具函数 =========================================
@@ -253,18 +261,23 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
         except asyncio.TimeoutError:
             proc.kill()
             await proc.wait()
+            logger.debug(f"测速超时: {url}")
             return {"ok":False,"fps":0.0,"frames":0}
         finally:
             mon.cancel()
             if proc.returncode is None:
                 proc.kill()
                 await proc.wait()
-        if kill_trigger: return {"ok":False,"fps":0.0,"frames":0}
+        if kill_trigger:
+            logger.debug(f"测速因早期无帧或无效数据被终止: {url}")
+            return {"ok":False,"fps":0.0,"frames":0}
         output = stderr.decode('utf-8','ignore')
         frames, avg_fps = parse_ffmpeg_output(output)
         ok = frames >= MIN_FRAMES and avg_fps >= MIN_AVG_FPS
+        logger.debug(f"测速结果: {url} -> 帧数={frames}, fps={avg_fps:.2f}, 通过={ok}")
         return {"ok":ok,"fps":avg_fps,"frames":frames}
-    except:
+    except Exception as e:
+        logger.debug(f"测速异常: {url} - {e}")
         return {"ok":False,"fps":0.0,"frames":0}
 
 async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
@@ -280,6 +293,7 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
             if u in cache and cache[u]["ok"]:
                 result_map[(g,n)].append((u,cache[u]["fps"]))
                 cached_ok +=1
+                logger.debug(f"缓存命中(有效): {u}")
             else:
                 pending.append((g,n,u))
     logger.info(f"总链接:{total} 缓存有效:{cached_ok} 需测速:{len(pending)}")
@@ -311,6 +325,7 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     for k,vs in result_map.items():
         vs.sort(key=lambda x:-x[1])
         final[k] = [u for u,_ in vs[:MAX_LINKS_PER_CHANNEL]]
+    logger.debug(f"测速完成，共 {len(final)} 个频道通过")
     return final
 
 def load_cache():
@@ -323,7 +338,8 @@ def load_cache():
         v = {u:d for u,d in c.items() if exp==0 or now-d.get("timestamp",0)<exp}
         logger.info(f"缓存有效:{len(v)}")
         return v
-    except:
+    except Exception as e:
+        logger.debug(f"加载缓存失败: {e}")
         return {}
 
 def save_cache(cache):
@@ -331,8 +347,8 @@ def save_cache(cache):
     try:
         with open(CACHE_FILE,'w',encoding='utf-8') as f:
             json.dump(cache,f,ensure_ascii=False,indent=2)
-    except:
-        pass
+    except Exception as e:
+        logger.debug(f"保存缓存失败: {e}")
 
 # ============================================================================
 # ========================= GitHub M3U 解析 ==================================
@@ -346,7 +362,8 @@ async def download_github_m3u(url):
                     t=await r.text()
                     logger.info(f"下载成功 {url}")
                     return t
-    except: pass
+    except Exception as e:
+        logger.debug(f"下载失败 {url}: {e}")
     return ""
 
 def parse_m3u_file(content):
@@ -368,6 +385,7 @@ def parse_m3u_file(content):
                 gr=classify_channel(nn) or g
                 fn=nn if gr=="央视频道" else (clean_chinese_only(n) if ENABLE_CHINESE_CLEAN else n)
                 ch.append((gr,fn,u))
+                logger.debug(f"GitHub解析: 分组={gr}, 名称={fn}, URL={u}")
             g=n=u=""
     return ch
 
@@ -379,19 +397,24 @@ async def robust_click(loc,timeout=10000):
         await loc.scroll_into_view_if_needed(timeout=3000)
         await asyncio.sleep(0.2)
         await loc.click(force=True,timeout=timeout)
+        logger.debug(f"点击成功 (force): {loc}")
         return True
     except:
         try:
             await loc.evaluate("el=>el.click()")
+            logger.debug(f"点击成功 (evaluate): {loc}")
             return True
-        except:
+        except Exception as e:
+            logger.debug(f"点击失败: {e}")
             return False
 
 async def wait_for_element(page,sel,timeout=30000):
     try:
         await page.wait_for_selector(sel,timeout=timeout)
+        logger.debug(f"元素出现: {sel}")
         return True
     except:
+        logger.debug(f"元素未出现: {sel}")
         return False
 
 @retry_async(max_retries=2,delay=1)
@@ -402,33 +425,49 @@ async def extract_one_ip(page,row,idx):
         addr=addr.strip()
         if not addr:return []
         logger.info(f"处理IP [{idx}]: {addr}")
-    except:return []
+    except Exception as ex:
+        logger.debug(f"获取IP地址失败: {ex}")
+        return []
     try:
         btn=row.locator("button:has(i.fa-list)").first
         if await btn.count()>0:
-            if not await robust_click(btn):await row.click()
-        else:await row.click()
+            if not await robust_click(btn):
+                await row.click()
+        else:
+            await row.click()
         await asyncio.sleep(DELAY_AFTER_CLICK)
-        if not await wait_for_element(page,".modal-dialog",5000):return []
+        if not await wait_for_element(page,".modal-dialog",5000):
+            logger.debug(f"IP {addr} 弹窗未出现")
+            return []
         items=page.locator(".modal-dialog .item-content")
         total=await items.count()
-        if total==0:return []
-        if MAX_CHANNELS_PER_IP>0:total=min(total,MAX_CHANNELS_PER_IP)
+        if total==0:
+            logger.debug(f"IP {addr} 弹窗内无频道项")
+            return []
+        if MAX_CHANNELS_PER_IP>0:
+            total=min(total,MAX_CHANNELS_PER_IP)
         for i in range(total):
             try:
                 n=await items.nth(i).locator(".item-title").inner_text(timeout=2000)
                 u=await items.nth(i).locator(".item-subtitle").inner_text(timeout=2000)
                 n,u=n.strip(),u.strip()
-                if not n or not u:continue
+                if not n or not u:
+                    continue
                 if not u.startswith(('http://','https://','rtsp://','rtmp://')):
                     u=DEFAULT_PROTOCOL+u
                 nn=normalize_cctv(n)
                 g=classify_channel(nn)
-                if not g:continue
+                if not g:
+                    logger.debug(f"频道 {n} 无法分类，跳过")
+                    continue
                 fn=nn if g=="央视频道" else (clean_chinese_only(n) if ENABLE_CHINESE_CLEAN else n)
                 e.append((g,fn,u))
-            except:continue
-    except:pass
+                logger.debug(f"IP {addr} 提取: 分组={g}, 名称={fn}, URL={u}")
+            except Exception as ex:
+                logger.debug(f"提取第{i}项失败: {ex}")
+                continue
+    except Exception as ex:
+        logger.debug(f"提取IP {addr} 过程异常: {ex}")
     return e
 
 async def wait_data(page):
@@ -508,11 +547,14 @@ async def main():
 
     # 加载GitHub源
     if ENABLE_GITHUB_SOURCES:
+        logger.info("开始下载GitHub源")
         for url in GITHUB_M3U_LINKS:
             txt = await download_github_m3u(url)
             if txt:
                 channels = parse_m3u_file(txt)
                 all_channels.extend(channels)
+                logger.debug(f"从 {url} 解析到 {len(channels)} 条")
+        logger.info(f"GitHub源共获取 {len(all_channels)} 条频道")
 
     # 打开浏览器爬取网站
     async with async_playwright() as p:
@@ -534,6 +576,8 @@ async def main():
                 if await eng.count()>0:
                     logger.info("点击引擎搜索")
                     await robust_click(eng)
+            else:
+                logger.debug("未找到引擎搜索按钮，跳过")
 
             # 根据配置点击对应标签
             if EXTRACT_MODE == "酒店提取":
@@ -543,14 +587,22 @@ async def main():
                 tab_sel = build_selector(PAGE_CONFIG["multicast"], "div.segment-item")
                 logger.info("点击网页按钮：【组播提取】")
 
-            tab = page.locator(tab_sel).first
-            await robust_click(tab)
+            if tab_sel:
+                tab = page.locator(tab_sel).first
+                await robust_click(tab)
+            else:
+                logger.error(f"未找到对应标签: {EXTRACT_MODE}")
+                return
 
             # 点击开始提取
             start_sel = build_selector(PAGE_CONFIG["start_button"], "button")
-            start_btn = page.locator(start_sel).first
-            logger.info("点击【开始提取】")
-            await robust_click(start_btn)
+            if start_sel:
+                start_btn = page.locator(start_sel).first
+                logger.info("点击【开始提取】")
+                await robust_click(start_btn)
+            else:
+                logger.error("未找到开始提取按钮")
+                return
 
             # 固定等待30秒
             logger.info(f"⏳ 等待 {AFTER_START_WAIT} 秒后开始提取数据...")
@@ -572,6 +624,7 @@ async def main():
                     entries = await extract_one_ip(page, rows.nth(i), i+1)
                     if entries:
                         web_channels.extend(entries)
+                        logger.debug(f"IP {i+1} 提取到 {len(entries)} 条")
                     if MAX_TOTAL_CHANNELS>0 and len(web_channels)>=MAX_TOTAL_CHANNELS:
                         web_channels = web_channels[:MAX_TOTAL_CHANNELS]
                         logger.info("已达频道上限，停止提取")
@@ -601,6 +654,7 @@ async def main():
         if key in seen: continue
         seen.add(key)
         channel_map[(g,n)].append(u)
+    logger.debug(f"去重后剩余 {len(channel_map)} 个频道组合，总链接数 {sum(len(v) for v in channel_map.values())}")
 
     # 测速
     if ENABLE_FFMPEG_TEST:
