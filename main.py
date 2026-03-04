@@ -4,8 +4,9 @@ IPTV 组播提取工具（配置版：酒店/组播 二选一）
 - 配置区直接选择 酒店提取 或 组播提取
 - 点击开始提取后等待30秒再提取数据
 - 支持流式测速（基于下载速度）、适配GitHub Actions
-- 【实时进度】每个链接测速结果实时输出，进度条立即更新
-- 【缓存兼容】自动处理旧格式缓存，避免KeyError
+- 【日志精简】仅显示进度条和最终统计，不输出每个链接的详细日志
+- 【取消预检】直接测速，不进行连通性预检
+- 【实时进度】进度条每5%立即更新
 """
 
 import asyncio
@@ -101,10 +102,10 @@ PAGE_CONFIG = {
     "start_button": ["开始播放", "开始搜索", "开始提取"],
 }
 
-# -------------------------- 12. 测速优化新增配置 ----------------------------
-ENABLE_URL_PRE_CHECK   = True    # 是否在测速前进行连通性预检（快速过滤无效链接）
-SKIP_INTERNAL_IP       = True    # 是否跳过内网IP（192.168.x.x, 10.x.x.x, 172.16-31.x.x 等）
-ENABLE_VERBOSE_LOGGING = False   # 是否输出详细DEBUG日志（测速时会输出更多信息）
+# -------------------------- 12. 其他配置（预检已禁用）-----------------------
+ENABLE_URL_PRE_CHECK   = False   # 已禁用，直接测速
+SKIP_INTERNAL_IP       = True    # 是否跳过内网IP
+ENABLE_VERBOSE_LOGGING = False   # 详细日志已关闭
 
 
 # ============================================================================
@@ -140,7 +141,7 @@ CCTV_ORDER = [
 # ============================================================================
 # ============================= 日志配置（北京时间） ===========================
 # ============================================================================
-log_level = logging.DEBUG if ENABLE_VERBOSE_LOGGING else logging.INFO
+log_level = logging.INFO  # 固定INFO级别，不输出DEBUG
 
 class BeijingFormatter(logging.Formatter):
     def formatTime(self, record, datefmt=None):
@@ -151,7 +152,6 @@ class BeijingFormatter(logging.Formatter):
         s = dt.strftime("%Y-%m-%d %H:%M:%S")
         return f"{s},{int(record.msecs):03d}"
 
-# 清除已有handler，重新设置
 logger = logging.getLogger('IPTV-Extractor')
 logger.setLevel(log_level)
 logger.handlers.clear()
@@ -163,9 +163,6 @@ stdout_h.setFormatter(formatter)
 file_h.setFormatter(formatter)
 logger.addHandler(stdout_h)
 logger.addHandler(file_h)
-
-if ENABLE_VERBOSE_LOGGING:
-    logger.debug("详细日志模式已开启，将输出大量调试信息")
 
 # ============================================================================
 # ========================= 工具函数 =========================================
@@ -222,10 +219,6 @@ def is_internal_ip(url: str) -> bool:
 CACHE_EXPIRE_SECONDS = CACHE_EXPIRE_HOURS * 3600
 
 def load_cache():
-    """
-    加载缓存文件，并自动将旧格式（直接存速度数值）转换为新格式字典。
-    如果文件不存在或损坏，返回空字典（仅记录DEBUG日志）。
-    """
     if not ENABLE_CACHE or not CACHE_FILE.exists():
         return {}
     try:
@@ -234,20 +227,16 @@ def load_cache():
         converted = {}
         now = time.time()
         for url, value in raw_cache.items():
-            # 兼容性处理：如果value是数字（旧格式），转换为新格式
             if isinstance(value, (int, float)):
                 converted[url] = {"speed": value, "timestamp": now}
             elif isinstance(value, dict) and "speed" in value:
-                # 已经是新格式，直接保留，但检查过期
                 if now - value.get("timestamp", 0) < CACHE_EXPIRE_SECONDS:
                     converted[url] = value
             else:
-                # 格式不识别，忽略该条目（后续会重新测速）
                 logger.debug(f"忽略无法识别的缓存项: {url}")
         logger.info(f"缓存加载完成，有效条目数: {len(converted)}")
         return converted
     except json.JSONDecodeError:
-        # 缓存文件损坏，重新创建
         logger.debug("缓存文件损坏或为空，将重新创建")
         return {}
     except Exception as e:
@@ -285,9 +274,6 @@ def retry_async(max_retries=2, delay=1.0, exceptions=(Exception,)):
     return decorator
 
 def print_progress_bar(current: int, total: int, success: int, failed: int, last_percent: int) -> int:
-    """
-    打印进度条，每5%或完成时输出一次，并立即刷新缓冲区。
-    """
     if total == 0:
         return 0
     percent_int = int((current / total) * 100)
@@ -297,15 +283,11 @@ def print_progress_bar(current: int, total: int, success: int, failed: int, last
         return last_percent
     bar = '█' * int(20 * current / total) + '░' * (20 - int(20 * current / total))
     logger.info(f"[{percent_int:3d}%] {bar} ({current}/{total}) | 成功:{success} | 失败:{failed}")
-    sys.stdout.flush()  # ✨ 关键：立即刷新输出缓冲区，实现实时显示
+    sys.stdout.flush()
     return percent_int
 
-# -------------------------- 基于aiohttp的流式测速 ----------------------------
 async def test_stream_speed(url: str) -> float:
-    """
-    异步测速：下载指定字节数，计算速度（KB/s）
-    返回速度，失败返回0
-    """
+    """异步测速：下载指定字节数，计算速度（KB/s），失败返回0"""
     try:
         start = time.time()
         async with aiohttp.ClientSession() as session:
@@ -313,120 +295,91 @@ async def test_stream_speed(url: str) -> float:
                 if resp.status != 200:
                     return 0.0
                 size = 0
-                async for chunk in resp.content.iter_chunked(64 * 1024):  # 64KB chunks
+                async for chunk in resp.content.iter_chunked(64 * 1024):
                     size += len(chunk)
                     if size >= STREAM_TEST_BYTES:
                         break
                 elapsed = time.time() - start
                 if elapsed == 0:
                     return 0.0
-                speed = size / elapsed / 1024  # KB/s
+                speed = size / elapsed / 1024
                 return round(speed, 2)
-    except Exception as e:
-        logger.debug(f"测速异常 {url}: {e}")
+    except Exception:
         return 0.0
 
 # ============================================================================
-# ========================= 测速主流程（实时进度优化版）=======================
+# ========================= 测速主流程（简化版）===============================
 # ============================================================================
 async def run_speed_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
     """
-    对频道映射中的链接进行测速筛选，返回每个频道有效链接列表（按速度降序，取前MAX_LINKS_PER_CHANNEL）
-    优化：将预检和测速合并为一个并发任务，每个链接处理结果实时输出，进度条实时更新。
+    对频道映射中的链接进行测速筛选，返回每个频道有效链接列表。
+    取消预检，直接测速；日志仅输出进度条。
     """
     if not channel_map:
         return {}
     cache = load_cache() if ENABLE_CACHE else {}
     new_cache = {}
-    result_map = defaultdict(list)   # (group, name) -> list of (url, speed)
+    result_map = defaultdict(list)
     total = sum(len(us) for us in channel_map.values())
     cached_ok = 0
-    pending = []                     # 待测列表 (group, name, url)
+    pending = []
 
-    # 1. 先检查缓存，跳过内网IP，构建待测列表（此时不进行预检）
+    # 1. 检查缓存，跳过内网IP
     for (g, n), us in channel_map.items():
         for u in us:
-            # 检查缓存
             cache_item = cache.get(u)
             if cache_item and isinstance(cache_item, dict) and "speed" in cache_item:
                 if is_cache_valid(cache_item.get("timestamp", 0)):
                     speed = cache_item["speed"]
                     if speed > MIN_SPEED_KB:
                         result_map[(g, n)].append((u, speed))
-                        logger.debug(f"缓存命中(有效): {g} - {n} | {u} speed={speed:.2f}")
-                    else:
-                        logger.debug(f"缓存命中(无效): {g} - {n} | {u}")
                     cached_ok += 1
-                    continue  # 缓存处理完毕，跳过后续
-
-            # 跳过内网IP
+                    continue
             if SKIP_INTERNAL_IP and is_internal_ip(u):
-                logger.debug(f"跳过内网IP: {g} - {n} | {u}")
                 continue
-
-            # 需要测速的链接加入待处理列表
             pending.append((g, n, u))
 
     logger.info(f"总链接:{total} 缓存有效:{cached_ok} 需测速:{len(pending)}")
     if not pending:
-        # 只有缓存数据，直接按速度排序返回
         final = {}
         for k, vs in result_map.items():
             vs.sort(key=lambda x: -x[1])
             final[k] = [u for u, _ in vs[:MAX_LINKS_PER_CHANNEL]]
         return final
 
-    # 2. 并发处理：每个任务先预检（若启用），再测速
+    # 2. 并发测速（无预检）
     sem = asyncio.Semaphore(SPEED_CONCURRENCY)
 
-    async def process_one(item):
+    async def test_one(item):
         g, n, u = item
         async with sem:
-            # 2.1 连通性预检（如果启用）
-            if ENABLE_URL_PRE_CHECK:
-                try:
-                    async with aiohttp.ClientSession() as session:
-                        async with session.head(u, timeout=5, allow_redirects=True) as resp:
-                            if resp.status != 200:
-                                logger.debug(f"预检失败: {g} - {n} | {u}")
-                                return g, n, u, 0.0
-                except Exception as e:
-                    logger.debug(f"预检异常: {g} - {n} | {u} - {e}")
-                    return g, n, u, 0.0
-
-            # 2.2 正式测速
             speed = await test_stream_speed(u)
             return g, n, u, speed
 
-    tasks = [process_one(i) for i in pending]
+    tasks = [test_one(i) for i in pending]
     c, ok, ng, lp = 0, 0, 0, -100
-    # 立即打印0%进度条
     print_progress_bar(0, len(tasks), ok, ng, lp)
 
-    # 3. 收集结果，实时更新进度，并打印每个链接的测速结果
     for coro in asyncio.as_completed(tasks):
         g, n, u, speed = await coro
         c += 1
-        # 实时输出每个链接的测速结果（即使失败也输出）
         if speed > MIN_SPEED_KB:
             ok += 1
             result_map[(g, n)].append((u, speed))
-            logger.info(f"✅ 测速成功: [{g}] {n} | {speed:.2f} KB/s | {u}")
             if ENABLE_CACHE:
                 new_cache[u] = {"speed": speed, "timestamp": time.time()}
         else:
             ng += 1
-            logger.info(f"❌ 测速失败: [{g}] {n} | {u} (速度={speed:.2f} KB/s 或不可达)")
             if ENABLE_CACHE:
                 new_cache[u] = {"speed": 0, "timestamp": time.time()}
         lp = print_progress_bar(c, len(tasks), ok, ng, lp)
 
-    # 4. 更新缓存
+    # 3. 更新缓存
     if ENABLE_CACHE and new_cache:
         cache.update(new_cache)
         save_cache(cache)
 
-    # 5. 按速度排序并截取每个频道的前N条
+    # 4. 排序并截取
     final = {}
     for k, vs in result_map.items():
         vs.sort(key=lambda x: -x[1])
@@ -472,7 +425,6 @@ def parse_m3u_file(content):
                 gr = classify_channel(nn) or g
                 fn = nn if gr == "央视频道" else (clean_chinese_only(n) if ENABLE_CHINESE_CLEAN else n)
                 ch.append((gr, fn, u))
-                logger.debug(f"GitHub解析: 分组={gr}, 名称={fn}, URL={u}")
             g = n = u = ""
     return ch
 
@@ -484,24 +436,19 @@ async def robust_click(loc, timeout=10000):
         await loc.scroll_into_view_if_needed(timeout=3000)
         await asyncio.sleep(0.2)
         await loc.click(force=True, timeout=timeout)
-        logger.debug(f"点击成功 (force): {loc}")
         return True
     except:
         try:
             await loc.evaluate("el=>el.click()")
-            logger.debug(f"点击成功 (evaluate): {loc}")
             return True
-        except Exception as e:
-            logger.debug(f"点击失败: {e}")
+        except:
             return False
 
 async def wait_for_element(page, sel, timeout=30000):
     try:
         await page.wait_for_selector(sel, timeout=timeout)
-        logger.debug(f"元素出现: {sel}")
         return True
     except:
-        logger.debug(f"元素未出现: {sel}")
         return False
 
 @retry_async(max_retries=2, delay=1)
@@ -513,8 +460,7 @@ async def extract_one_ip(page, row, idx):
         if not addr:
             return []
         logger.info(f"处理IP [{idx}]: {addr}")
-    except Exception as ex:
-        logger.debug(f"获取IP地址失败: {ex}")
+    except:
         return []
     try:
         btn = row.locator("button:has(i.fa-list)").first
@@ -525,12 +471,10 @@ async def extract_one_ip(page, row, idx):
             await row.click()
         await asyncio.sleep(DELAY_AFTER_CLICK)
         if not await wait_for_element(page, ".modal-dialog", 5000):
-            logger.debug(f"IP {addr} 弹窗未出现")
             return []
         items = page.locator(".modal-dialog .item-content")
         total = await items.count()
         if total == 0:
-            logger.debug(f"IP {addr} 弹窗内无频道项")
             return []
         if MAX_CHANNELS_PER_IP > 0:
             total = min(total, MAX_CHANNELS_PER_IP)
@@ -546,16 +490,13 @@ async def extract_one_ip(page, row, idx):
                 nn = normalize_cctv(n)
                 g = classify_channel(nn)
                 if not g:
-                    logger.debug(f"频道 {n} 无法分类，跳过")
                     continue
                 fn = nn if g == "央视频道" else (clean_chinese_only(n) if ENABLE_CHINESE_CLEAN else n)
                 e.append((g, fn, u))
-                logger.debug(f"IP {addr} 提取: 分组={g}, 名称={fn}, URL={u}")
-            except Exception as ex:
-                logger.debug(f"提取第{i}项失败: {ex}")
+            except:
                 continue
-    except Exception as ex:
-        logger.debug(f"提取IP {addr} 过程异常: {ex}")
+    except:
+        pass
     return e
 
 async def wait_data(page):
@@ -625,10 +566,9 @@ def export_results_with_timestamp(channel_map):
     logger.info(f"导出完成：{len(channel_map)} 个频道")
 
 # ============================================================================
-# ========================= 主流程（配置版二选一）=============================
+# ========================= 主流程 ===========================================
 # ============================================================================
 async def main():
-    # 校验配置模式
     if EXTRACT_MODE not in ["酒店提取", "组播提取"]:
         logger.error("配置错误！EXTRACT_MODE 只能填写：酒店提取 或 组播提取")
         return
@@ -636,7 +576,6 @@ async def main():
     logger.info(f"✅ 当前运行模式：【{EXTRACT_MODE}】")
     all_channels = []
 
-    # 加载GitHub源
     if ENABLE_GITHUB_SOURCES:
         for url in GITHUB_M3U_LINKS:
             txt = await download_github_m3u(url)
@@ -644,7 +583,6 @@ async def main():
                 channels = parse_m3u_file(txt)
                 all_channels.extend(channels)
 
-    # 打开浏览器爬取网站
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=HEADLESS,
@@ -657,7 +595,6 @@ async def main():
             logger.info(f"正在访问：{TARGET_URL}")
             await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT, wait_until="networkidle")
 
-            # 点击引擎搜索
             eng_sel = build_selector(PAGE_CONFIG["engine_search"], "a.sidebar-link,button,div.segment-item")
             if eng_sel:
                 eng = page.locator(eng_sel).first
@@ -665,7 +602,6 @@ async def main():
                     logger.info("点击引擎搜索")
                     await robust_click(eng)
 
-            # 根据配置点击对应标签
             if EXTRACT_MODE == "酒店提取":
                 tab_sel = build_selector(PAGE_CONFIG["hotel"], "div.segment-item")
                 logger.info("点击网页按钮：【酒店提取】")
@@ -676,17 +612,14 @@ async def main():
             tab = page.locator(tab_sel).first
             await robust_click(tab)
 
-            # 点击开始提取
             start_sel = build_selector(PAGE_CONFIG["start_button"], "button")
             start_btn = page.locator(start_sel).first
             logger.info("点击【开始提取】")
             await robust_click(start_btn)
 
-            # 固定等待30秒
             logger.info(f"⏳ 等待 {AFTER_START_WAIT} 秒后开始提取数据...")
             await asyncio.sleep(AFTER_START_WAIT)
 
-            # 提取数据
             if not await wait_data(page):
                 logger.error("❌ 网站爬取失败")
             else:
@@ -718,7 +651,6 @@ async def main():
             await ctx.close()
             await browser.close()
 
-    # 无数据退出
     if not all_channels:
         logger.error("❌ 未获取到任何频道")
         return
@@ -733,12 +665,10 @@ async def main():
         seen.add(key)
         channel_map[(g, n)].append(u)
 
-    # 测速
     if ENABLE_SPEED_TEST:
         logger.info("开始流式测速筛选")
         channel_map = await run_speed_test(channel_map)
 
-    # 导出
     export_results_with_timestamp(channel_map)
     logger.info("🎉 任务全部完成！")
 
