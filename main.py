@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-IPTV 组播提取工具（优化版）
-- 配置区选择 酒店提取 或 组播提取
-- 支持详细日志、连通性预检、内网IP过滤
-- 改进数据加载检测，适应页面变化
-- 测速参数优化，减少误判
+IPTV 组播提取工具（配置版：酒店/组播 二选一）
+- 配置区直接选择 酒店提取 或 组播提取
+- 点击开始提取后等待30秒再提取数据
+- 无重试、失败直接提示、支持FFmpeg测速、适配GitHub Actions
+- 【优化】测速部分：移除监控杀进程、增加连通性预检、过滤内网IP、延长超时
 """
 
 import asyncio
@@ -20,6 +20,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 import functools
+from urllib.parse import urlparse
 
 import aiohttp
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
@@ -38,7 +39,9 @@ MAX_TOTAL_CHANNELS     = 0                               # 总频道上限（0=�
 PAGE_LOAD_TIMEOUT      = 120000                          # 页面加载超时（毫秒）
 
 # -------------------------- 2. 提取模式选择【核心：二选一】------------------
-EXTRACT_MODE          = "酒店提取"      # "酒店提取" 或 "组播提取"
+# 请在这里直接选择，只能填一个：
+# "酒店提取"  或者  "组播提取"
+EXTRACT_MODE          = "酒店提取"
 
 # -------------------------- 3. 输出文件设置 --------------------------------
 OUTPUT_DIR            = Path(__file__).parent           # 输出目录（当前脚本目录）
@@ -51,8 +54,8 @@ ENABLE_FFMPEG_TEST    = True                            # 是否启用测速
 FFMPEG_PATH           = "ffmpeg"                        # FFmpeg 路径
 FFMPEG_TEST_DURATION  = 10                              # 每条链接测速时长（秒）
 FFMPEG_CONCURRENCY    = 10                              # 并发测速数量
-MIN_AVG_FPS           = 10.0                             # 最低有效平均帧率（临时放宽）
-MIN_FRAMES            = 50                               # 最低有效帧数（临时放宽）
+MIN_AVG_FPS           = 20.0                            # 最低有效平均帧率（可根据需要调低，如10.0）
+MIN_FRAMES            = 140                             # 最低有效帧数（建议与时长匹配，如20fps*10s=200）
 
 # -------------------------- 5. GitHub 源订阅设置 ---------------------------
 ENABLE_GITHUB_SOURCES = True                            # 是否启用GitHub源
@@ -67,13 +70,13 @@ GITHUB_M3U_LINKS = [
 DELAY_BETWEEN_IPS      = 0.5                             # 切换IP间隔（秒）
 DELAY_AFTER_CLICK      = 1.0                             # 点击弹窗等待（秒）
 MAX_CHANNELS_PER_IP    = 0                               # 单个IP最多提取频道数
-DATA_LOAD_TIMEOUT      = 300                             # 数据加载超时（秒）（增大到5分钟）
+DATA_LOAD_TIMEOUT      = 120                             # 数据加载超时（秒）
 AFTER_START_WAIT       = 30                              # 点击【开始提取】后等待秒数
 
 # -------------------------- 7. 数据清洗设置 --------------------------------
 ENABLE_CHINESE_CLEAN   = True                            # 清理非中文字符
 ENABLE_DEDUPLICATION   = True                            # 全局去重
-ENABLE_SCREENSHOTS     = True                            # 调试截图（开启便于分析）
+ENABLE_SCREENSHOTS     = False                           # 调试截图
 CCTV_USE_MAPPING       = True                            # CCTV映射中文名称
 
 # -------------------------- 8. 网络协议 ------------------------------------
@@ -96,12 +99,10 @@ PAGE_CONFIG = {
     "start_button": ["开始播放", "开始搜索", "开始提取"],
 }
 
-# -------------------------- 12. 详细日志开关 --------------------------------
-ENABLE_VERBOSE_LOGGING = True    # 是否输出详细日志（调试用，会打印大量信息）
-
-# -------------------------- 13. 高级功能开关 --------------------------------
+# -------------------------- 12. 测速优化新增配置 ----------------------------
 ENABLE_URL_PRE_CHECK   = True    # 是否在测速前进行连通性预检（快速过滤无效链接）
-SKIP_INTERNAL_IP       = True    # 是否跳过内网IP（192.168.x.x, 10.x.x.x, 172.16.x.x 等）
+SKIP_INTERNAL_IP       = True    # 是否跳过内网IP（192.168.x.x, 10.x.x.x, 172.16-31.x.x 等）
+ENABLE_VERBOSE_LOGGING = False   # 是否输出详细DEBUG日志（测速时会输出更多信息）
 
 
 # ============================================================================
@@ -188,12 +189,13 @@ def build_selector(text_list, element_type="button"):
 
 def is_internal_ip(url: str) -> bool:
     """判断URL是否指向内网IP"""
-    # 提取主机名
-    from urllib.parse import urlparse
-    host = urlparse(url).hostname
-    if not host:
+    try:
+        host = urlparse(url).hostname
+        if not host:
+            return False
+        return bool(INTERNAL_IP_PATTERN.match(host))
+    except:
         return False
-    return bool(INTERNAL_IP_PATTERN.match(host))
 
 # ============================================================================
 # ========================= 重试、进度、FFmpeg ================================
@@ -243,13 +245,14 @@ def parse_ffmpeg_output(output: str) -> Tuple[int, float]:
     avg_fps = float(fps_matches[-1]) if fps_matches else (frames/FFMPEG_TEST_DURATION if frames>0 else 0.0)
     return frames, avg_fps
 
+# -------------------------- 优化后的测速函数 --------------------------------
 async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
-    # 改进：增加rw_timeout到10秒，移除激进的监控杀进程
+    """优化版：移除了激进的监控杀进程，增加超时时间，输出详细日志"""
     cmd = [
         FFMPEG_PATH, "-hide_banner", "-y",
         "-fflags", "nobuffer+flush_packets",
         "-flags", "low_delay",
-        "-rw_timeout", "10000000",  # 10秒
+        "-rw_timeout", "10000000",  # 10秒 (原为3000000)
         "-i", url,
         "-t", str(FFMPEG_TEST_DURATION),
         "-vf", "fps=1",
@@ -263,19 +266,19 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
             proc.kill()
             await proc.wait()
             logger.debug(f"测速超时: {url}")
-            return {"ok":False,"fps":0.0,"frames":0}
+            return {"ok": False, "fps": 0.0, "frames": 0}
         finally:
             if proc.returncode is None:
                 proc.kill()
                 await proc.wait()
-        output = stderr.decode('utf-8','ignore')
+        output = stderr.decode('utf-8', 'ignore')
         frames, avg_fps = parse_ffmpeg_output(output)
         ok = frames >= MIN_FRAMES and avg_fps >= MIN_AVG_FPS
         logger.debug(f"测速结果: {url} -> 帧数={frames}, fps={avg_fps:.2f}, 通过={ok}")
-        return {"ok":ok,"fps":avg_fps,"frames":frames}
+        return {"ok": ok, "fps": avg_fps, "frames": frames}
     except Exception as e:
         logger.debug(f"测速异常: {url} - {e}")
-        return {"ok":False,"fps":0.0,"frames":0}
+        return {"ok": False, "fps": 0.0, "frames": 0}
 
 async def pre_check_url(url: str, timeout: int = 5) -> bool:
     """快速连通性预检，返回True表示可达"""
@@ -289,7 +292,9 @@ async def pre_check_url(url: str, timeout: int = 5) -> bool:
         return False
 
 async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
-    if not channel_map: return {}
+    """优化版：增加连通性预检、内网IP过滤、缓存逻辑"""
+    if not channel_map:
+        return {}
     cache = load_cache() if ENABLE_CACHE else {}
     new_cache = {}
     result_map = defaultdict(list)
@@ -297,66 +302,72 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     total = sum(len(us) for us in channel_map.values())
     cached_ok = 0
 
-    for (g,n),us in channel_map.items():
+    for (g, n), us in channel_map.items():
         for u in us:
             if u in cache and cache[u]["ok"]:
-                result_map[(g,n)].append((u,cache[u]["fps"]))
-                cached_ok +=1
+                result_map[(g, n)].append((u, cache[u]["fps"]))
+                cached_ok += 1
                 logger.debug(f"缓存命中(有效): {u}")
             else:
-                # 可选：先预检，只将可达的加入测速队列
+                # 跳过内网IP
+                if SKIP_INTERNAL_IP and is_internal_ip(u):
+                    logger.debug(f"跳过内网IP: {u}")
+                    continue
+                # 连通性预检
                 if ENABLE_URL_PRE_CHECK:
                     if await pre_check_url(u):
-                        pending.append((g,n,u))
+                        pending.append((g, n, u))
                     else:
                         logger.debug(f"预检不可达，跳过: {u}")
                 else:
-                    pending.append((g,n,u))
+                    pending.append((g, n, u))
 
     logger.info(f"总链接:{total} 缓存有效:{cached_ok} 需测速:{len(pending)}")
     if not pending:
-        return {k:[u for u,_ in sorted(v,key=lambda x:-x[1])[:MAX_LINKS_PER_CHANNEL]] for k,v in result_map.items()}
+        return {k: [u for u, _ in sorted(v, key=lambda x: -x[1])[:MAX_LINKS_PER_CHANNEL]] for k, v in result_map.items()}
 
     sem = asyncio.Semaphore(FFMPEG_CONCURRENCY)
+
     async def t(item):
-        g,n,u = item
+        g, n, u = item
         async with sem:
-            return g,n,u,await test_stream_with_ffmpeg(u)
+            return g, n, u, await test_stream_with_ffmpeg(u)
 
     tasks = [t(i) for i in pending]
-    c,ok,ng,lp = 0,0,0,-100
-    print_progress_bar(0,len(tasks),ok,ng,lp)
+    c, ok, ng, lp = 0, 0, 0, -100
+    print_progress_bar(0, len(tasks), ok, ng, lp)
     for coro in asyncio.as_completed(tasks):
-        g,n,u,res = await coro
-        c +=1
+        g, n, u, res = await coro
+        c += 1
         if ENABLE_CACHE:
-            new_cache[u] = {"ok":res["ok"],"fps":res["fps"],"frames":res["frames"],"timestamp":time.time()}
+            new_cache[u] = {"ok": res["ok"], "fps": res["fps"], "frames": res["frames"], "timestamp": time.time()}
         if res["ok"]:
-            ok +=1
-            result_map[(g,n)].append((u,res["fps"]))
+            ok += 1
+            result_map[(g, n)].append((u, res["fps"]))
         else:
-            ng +=1
-        lp = print_progress_bar(c,len(tasks),ok,ng,lp)
+            ng += 1
+        lp = print_progress_bar(c, len(tasks), ok, ng, lp)
 
     if ENABLE_CACHE and new_cache:
         cache.update(new_cache)
         save_cache(cache)
 
     final = {}
-    for k,vs in result_map.items():
-        vs.sort(key=lambda x:-x[1])
-        final[k] = [u for u,_ in vs[:MAX_LINKS_PER_CHANNEL]]
+    for k, vs in result_map.items():
+        vs.sort(key=lambda x: -x[1])
+        final[k] = [u for u, _ in vs[:MAX_LINKS_PER_CHANNEL]]
     logger.debug(f"测速完成，共 {len(final)} 个频道通过")
     return final
 
 def load_cache():
-    if not ENABLE_CACHE or not CACHE_FILE.exists(): return {}
+    if not ENABLE_CACHE or not CACHE_FILE.exists():
+        return {}
     try:
-        with open(CACHE_FILE,'r',encoding='utf-8') as f:
+        with open(CACHE_FILE, 'r', encoding='utf-8') as f:
             c = json.load(f)
         now = time.time()
-        exp = CACHE_EXPIRE_HOURS*3600
-        v = {u:d for u,d in c.items() if exp==0 or now-d.get("timestamp",0)<exp}
+        exp = CACHE_EXPIRE_HOURS * 3600
+        v = {u: d for u, d in c.items() if exp == 0 or now - d.get("timestamp", 0) < exp}
         logger.info(f"缓存有效:{len(v)}")
         return v
     except Exception as e:
@@ -364,23 +375,24 @@ def load_cache():
         return {}
 
 def save_cache(cache):
-    if not ENABLE_CACHE: return
+    if not ENABLE_CACHE:
+        return
     try:
-        with open(CACHE_FILE,'w',encoding='utf-8') as f:
-            json.dump(cache,f,ensure_ascii=False,indent=2)
+        with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(cache, f, ensure_ascii=False, indent=2)
     except Exception as e:
         logger.debug(f"保存缓存失败: {e}")
 
 # ============================================================================
 # ========================= GitHub M3U 解析 ==================================
 # ============================================================================
-@retry_async(max_retries=3,delay=2)
+@retry_async(max_retries=3, delay=2)
 async def download_github_m3u(url):
     try:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as s:
-            async with s.get(url,headers={'User-Agent':'Mozilla/5.0'}) as r:
-                if r.status==200:
-                    t=await r.text()
+            async with s.get(url, headers={'User-Agent': 'Mozilla/5.0'}) as r:
+                if r.status == 200:
+                    t = await r.text()
                     logger.info(f"下载成功 {url}")
                     return t
     except Exception as e:
@@ -389,35 +401,37 @@ async def download_github_m3u(url):
 
 def parse_m3u_file(content):
     ch = []
-    g=n=u=""
+    g = n = u = ""
     for l in content.splitlines():
         l = l.strip()
         if l.startswith("#EXTINF"):
-            m = re.search(r'#EXTINF:-1.*?group-title="([^"]+)",(.+)',l)
+            m = re.search(r'#EXTINF:-1.*?group-title="([^"]+)",(.+)', l)
             if m:
-                g=m.group(1);n=m.group(2)
+                g = m.group(1)
+                n = m.group(2)
             else:
-                m=re.search(r'#EXTINF:-1.*?,(.+)',l)
-                if m:n=m.group(1)
+                m = re.search(r'#EXTINF:-1.*?,(.+)', l)
+                if m:
+                    n = m.group(1)
         elif l.startswith("http"):
-            u=l.split("?")[0]
+            u = l.split("?")[0]
             if n and u:
-                nn=normalize_cctv(n)
-                gr=classify_channel(nn) or g
-                fn=nn if gr=="央视频道" else (clean_chinese_only(n) if ENABLE_CHINESE_CLEAN else n)
-                ch.append((gr,fn,u))
+                nn = normalize_cctv(n)
+                gr = classify_channel(nn) or g
+                fn = nn if gr == "央视频道" else (clean_chinese_only(n) if ENABLE_CHINESE_CLEAN else n)
+                ch.append((gr, fn, u))
                 logger.debug(f"GitHub解析: 分组={gr}, 名称={fn}, URL={u}")
-            g=n=u=""
+            g = n = u = ""
     return ch
 
 # ============================================================================
 # ========================= 页面点击与提取 ===================================
 # ============================================================================
-async def robust_click(loc,timeout=10000):
+async def robust_click(loc, timeout=10000):
     try:
         await loc.scroll_into_view_if_needed(timeout=3000)
         await asyncio.sleep(0.2)
-        await loc.click(force=True,timeout=timeout)
+        await loc.click(force=True, timeout=timeout)
         logger.debug(f"点击成功 (force): {loc}")
         return True
     except:
@@ -429,64 +443,61 @@ async def robust_click(loc,timeout=10000):
             logger.debug(f"点击失败: {e}")
             return False
 
-async def wait_for_element(page,sel,timeout=30000):
+async def wait_for_element(page, sel, timeout=30000):
     try:
-        await page.wait_for_selector(sel,timeout=timeout)
+        await page.wait_for_selector(sel, timeout=timeout)
         logger.debug(f"元素出现: {sel}")
         return True
     except:
         logger.debug(f"元素未出现: {sel}")
         return False
 
-@retry_async(max_retries=2,delay=1)
-async def extract_one_ip(page,row,idx):
-    e=[]
+@retry_async(max_retries=2, delay=1)
+async def extract_one_ip(page, row, idx):
+    e = []
     try:
         addr = await row.locator("div.item-title").first.inner_text(timeout=3000)
-        addr=addr.strip()
-        if not addr:return []
+        addr = addr.strip()
+        if not addr:
+            return []
         logger.info(f"处理IP [{idx}]: {addr}")
     except Exception as ex:
         logger.debug(f"获取IP地址失败: {ex}")
         return []
     try:
-        btn=row.locator("button:has(i.fa-list)").first
-        if await btn.count()>0:
+        btn = row.locator("button:has(i.fa-list)").first
+        if await btn.count() > 0:
             if not await robust_click(btn):
                 await row.click()
         else:
             await row.click()
         await asyncio.sleep(DELAY_AFTER_CLICK)
-        if not await wait_for_element(page,".modal-dialog",5000):
+        if not await wait_for_element(page, ".modal-dialog", 5000):
             logger.debug(f"IP {addr} 弹窗未出现")
             return []
-        items=page.locator(".modal-dialog .item-content")
-        total=await items.count()
-        if total==0:
+        items = page.locator(".modal-dialog .item-content")
+        total = await items.count()
+        if total == 0:
             logger.debug(f"IP {addr} 弹窗内无频道项")
             return []
-        if MAX_CHANNELS_PER_IP>0:
-            total=min(total,MAX_CHANNELS_PER_IP)
+        if MAX_CHANNELS_PER_IP > 0:
+            total = min(total, MAX_CHANNELS_PER_IP)
         for i in range(total):
             try:
-                n=await items.nth(i).locator(".item-title").inner_text(timeout=2000)
-                u=await items.nth(i).locator(".item-subtitle").inner_text(timeout=2000)
-                n,u=n.strip(),u.strip()
+                n = await items.nth(i).locator(".item-title").inner_text(timeout=2000)
+                u = await items.nth(i).locator(".item-subtitle").inner_text(timeout=2000)
+                n, u = n.strip(), u.strip()
                 if not n or not u:
                     continue
-                if not u.startswith(('http://','https://','rtsp://','rtmp://')):
-                    u=DEFAULT_PROTOCOL+u
-                # 过滤内网IP
-                if SKIP_INTERNAL_IP and is_internal_ip(u):
-                    logger.debug(f"跳过内网IP: {u}")
-                    continue
-                nn=normalize_cctv(n)
-                g=classify_channel(nn)
+                if not u.startswith(('http://', 'https://', 'rtsp://', 'rtmp://')):
+                    u = DEFAULT_PROTOCOL + u
+                nn = normalize_cctv(n)
+                g = classify_channel(nn)
                 if not g:
                     logger.debug(f"频道 {n} 无法分类，跳过")
                     continue
-                fn=nn if g=="央视频道" else (clean_chinese_only(n) if ENABLE_CHINESE_CLEAN else n)
-                e.append((g,fn,u))
+                fn = nn if g == "央视频道" else (clean_chinese_only(n) if ENABLE_CHINESE_CLEAN else n)
+                e.append((g, fn, u))
                 logger.debug(f"IP {addr} 提取: 分组={g}, 名称={fn}, URL={u}")
             except Exception as ex:
                 logger.debug(f"提取第{i}项失败: {ex}")
@@ -496,69 +507,18 @@ async def extract_one_ip(page,row,idx):
     return e
 
 async def wait_data(page):
-    """改进版数据等待：多选择器、滚动、宽松判断"""
     logger.info("等待数据加载...")
-    start_time = time.time()
-
-    # 尝试多个可能的选择器
-    selectors = [
-        "div.ios-list-item",
-        ".list-item",
-        ".channel-item",
-        "div[class*='list'] div[class*='item']",
-        ".item-content",
-        "div.item",
-        ".media-item",
-        "li.media"
-    ]
-
-    # 先滚动一下，激活懒加载
-    await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-    await asyncio.sleep(2)
-
-    while time.time() - start_time < DATA_LOAD_TIMEOUT:
-        # 每5秒检查一次
-        await asyncio.sleep(5)
-
-        # 滚动到底部，触发懒加载
-        await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-
-        # 输出当前页面文本片段（调试用）
-        if ENABLE_VERBOSE_LOGGING:
-            text_snippet = await page.evaluate('document.body.innerText.slice(0,300)')
-            logger.debug(f"页面文本片段: {text_snippet}")
-
-        # 遍历选择器，查找有效列表项
-        for selector in selectors:
-            try:
-                count = await page.locator(selector).count()
-                if count > 0:
-                    # 获取第一个项的文字，判断是否包含频道信息
-                    first_text = await page.locator(selector).first.inner_text(timeout=2000)
-                    # 只要包含常见频道关键词或非空即认为有效
-                    if any(key in first_text for key in ["频道", "CCTV", "卫视", "中央", "湖南", "浙江"]) or len(first_text.strip()) > 5:
-                        logger.info(f"数据加载成功，选择器: {selector}，共 {count} 项，样例: {first_text[:50]}")
-                        return True
-                    else:
-                        logger.debug(f"选择器 {selector} 有 {count} 项，但内容可能无关: {first_text[:50]}")
-            except Exception as e:
-                logger.debug(f"选择器 {selector} 检查异常: {e}")
-                continue
-
-        logger.debug(f"仍未检测到有效数据，已等待 {int(time.time()-start_time)} 秒")
-
-    # 超时后截图保存现场
-    if ENABLE_SCREENSHOTS:
-        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        screenshot_path = OUTPUT_DIR / f"timeout_{timestamp}.png"
-        await page.screenshot(path=screenshot_path)
-        logger.info(f"超时截图已保存: {screenshot_path}")
-
-        html_path = OUTPUT_DIR / f"timeout_{timestamp}.html"
-        with open(html_path, "w", encoding="utf-8") as f:
-            f.write(await page.content())
-        logger.info(f"超时HTML已保存: {html_path}")
-
+    for _ in range(DATA_LOAD_TIMEOUT // 30 + 1):
+        await asyncio.sleep(30)
+        ok = await page.evaluate('''()=>{
+            for(let i of document.querySelectorAll('div.ios-list-item')){
+                let s=i.querySelector('.item-subtitle')?.innerText||'';
+                if(s.includes('频道:'))return true;
+            }return false;
+        }''')
+        if ok:
+            logger.info("数据加载完成")
+            return True
     logger.error("数据加载超时，爬取失败")
     return False
 
@@ -567,41 +527,44 @@ async def wait_data(page):
 # ============================================================================
 def export_results_with_timestamp(channel_map):
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    gu=UPDATE_STREAM_URL
-    g=defaultdict(list)
-    for (gr,n),us in channel_map.items():
-        for u in us:g[gr].append((n,u))
-    with open(OUTPUT_M3U_FILENAME,'w',encoding='utf-8') as f:
+    gu = UPDATE_STREAM_URL
+    g = defaultdict(list)
+    for (gr, n), us in channel_map.items():
+        for u in us:
+            g[gr].append((n, u))
+    with open(OUTPUT_M3U_FILENAME, 'w', encoding='utf-8') as f:
         f.write("#EXTM3U\n")
         if TIME_DISPLAY_AT_TOP:
             f.write(f'#EXTINF:-1 tvg-name="更新" group-title="更新时间",{now}\n{gu}\n\n')
         for gro in GROUP_ORDER:
-            if gro not in g:continue
-            chs=g[gro]
-            if gro=="央视频道":
-                d={n:u for n,u in chs}
-                chs=[(n,d[n]) for n in CCTV_ORDER if n in d]
+            if gro not in g:
+                continue
+            chs = g[gro]
+            if gro == "央视频道":
+                d = {n: u for n, u in chs}
+                chs = [(n, d[n]) for n in CCTV_ORDER if n in d]
             else:
-                chs=sorted(chs,key=lambda x:x[0])
-            for n,u in chs:
+                chs = sorted(chs, key=lambda x: x[0])
+            for n, u in chs:
                 f.write(f'#EXTINF:-1 group-title="{gro}",{n}\n{u}\n')
             f.write("\n")
         if not TIME_DISPLAY_AT_TOP:
             f.write(f'#EXTINF:-1 group-title="更新时间",{now}\n{gu}\n')
-    with open(OUTPUT_TXT_FILENAME,'w',encoding='utf-8') as f:
+    with open(OUTPUT_TXT_FILENAME, 'w', encoding='utf-8') as f:
         if TIME_DISPLAY_AT_TOP:
             f.write("更新时间,#genre#\n")
             f.write(f"{now},{gu}\n\n")
         for gro in GROUP_ORDER:
-            if gro not in g:continue
+            if gro not in g:
+                continue
             f.write(f"{gro},#genre#\n")
-            chs=g[gro]
-            if gro=="央视频道":
-                d={n:u for n,u in chs}
-                chs=[(n,d[n]) for n in CCTV_ORDER if n in d]
+            chs = g[gro]
+            if gro == "央视频道":
+                d = {n: u for n, u in chs}
+                chs = [(n, d[n]) for n in CCTV_ORDER if n in d]
             else:
-                chs=sorted(chs,key=lambda x:x[0])
-            for n,u in chs:
+                chs = sorted(chs, key=lambda x: x[0])
+            for n, u in chs:
                 f.write(f"{n},{u}\n")
             f.write("\n")
         if not TIME_DISPLAY_AT_TOP:
@@ -610,7 +573,7 @@ def export_results_with_timestamp(channel_map):
     logger.info(f"导出完成：{len(channel_map)} 个频道")
 
 # ============================================================================
-# ========================= 主流程 ===========================================
+# ========================= 主流程（配置版二选一）=============================
 # ============================================================================
 async def main():
     # 校验配置模式
@@ -623,42 +586,32 @@ async def main():
 
     # 加载GitHub源
     if ENABLE_GITHUB_SOURCES:
-        logger.info("开始下载GitHub源")
         for url in GITHUB_M3U_LINKS:
             txt = await download_github_m3u(url)
             if txt:
                 channels = parse_m3u_file(txt)
                 all_channels.extend(channels)
-                logger.debug(f"从 {url} 解析到 {len(channels)} 条")
-        logger.info(f"GitHub源共获取 {len(all_channels)} 条频道")
 
     # 打开浏览器爬取网站
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=HEADLESS,
-            args=["--no-sandbox","--disable-setuid-sandbox","--disable-dev-shm-usage","--disable-gpu","--single-process"]
+            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--single-process"]
         )
-        ctx = await browser.new_context(viewport={"width":1920,"height":1080})
+        ctx = await browser.new_context(viewport={"width": 1920, "height": 1080})
         page = await ctx.new_page()
 
         try:
             logger.info(f"正在访问：{TARGET_URL}")
             await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT, wait_until="networkidle")
 
-            # 输出当前页面标题和URL
-            title = await page.title()
-            logger.info(f"当前页面标题: {title}")
-            logger.info(f"当前URL: {page.url}")
-
             # 点击引擎搜索
             eng_sel = build_selector(PAGE_CONFIG["engine_search"], "a.sidebar-link,button,div.segment-item")
             if eng_sel:
                 eng = page.locator(eng_sel).first
-                if await eng.count()>0:
+                if await eng.count() > 0:
                     logger.info("点击引擎搜索")
                     await robust_click(eng)
-            else:
-                logger.debug("未找到引擎搜索按钮，跳过")
 
             # 根据配置点击对应标签
             if EXTRACT_MODE == "酒店提取":
@@ -668,32 +621,14 @@ async def main():
                 tab_sel = build_selector(PAGE_CONFIG["multicast"], "div.segment-item")
                 logger.info("点击网页按钮：【组播提取】")
 
-            if tab_sel:
-                tab = page.locator(tab_sel).first
-                await robust_click(tab)
-            else:
-                logger.error(f"未找到对应标签: {EXTRACT_MODE}")
-                return
+            tab = page.locator(tab_sel).first
+            await robust_click(tab)
 
             # 点击开始提取
             start_sel = build_selector(PAGE_CONFIG["start_button"], "button")
-            if start_sel:
-                start_btn = page.locator(start_sel).first
-                logger.info("点击【开始提取】")
-                await robust_click(start_btn)
-
-                # 处理可能出现的确认弹窗
-                try:
-                    confirm_btn = page.locator("button:has-text('确定'), button:has-text('确认')").first
-                    if await confirm_btn.count() > 0:
-                        logger.info("检测到确认弹窗，点击确定")
-                        await confirm_btn.click()
-                        await asyncio.sleep(2)
-                except:
-                    pass
-            else:
-                logger.error("未找到开始提取按钮")
-                return
+            start_btn = page.locator(start_sel).first
+            logger.info("点击【开始提取】")
+            await robust_click(start_btn)
 
             # 固定等待30秒
             logger.info(f"⏳ 等待 {AFTER_START_WAIT} 秒后开始提取数据...")
@@ -707,16 +642,15 @@ async def main():
                     has=page.locator("div.item-subtitle:has-text('频道:')")
                 )
                 total_rows = await rows.count()
-                process_count = min(total_rows, MAX_IPS) if MAX_IPS>0 else total_rows
+                process_count = min(total_rows, MAX_IPS) if MAX_IPS > 0 else total_rows
                 logger.info(f"准备处理前 {process_count} 个IP")
 
                 web_channels = []
                 for i in range(process_count):
-                    entries = await extract_one_ip(page, rows.nth(i), i+1)
+                    entries = await extract_one_ip(page, rows.nth(i), i + 1)
                     if entries:
                         web_channels.extend(entries)
-                        logger.debug(f"IP {i+1} 提取到 {len(entries)} 条")
-                    if MAX_TOTAL_CHANNELS>0 and len(web_channels)>=MAX_TOTAL_CHANNELS:
+                    if MAX_TOTAL_CHANNELS > 0 and len(web_channels) >= MAX_TOTAL_CHANNELS:
                         web_channels = web_channels[:MAX_TOTAL_CHANNELS]
                         logger.info("已达频道上限，停止提取")
                         break
@@ -740,12 +674,12 @@ async def main():
     # 去重
     channel_map = defaultdict(list)
     seen = set()
-    for g,n,u in all_channels:
-        key = (g,n,u)
-        if key in seen: continue
+    for g, n, u in all_channels:
+        key = (g, n, u)
+        if key in seen:
+            continue
         seen.add(key)
-        channel_map[(g,n)].append(u)
-    logger.debug(f"去重后剩余 {len(channel_map)} 个频道组合，总链接数 {sum(len(v) for v in channel_map.values())}")
+        channel_map[(g, n)].append(u)
 
     # 测速
     if ENABLE_FFMPEG_TEST:
