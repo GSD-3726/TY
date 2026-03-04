@@ -1058,3 +1058,19 @@ navigating to "https://iptv.809899.xyz/", waiting until "networkidle"
 2026-03-03 02:26:44,079 - INFO - [100%] ████████████████████ (2520/2520) | 成功:0 | 失败:2520
 2026-03-03 02:26:44,098 - INFO - 导出完成：0 个频道
 2026-03-03 02:26:44,099 - INFO - 🎉 任务全部完成！
+2026-03-04 01:17:36,626 - DEBUG - 详细日志模式已开启，将输出大量调试信息
+2026-03-04 01:17:36,629 - INFO - 找到FFmpeg: ffmpeg
+2026-03-04 01:17:36,629 - DEBUG - Using selector: EpollSelector
+2026-03-04 01:17:36,630 - INFO - ✅ 当前运行模式：【酒店提取】
+2026-03-04 01:17:37,507 - INFO - 正在访问：https://iptv.809899.xyz
+2026-03-04 01:17:41,215 - INFO - 点击引擎搜索
+2026-03-04 01:17:41,486 - DEBUG - 点击成功 (force): <Locator frame=<Frame name= url='https://iptv.809899.xyz/'> selector="a.sidebar-link,button,div.segment-item:text-matches('引索搜索|引擎搜索|关键词搜索') >> nth=0">
+2026-03-04 01:17:41,486 - INFO - 点击网页按钮：【酒店提取】
+2026-03-04 01:17:44,501 - DEBUG - 点击成功 (evaluate): <Locator frame=<Frame name= url='https://iptv.809899.xyz/'> selector="div.segment-item:has-text('酒店提取') >> nth=0">
+2026-03-04 01:17:44,501 - INFO - 点击【开始提取】
+2026-03-04 01:17:47,516 - DEBUG - 点击成功 (evaluate): <Locator frame=<Frame name= url='https://iptv.809899.xyz/'> selector="button:text-matches('开始播放|开始搜索|开始提取') >> nth=0">
+2026-03-04 01:17:47,516 - INFO - ⏳ 等待 30 秒后开始提取数据...
+2026-03-04 01:18:17,530 - INFO - 等待数据加载...
+2026-03-04 01:19:47,574 - ERROR - 数据加载超时，爬取失败
+2026-03-04 01:19:47,574 - ERROR - ❌ 网站爬取失败
+2026-03-04 01:19:47,618 - ERROR - ❌ 未获取到任何频道
