@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+"""
+IPTV 组播提取工具（配置版：酒店/组播 二选一）
+- 配置区直接选择 酒店提取 或 组播提取
+- 点击开始提取后等待30秒再提取数据
+- 支持流式测速（基于下载速度）、适配GitHub Actions
+- 【实时进度】每个链接测速结果实时输出，进度条立即更新
+- 【缓存兼容】自动处理旧格式缓存，避免KeyError
+"""
+
 import asyncio
 import json
 import logging
@@ -26,7 +35,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 TARGET_URL            = "https://iptv.809899.xyz"       # 目标网站地址
 HEADLESS              = True                            # 无头模式（GitHub运行必须True）
 BROWSER_TYPE          = "chromium"                      # 浏览器内核
-MAX_IPS               = 1                              # 最多处理多少个IP
+MAX_IPS               = 5                              # 最多处理多少个IP
 MAX_TOTAL_CHANNELS     = 0                               # 总频道上限（0=不限制）
 PAGE_LOAD_TIMEOUT      = 120000                          # 页面加载超时（毫秒）
 
@@ -215,7 +224,7 @@ CACHE_EXPIRE_SECONDS = CACHE_EXPIRE_HOURS * 3600
 def load_cache():
     """
     加载缓存文件，并自动将旧格式（直接存速度数值）转换为新格式字典。
-    如果项不是字典或缺少'speed'键，则忽略该项（重新测速）。
+    如果文件不存在或损坏，返回空字典（仅记录DEBUG日志）。
     """
     if not ENABLE_CACHE or not CACHE_FILE.exists():
         return {}
@@ -237,8 +246,12 @@ def load_cache():
                 logger.debug(f"忽略无法识别的缓存项: {url}")
         logger.info(f"缓存加载完成，有效条目数: {len(converted)}")
         return converted
+    except json.JSONDecodeError:
+        # 缓存文件损坏，重新创建
+        logger.debug("缓存文件损坏或为空，将重新创建")
+        return {}
     except Exception as e:
-        logger.warning(f"加载缓存失败，将重新创建缓存: {e}")
+        logger.debug(f"加载缓存异常: {e}，将重新创建")
         return {}
 
 def save_cache(cache):
@@ -313,64 +326,46 @@ async def test_stream_speed(url: str) -> float:
         logger.debug(f"测速异常 {url}: {e}")
         return 0.0
 
-async def pre_check_url(url: str, timeout: int = 5) -> bool:
-    """快速连通性预检，返回True表示可达"""
-    if not ENABLE_URL_PRE_CHECK:
-        return True
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.head(url, timeout=timeout, allow_redirects=True) as resp:
-                return resp.status == 200
-    except:
-        return False
-
 # ============================================================================
-# ========================= 测速主流程 ========================================
+# ========================= 测速主流程（实时进度优化版）=======================
 # ============================================================================
 async def run_speed_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
     """
     对频道映射中的链接进行测速筛选，返回每个频道有效链接列表（按速度降序，取前MAX_LINKS_PER_CHANNEL）
+    优化：将预检和测速合并为一个并发任务，每个链接处理结果实时输出，进度条实时更新。
     """
     if not channel_map:
         return {}
     cache = load_cache() if ENABLE_CACHE else {}
     new_cache = {}
     result_map = defaultdict(list)   # (group, name) -> list of (url, speed)
-    pending = []                     # 待测列表 (group, name, url)
     total = sum(len(us) for us in channel_map.values())
     cached_ok = 0
+    pending = []                     # 待测列表 (group, name, url)
 
-    # 遍历所有频道和链接，检查缓存和过滤
+    # 1. 先检查缓存，跳过内网IP，构建待测列表（此时不进行预检）
     for (g, n), us in channel_map.items():
         for u in us:
-            # 检查缓存（确保缓存项为有效格式）
+            # 检查缓存
             cache_item = cache.get(u)
             if cache_item and isinstance(cache_item, dict) and "speed" in cache_item:
-                timestamp = cache_item.get("timestamp", 0)
-                if is_cache_valid(timestamp):
+                if is_cache_valid(cache_item.get("timestamp", 0)):
                     speed = cache_item["speed"]
                     if speed > MIN_SPEED_KB:
                         result_map[(g, n)].append((u, speed))
-                        cached_ok += 1
-                        logger.debug(f"缓存命中(有效): {u} speed={speed:.2f}")
+                        logger.debug(f"缓存命中(有效): {g} - {n} | {u} speed={speed:.2f}")
                     else:
-                        logger.debug(f"缓存命中(无效): {u}")
-                    continue  # 无论有效无效，缓存已处理，跳过后续
+                        logger.debug(f"缓存命中(无效): {g} - {n} | {u}")
+                    cached_ok += 1
+                    continue  # 缓存处理完毕，跳过后续
 
-            # 无缓存或缓存无效/过期，准备测速
             # 跳过内网IP
             if SKIP_INTERNAL_IP and is_internal_ip(u):
-                logger.debug(f"跳过内网IP: {u}")
+                logger.debug(f"跳过内网IP: {g} - {n} | {u}")
                 continue
 
-            # 连通性预检
-            if ENABLE_URL_PRE_CHECK:
-                if await pre_check_url(u):
-                    pending.append((g, n, u))
-                else:
-                    logger.debug(f"预检不可达，跳过: {u}")
-            else:
-                pending.append((g, n, u))
+            # 需要测速的链接加入待处理列表
+            pending.append((g, n, u))
 
     logger.info(f"总链接:{total} 缓存有效:{cached_ok} 需测速:{len(pending)}")
     if not pending:
@@ -381,45 +376,63 @@ async def run_speed_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[
             final[k] = [u for u, _ in vs[:MAX_LINKS_PER_CHANNEL]]
         return final
 
-    # 并发测速
+    # 2. 并发处理：每个任务先预检（若启用），再测速
     sem = asyncio.Semaphore(SPEED_CONCURRENCY)
 
-    async def test_one(item):
+    async def process_one(item):
         g, n, u = item
         async with sem:
+            # 2.1 连通性预检（如果启用）
+            if ENABLE_URL_PRE_CHECK:
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.head(u, timeout=5, allow_redirects=True) as resp:
+                            if resp.status != 200:
+                                logger.debug(f"预检失败: {g} - {n} | {u}")
+                                return g, n, u, 0.0
+                except Exception as e:
+                    logger.debug(f"预检异常: {g} - {n} | {u} - {e}")
+                    return g, n, u, 0.0
+
+            # 2.2 正式测速
             speed = await test_stream_speed(u)
             return g, n, u, speed
 
-    tasks = [test_one(i) for i in pending]
+    tasks = [process_one(i) for i in pending]
     c, ok, ng, lp = 0, 0, 0, -100
+    # 立即打印0%进度条
     print_progress_bar(0, len(tasks), ok, ng, lp)
 
+    # 3. 收集结果，实时更新进度，并打印每个链接的测速结果
     for coro in asyncio.as_completed(tasks):
         g, n, u, speed = await coro
         c += 1
+        # 实时输出每个链接的测速结果（即使失败也输出）
         if speed > MIN_SPEED_KB:
             ok += 1
             result_map[(g, n)].append((u, speed))
+            logger.info(f"✅ 测速成功: [{g}] {n} | {speed:.2f} KB/s | {u}")
             if ENABLE_CACHE:
                 new_cache[u] = {"speed": speed, "timestamp": time.time()}
         else:
             ng += 1
+            logger.info(f"❌ 测速失败: [{g}] {n} | {u} (速度={speed:.2f} KB/s 或不可达)")
             if ENABLE_CACHE:
-                new_cache[u] = {"speed": 0, "timestamp": time.time()}  # 记录无效结果，避免重复测速
+                new_cache[u] = {"speed": 0, "timestamp": time.time()}
         lp = print_progress_bar(c, len(tasks), ok, ng, lp)
 
-    # 更新缓存
+    # 4. 更新缓存
     if ENABLE_CACHE and new_cache:
         cache.update(new_cache)
         save_cache(cache)
 
-    # 对每个频道按速度排序并截取
+    # 5. 按速度排序并截取每个频道的前N条
     final = {}
     for k, vs in result_map.items():
         vs.sort(key=lambda x: -x[1])
         final[k] = [u for u, _ in vs[:MAX_LINKS_PER_CHANNEL]]
 
-    logger.debug(f"测速完成，共 {len(final)} 个频道通过")
+    logger.info(f"测速完成，共 {len(final)} 个频道通过筛选")
     return final
 
 # ============================================================================
