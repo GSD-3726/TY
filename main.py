@@ -41,8 +41,8 @@ OUTPUT_M3U_FILENAME   = OUTPUT_DIR / "iptv_channels.m3u"
 OUTPUT_TXT_FILENAME   = OUTPUT_DIR / "iptv_channels.txt"
 MAX_LINKS_PER_CHANNEL = 5                               # 每个频道最多保留几条链接
 
-# -------------------------- 4. 测速设置（原FFmpeg配置已废弃，改为流式测速）----
-ENABLE_SPEED_TEST     = True                            # 是否启用测速（原ENABLE_FFMPEG_TEST）
+# -------------------------- 4. 测速设置（流式测速）--------------------------
+ENABLE_SPEED_TEST     = True                            # 是否启用测速
 REQUEST_TIMEOUT       = 8                               # 请求超时时间（秒）
 STREAM_TEST_BYTES     = 512 * 1024                      # 测速下载字节数（512KB）
 SPEED_CONCURRENCY     = 10                              # 并发测速数量
@@ -208,24 +208,47 @@ def is_internal_ip(url: str) -> bool:
         return False
 
 # ============================================================================
-# ========================= 缓存管理（代码1风格）==============================
+# ========================= 缓存管理（兼容旧格式）==============================
 # ============================================================================
 CACHE_EXPIRE_SECONDS = CACHE_EXPIRE_HOURS * 3600
 
 def load_cache():
+    """
+    加载缓存文件，并自动将旧格式（直接存速度数值）转换为新格式字典。
+    如果项不是字典或缺少'speed'键，则忽略该项（重新测速）。
+    """
     if not ENABLE_CACHE or not CACHE_FILE.exists():
         return {}
     try:
         with open(CACHE_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except:
+            raw_cache = json.load(f)
+        converted = {}
+        now = time.time()
+        for url, value in raw_cache.items():
+            # 兼容性处理：如果value是数字（旧格式），转换为新格式
+            if isinstance(value, (int, float)):
+                converted[url] = {"speed": value, "timestamp": now}
+            elif isinstance(value, dict) and "speed" in value:
+                # 已经是新格式，直接保留，但检查过期
+                if now - value.get("timestamp", 0) < CACHE_EXPIRE_SECONDS:
+                    converted[url] = value
+            else:
+                # 格式不识别，忽略该条目（后续会重新测速）
+                logger.debug(f"忽略无法识别的缓存项: {url}")
+        logger.info(f"缓存加载完成，有效条目数: {len(converted)}")
+        return converted
+    except Exception as e:
+        logger.warning(f"加载缓存失败，将重新创建缓存: {e}")
         return {}
 
 def save_cache(cache):
     if not ENABLE_CACHE:
         return
-    with open(CACHE_FILE, "w", encoding="utf-8") as f:
-        json.dump(cache, f, ensure_ascii=False, indent=2)
+    try:
+        with open(CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(cache, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.warning(f"保存缓存失败: {e}")
 
 def is_cache_valid(timestamp):
     return time.time() - timestamp < CACHE_EXPIRE_SECONDS
@@ -249,14 +272,19 @@ def retry_async(max_retries=2, delay=1.0, exceptions=(Exception,)):
     return decorator
 
 def print_progress_bar(current: int, total: int, success: int, failed: int, last_percent: int) -> int:
-    if total == 0: return 0
-    percent_int = int((current/total)*100)
-    if not ((percent_int%5==0 and percent_int>last_percent) or current==total or current==0):
+    """
+    打印进度条，每5%或完成时输出一次，并立即刷新缓冲区。
+    """
+    if total == 0:
+        return 0
+    percent_int = int((current / total) * 100)
+    if not ((percent_int % 5 == 0 and percent_int > last_percent) or current == total or current == 0):
         return last_percent
     if percent_int == last_percent and current != total:
         return last_percent
-    bar = '█'*int(20*current/total) + '░'*(20-int(20*current/total))
+    bar = '█' * int(20 * current / total) + '░' * (20 - int(20 * current / total))
     logger.info(f"[{percent_int:3d}%] {bar} ({current}/{total}) | 成功:{success} | 失败:{failed}")
+    sys.stdout.flush()  # ✨ 关键：立即刷新输出缓冲区，实现实时显示
     return percent_int
 
 # -------------------------- 基于aiohttp的流式测速 ----------------------------
@@ -297,7 +325,7 @@ async def pre_check_url(url: str, timeout: int = 5) -> bool:
         return False
 
 # ============================================================================
-# ========================= 测速主流程（替换原run_ffmpeg_test）=================
+# ========================= 测速主流程 ========================================
 # ============================================================================
 async def run_speed_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
     """
@@ -315,17 +343,21 @@ async def run_speed_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[
     # 遍历所有频道和链接，检查缓存和过滤
     for (g, n), us in channel_map.items():
         for u in us:
-            # 检查缓存
-            if u in cache and is_cache_valid(cache[u]["timestamp"]):
-                speed = cache[u]["speed"]
-                if speed > MIN_SPEED_KB:
-                    result_map[(g, n)].append((u, speed))
-                    cached_ok += 1
-                    logger.debug(f"缓存命中(有效): {u} speed={speed:.2f}")
-                else:
-                    logger.debug(f"缓存命中(无效): {u}")
-                continue
+            # 检查缓存（确保缓存项为有效格式）
+            cache_item = cache.get(u)
+            if cache_item and isinstance(cache_item, dict) and "speed" in cache_item:
+                timestamp = cache_item.get("timestamp", 0)
+                if is_cache_valid(timestamp):
+                    speed = cache_item["speed"]
+                    if speed > MIN_SPEED_KB:
+                        result_map[(g, n)].append((u, speed))
+                        cached_ok += 1
+                        logger.debug(f"缓存命中(有效): {u} speed={speed:.2f}")
+                    else:
+                        logger.debug(f"缓存命中(无效): {u}")
+                    continue  # 无论有效无效，缓存已处理，跳过后续
 
+            # 无缓存或缓存无效/过期，准备测速
             # 跳过内网IP
             if SKIP_INTERNAL_IP and is_internal_ip(u):
                 logger.debug(f"跳过内网IP: {u}")
@@ -688,7 +720,7 @@ async def main():
         seen.add(key)
         channel_map[(g, n)].append(u)
 
-    # 测速（调用新测速函数）
+    # 测速
     if ENABLE_SPEED_TEST:
         logger.info("开始流式测速筛选")
         channel_map = await run_speed_test(channel_map)
