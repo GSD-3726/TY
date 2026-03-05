@@ -1,9 +1,9 @@
-name: IPTV自动更新
+name: 自动更新
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 每天0点运行
-  workflow_dispatch:  # 手动触发
+    - cron: '0 */12 * * *'   # 每12小时运行一次
+  workflow_dispatch:          # 手动触发
 
 jobs:
   update-iptv:
@@ -12,7 +12,7 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 必须拉取完整历史
+          fetch-depth: 0
 
       - name: 安装Python
         uses: actions/setup-python@v5
@@ -45,5 +45,4 @@ jobs:
           git pull --rebase origin main
           git push origin main
         env:
-          # 替换为自定义的PAT_TOKEN
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
