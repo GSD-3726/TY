@@ -1,14 +1,3 @@
-#!/usr/bin/env python3
-"""
-IPTV 组播提取工具（配置版：酒店/组播 二选一）
-- 配置区直接选择 酒店提取 或 组播提取
-- 点击开始提取后等待30秒再提取数据
-- 支持流式测速（基于下载速度）、适配GitHub Actions
-- 【日志精简】仅显示进度条和最终统计，不输出每个链接的详细日志
-- 【取消预检】直接测速，不进行连通性预检
-- 【实时进度】进度条每5%立即更新
-"""
-
 import asyncio
 import json
 import logging
@@ -42,7 +31,7 @@ PAGE_LOAD_TIMEOUT      = 120000                          # 页面加载超时（
 
 # -------------------------- 2. 提取模式选择【核心：二选一】------------------
 # 请在这里直接选择，只能填一个：
-# "酒店提取"  或者  "组播提取"
+# "酒店提取" 或者  "组播提取"
 EXTRACT_MODE          = "酒店提取"
 
 # -------------------------- 3. 输出文件设置 --------------------------------
@@ -51,12 +40,13 @@ OUTPUT_M3U_FILENAME   = OUTPUT_DIR / "iptv_channels.m3u"
 OUTPUT_TXT_FILENAME   = OUTPUT_DIR / "iptv_channels.txt"
 MAX_LINKS_PER_CHANNEL = 5                               # 每个频道最多保留几条链接
 
-# -------------------------- 4. 测速设置（流式测速）--------------------------
-ENABLE_SPEED_TEST     = True                            # 是否启用测速
-REQUEST_TIMEOUT       = 8                               # 请求超时时间（秒）
-STREAM_TEST_BYTES     = 512 * 1024                      # 测速下载字节数（512KB）
-SPEED_CONCURRENCY     = 10                              # 并发测速数量
-MIN_SPEED_KB          = 100.0                           # 最低有效速度（KB/s）
+# -------------------------- 4. 测速设置（FFmpeg 解码测速）-------------------
+ENABLE_FFMPEG_TEST     = True                            # 是否启用FFmpeg测速
+FFMPEG_PATH            = "ffmpeg"                        # FFmpeg 程序路径（如果不在PATH中需写完整）
+FFMPEG_TEST_DURATION   = 10                               # 每个链接测试时长（秒）
+FFMPEG_CONCURRENCY     = 4                                # 并发测速数量（GitHub Actions建议≤2）
+MIN_AVG_FPS            = 24.0                             # 最低平均帧率
+MIN_FRAMES             = 200                              # 最低解码帧数（防止只有几秒数据）
 
 # -------------------------- 5. GitHub 源订阅设置 ---------------------------
 ENABLE_GITHUB_SOURCES = True                            # 是否启用GitHub源
@@ -73,7 +63,7 @@ GITHUB_M3U_LINKS = [
 DELAY_BETWEEN_IPS      = 0.5                             # 切换IP间隔（秒）
 DELAY_AFTER_CLICK      = 1.0                             # 点击弹窗等待（秒）
 MAX_CHANNELS_PER_IP    = 0                               # 单个IP最多提取频道数
-DATA_LOAD_TIMEOUT      = 120                             # 数据加载超时（秒）
+DATA_LOAD_TIMEOUT      = 60                             # 数据加载超时（秒）
 AFTER_START_WAIT       = 30                              # 点击【开始提取】后等待秒数
 
 # -------------------------- 7. 数据清洗设置 --------------------------------
@@ -214,7 +204,7 @@ def is_internal_ip(url: str) -> bool:
         return False
 
 # ============================================================================
-# ========================= 缓存管理（兼容旧格式）==============================
+# ========================= 缓存管理（兼容新格式）==============================
 # ============================================================================
 CACHE_EXPIRE_SECONDS = CACHE_EXPIRE_HOURS * 3600
 
@@ -223,22 +213,19 @@ def load_cache():
         return {}
     try:
         with open(CACHE_FILE, "r", encoding="utf-8") as f:
-            raw_cache = json.load(f)
-        converted = {}
+            cache = json.load(f)
         now = time.time()
-        for url, value in raw_cache.items():
-            if isinstance(value, (int, float)):
-                converted[url] = {"speed": value, "timestamp": now}
-            elif isinstance(value, dict) and "speed" in value:
-                if now - value.get("timestamp", 0) < CACHE_EXPIRE_SECONDS:
-                    converted[url] = value
+        valid_cache = {}
+        for url, data in cache.items():
+            if isinstance(data, dict) and "ok" in data and "timestamp" in data:
+                if now - data["timestamp"] < CACHE_EXPIRE_SECONDS:
+                    valid_cache[url] = data
             else:
-                logger.debug(f"忽略无法识别的缓存项: {url}")
-        logger.info(f"缓存加载完成，有效条目数: {len(converted)}")
-        return converted
-    except json.JSONDecodeError:
-        logger.debug("缓存文件损坏或为空，将重新创建")
-        return {}
+                # 兼容旧格式：如果只存了速度，转换为新格式
+                if isinstance(data, (int, float)):
+                    valid_cache[url] = {"ok": data > 0, "fps": 0.0, "frames": 0, "timestamp": now}
+        logger.info(f"缓存加载完成，有效条目数: {len(valid_cache)}")
+        return valid_cache
     except Exception as e:
         logger.debug(f"加载缓存异常: {e}，将重新创建")
         return {}
@@ -256,7 +243,7 @@ def is_cache_valid(timestamp):
     return time.time() - timestamp < CACHE_EXPIRE_SECONDS
 
 # ============================================================================
-# ========================= 重试、进度、测速 ==================================
+# ========================= 重试、进度、FFmpeg测速 =============================
 # ============================================================================
 def retry_async(max_retries=2, delay=1.0, exceptions=(Exception,)):
     def decorator(func):
@@ -286,33 +273,49 @@ def print_progress_bar(current: int, total: int, success: int, failed: int, last
     sys.stdout.flush()
     return percent_int
 
-async def test_stream_speed(url: str) -> float:
-    """异步测速：下载指定字节数，计算速度（KB/s），失败返回0"""
-    try:
-        start = time.time()
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)) as resp:
-                if resp.status != 200:
-                    return 0.0
-                size = 0
-                async for chunk in resp.content.iter_chunked(64 * 1024):
-                    size += len(chunk)
-                    if size >= STREAM_TEST_BYTES:
-                        break
-                elapsed = time.time() - start
-                if elapsed == 0:
-                    return 0.0
-                speed = size / elapsed / 1024
-                return round(speed, 2)
-    except Exception:
-        return 0.0
+async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
+    """调用 FFmpeg 测试流媒体质量，返回解码帧数和平均帧率"""
+    if not shutil.which(FFMPEG_PATH):
+        logger.error(f"未找到FFmpeg: {FFMPEG_PATH}")
+        return {"ok": False, "fps": 0.0, "frames": 0, "message": "FFmpeg未安装"}
 
-# ============================================================================
-# ========================= 测速主流程（简化版）===============================
-# ============================================================================
-async def run_speed_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
+    cmd = [
+        FFMPEG_PATH, "-hide_banner", "-y",
+        "-fflags", "nobuffer",
+        "-rw_timeout", "5000000",
+        "-i", url,
+        "-t", str(FFMPEG_TEST_DURATION),
+        "-f", "null", "-"
+    ]
+
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
+        )
+
+        try:
+            _, stderr = await asyncio.wait_for(proc.communicate(), timeout=FFMPEG_TEST_DURATION + 5)
+        except asyncio.TimeoutError:
+            proc.kill()
+            await proc.wait()
+            return {"ok": False, "fps": 0.0, "frames": 0, "message": "连接超时"}
+
+        output = stderr.decode('utf-8', errors='ignore')
+
+        frame_matches = re.findall(r'frame=\s*(\d+)', output)
+        fps_matches = re.findall(r'fps=\s*([\d.]+)', output)
+
+        frames = int(frame_matches[-1]) if frame_matches else 0
+        avg_fps = float(fps_matches[-1]) if fps_matches else 0.0
+        is_smooth = frames >= MIN_FRAMES and avg_fps >= MIN_AVG_FPS
+
+        return {"ok": is_smooth, "fps": avg_fps, "frames": frames}
+    except Exception as e:
+        return {"ok": False, "fps": 0.0, "frames": 0, "message": f"异常: {str(e)[:50]}"}
+
+async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
     """
-    对频道映射中的链接进行测速筛选，返回每个频道有效链接列表。
+    对频道映射中的链接进行FFmpeg测速筛选，返回每个频道有效链接列表。
     取消预检，直接测速；日志仅输出进度条。
     """
     if not channel_map:
@@ -328,11 +331,10 @@ async def run_speed_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[
     for (g, n), us in channel_map.items():
         for u in us:
             cache_item = cache.get(u)
-            if cache_item and isinstance(cache_item, dict) and "speed" in cache_item:
+            if cache_item and isinstance(cache_item, dict) and "ok" in cache_item:
                 if is_cache_valid(cache_item.get("timestamp", 0)):
-                    speed = cache_item["speed"]
-                    if speed > MIN_SPEED_KB:
-                        result_map[(g, n)].append((u, speed))
+                    if cache_item["ok"]:
+                        result_map[(g, n)].append((u, cache_item.get("fps", 0)))
                     cached_ok += 1
                     continue
             if SKIP_INTERNAL_IP and is_internal_ip(u):
@@ -347,31 +349,34 @@ async def run_speed_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[
             final[k] = [u for u, _ in vs[:MAX_LINKS_PER_CHANNEL]]
         return final
 
-    # 2. 并发测速（无预检）
-    sem = asyncio.Semaphore(SPEED_CONCURRENCY)
+    # 2. 并发测速（FFmpeg）
+    sem = asyncio.Semaphore(FFMPEG_CONCURRENCY)
 
     async def test_one(item):
         g, n, u = item
         async with sem:
-            speed = await test_stream_speed(u)
-            return g, n, u, speed
+            res = await test_stream_with_ffmpeg(u)
+            return g, n, u, res
 
     tasks = [test_one(i) for i in pending]
     c, ok, ng, lp = 0, 0, 0, -100
     print_progress_bar(0, len(tasks), ok, ng, lp)
 
     for coro in asyncio.as_completed(tasks):
-        g, n, u, speed = await coro
+        g, n, u, res = await coro
         c += 1
-        if speed > MIN_SPEED_KB:
+        if res["ok"]:
             ok += 1
-            result_map[(g, n)].append((u, speed))
-            if ENABLE_CACHE:
-                new_cache[u] = {"speed": speed, "timestamp": time.time()}
+            result_map[(g, n)].append((u, res["fps"]))
         else:
             ng += 1
-            if ENABLE_CACHE:
-                new_cache[u] = {"speed": 0, "timestamp": time.time()}
+        if ENABLE_CACHE:
+            new_cache[u] = {
+                "ok": res["ok"],
+                "fps": res["fps"],
+                "frames": res.get("frames", 0),
+                "timestamp": time.time()
+            }
         lp = print_progress_bar(c, len(tasks), ok, ng, lp)
 
     # 3. 更新缓存
@@ -665,9 +670,9 @@ async def main():
         seen.add(key)
         channel_map[(g, n)].append(u)
 
-    if ENABLE_SPEED_TEST:
-        logger.info("开始流式测速筛选")
-        channel_map = await run_speed_test(channel_map)
+    if ENABLE_FFMPEG_TEST:
+        logger.info("开始FFmpeg测速筛选")
+        channel_map = await run_ffmpeg_test(channel_map)
 
     export_results_with_timestamp(channel_map)
     logger.info("🎉 任务全部完成！")
