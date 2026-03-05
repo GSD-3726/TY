@@ -3618,3 +3618,32 @@ navigating to "https://iptv.809899.xyz/", waiting until "networkidle"
 2026-03-05 09:39:19,813 - INFO - 测速完成，共 95 个频道通过筛选
 2026-03-05 09:39:19,814 - INFO - 导出完成：95 个频道
 2026-03-05 09:39:19,814 - INFO - 🎉 任务全部完成！
+2026-03-05 09:51:48,294 - INFO - ✅ 当前运行模式：【酒店提取】
+2026-03-05 09:51:48,464 - INFO - 下载成功 https://gh-proxy.com/https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV_AutoUpdate.m3u8
+2026-03-05 09:51:48,587 - INFO - 下载成功 https://gh-proxy.com/https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/migu.m3u
+2026-03-05 09:51:48,710 - INFO - 下载成功 https://gh-proxy.com/https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/httop_merged.m3u
+2026-03-05 09:51:48,823 - INFO - 下载成功 https://gh-proxy.com/https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/httop.m3u
+2026-03-05 09:51:48,967 - INFO - 下载成功 https://gh-proxy.com/https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/htldx_merged.m3u
+2026-03-05 09:51:49,088 - INFO - 下载成功 https://gh-proxy.com/https://raw.githubusercontent.com/3377/IPTV/master/output/result.txt
+2026-03-05 09:51:49,676 - INFO - 正在访问：https://iptv.809899.xyz
+2026-03-05 09:52:41,644 - INFO - 点击引擎搜索
+2026-03-05 09:52:41,894 - INFO - 点击网页按钮：【酒店提取】
+2026-03-05 09:52:44,909 - INFO - 点击【开始提取】
+2026-03-05 09:52:47,923 - INFO - ⏳ 等待 30 秒后开始提取数据...
+2026-03-05 09:53:17,938 - INFO - 等待数据加载...
+2026-03-05 09:53:47,943 - INFO - 数据加载完成
+2026-03-05 09:53:47,950 - INFO - 准备处理前 5 个IP
+2026-03-05 09:53:47,956 - INFO - 处理IP [1]: 183.184.115.138
+2026-03-05 09:53:52,751 - INFO - 处理IP [2]: 110.241.188.75
+2026-03-05 09:53:57,583 - INFO - 处理IP [3]: 116.3.65.255
+2026-03-05 09:54:02,253 - INFO - 处理IP [4]: 221.205.143.229
+2026-03-05 09:54:06,984 - INFO - 处理IP [5]: 183.185.64.197
+2026-03-05 09:54:11,624 - INFO - 网站提取完成：190 条
+2026-03-05 09:54:11,691 - INFO - 开始FFmpeg测速筛选
+2026-03-05 09:54:11,695 - INFO - 缓存加载完成，有效条目数: 2261
+2026-03-05 09:54:11,697 - INFO - 总链接:2258 缓存有效:2255 需测速:3
+2026-03-05 09:54:11,697 - INFO - [  0%] ░░░░░░░░░░░░░░░░░░░░ (0/3) | 成功:0 | 失败:0
+2026-03-05 09:54:16,949 - INFO - [100%] ████████████████████ (3/3) | 成功:1 | 失败:2
+2026-03-05 09:54:16,965 - INFO - 测速完成，共 96 个频道通过筛选
+2026-03-05 09:54:16,965 - INFO - 导出完成：96 个频道
+2026-03-05 09:54:16,966 - INFO - 🎉 任务全部完成！

@@ -13564,5 +13564,23 @@
     "fps": 18.0,
     "frames": 200,
     "timestamp": 1772674759.7986343
+  },
+  "http://14.29.45.99/tvcdn.stream3.hndt.com/tv/65c4a6d5017e1000b2b6ea2500000000_transios/playlist.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "timestamp": 1772675652.5012054
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/dongnanws/50/20230724/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "timestamp": 1772675653.9595342
+  },
+  "http://phonehwei.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPWh3X3Bob25lJmNocz0mZGVmPTEmcz00ZWI4MTU1OGYxNDA0OTgxZjBkYzE1MDcwYjgwNGFlOCZ1aWQ9JnV1aWQ9NWJkNTljOTk1NjdhNmM3ZmM5ZjIxYmE5ZDFjZTVlYzYtNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3MjY5OTA0MA,,/HNDSMPP360.m3u8": {
+    "ok": true,
+    "fps": 109.0,
+    "frames": 225,
+    "timestamp": 1772675656.9495828
   }
 }
