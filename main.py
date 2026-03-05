@@ -96,6 +96,12 @@ ENABLE_URL_PRE_CHECK   = False   # 已禁用，直接测速
 SKIP_INTERNAL_IP       = True    # 是否跳过内网IP
 ENABLE_VERBOSE_LOGGING = False   # 详细日志已关闭
 
+# ==================== 新增：历史链接检查配置 ====================
+ENABLE_HISTORY_CHECK   = True          # 是否检查历史输出文件中的链接
+HISTORY_FILE           = OUTPUT_TXT_FILENAME   # 历史文件路径
+HISTORY_CHECK_CONCURRENCY = 20         # 并发检查数量
+HISTORY_CHECK_TIMEOUT  = 3             # 每个链接检查超时（秒）
+
 
 # ============================================================================
 # ============================ 频道分类规则 ==================================
@@ -430,7 +436,7 @@ def parse_m3u_file(content):
                 if m:
                     n = m.group(1).strip()
         elif l.startswith("http"):
-            u = l.strip()  # 修改点：保留完整URL（含参数）
+            u = l.strip()  # 保留完整URL（含参数）
             if n and u:
                 nn = normalize_cctv(n)
                 gr = classify_channel(nn) or g
@@ -527,6 +533,52 @@ async def wait_data(page):
     return False
 
 # ============================================================================
+# ================= 新增：历史链接检查函数 ===================================
+# ============================================================================
+def parse_txt_file(filepath: Path) -> List[Tuple[str, str]]:
+    """解析 iptv_channels.txt 文件，返回 (频道名, URL) 列表，忽略注释行和空行"""
+    if not filepath.exists():
+        logger.info(f"历史文件不存在: {filepath}")
+        return []
+    channels = []
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('更新时间') or line.endswith('#genre#'):
+                    continue
+                if ',' in line:
+                    parts = line.split(',', 1)
+                    if len(parts) == 2:
+                        name, url = parts[0].strip(), parts[1].strip()
+                        if name and url:
+                            channels.append((name, url))
+        logger.info(f"从历史文件解析到 {len(channels)} 个链接")
+    except Exception as e:
+        logger.error(f"解析历史文件失败: {e}")
+    return channels
+
+async def check_url_connectivity(url: str, timeout: int) -> bool:
+    """检查URL是否可连通（读取前1024字节）"""
+    try:
+        timeout_obj = aiohttp.ClientTimeout(total=timeout)
+        async with aiohttp.ClientSession(timeout=timeout_obj) as session:
+            async with session.get(url, headers={'User-Agent': 'Mozilla/5.0'}, allow_redirects=True) as resp:
+                if resp.status != 200:
+                    return False
+                # 尝试读取一点数据，确保不是空响应
+                try:
+                    await resp.content.readexactly(1024)
+                except asyncio.IncompleteReadError as e:
+                    # 如果不足1024，但读到了部分，也算成功
+                    return len(e.partial) > 0
+                except Exception:
+                    return False
+                return True
+    except Exception:
+        return False
+
+# ============================================================================
 # ========================= 结果导出 =========================================
 # ============================================================================
 def export_results_with_timestamp(channel_map):
@@ -550,7 +602,7 @@ def export_results_with_timestamp(channel_map):
                 chs = [(n, d[n]) for n in CCTV_ORDER if n in d]
             else:
                 chs = sorted(chs, key=lambda x: x[0])
-            # ---------- 方案C：过滤空名称频道 ----------
+            # 过滤空名称频道
             chs = [(n, u) for n, u in chs if n.strip()]
             for n, u in chs:
                 f.write(f'#EXTINF:-1 group-title="{gro}",{n}\n{u}\n')
@@ -571,7 +623,6 @@ def export_results_with_timestamp(channel_map):
                 chs = [(n, d[n]) for n in CCTV_ORDER if n in d]
             else:
                 chs = sorted(chs, key=lambda x: x[0])
-            # ---------- 方案C：过滤空名称频道 ----------
             chs = [(n, u) for n, u in chs if n.strip()]
             for n, u in chs:
                 f.write(f"{n},{u}\n")
@@ -592,6 +643,7 @@ async def main():
     logger.info(f"✅ 当前运行模式：【{EXTRACT_MODE}】")
     all_channels = []
 
+    # 1. 从 GitHub 源获取
     if ENABLE_GITHUB_SOURCES:
         for url in GITHUB_M3U_LINKS:
             txt = await download_github_m3u(url)
@@ -599,6 +651,7 @@ async def main():
                 channels = parse_m3u_file(txt)
                 all_channels.extend(channels)
 
+    # 2. 从网站爬取
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=HEADLESS,
@@ -667,11 +720,39 @@ async def main():
             await ctx.close()
             await browser.close()
 
+    # ========== 新增：检查历史链接 ==========
+    if ENABLE_HISTORY_CHECK:
+        history_items = parse_txt_file(HISTORY_FILE)
+        if history_items:
+            logger.info(f"开始对 {len(history_items)} 个历史链接进行连通性测试...")
+            sem = asyncio.Semaphore(HISTORY_CHECK_CONCURRENCY)
+
+            async def check_one(name, url):
+                async with sem:
+                    ok = await check_url_connectivity(url, HISTORY_CHECK_TIMEOUT)
+                    return name, url, ok
+
+            tasks = [check_one(name, url) for name, url in history_items]
+            passed = 0
+            for coro in asyncio.as_completed(tasks):
+                name, url, ok = await coro
+                if ok:
+                    passed += 1
+                    # 对频道名进行标准化和分类
+                    nn = normalize_cctv(name)
+                    gr = classify_channel(nn)
+                    if gr:  # 只有能分类的才加入
+                        fn = nn if gr == "央视频道" else (clean_chinese_only(name) if ENABLE_CHINESE_CLEAN else name)
+                        all_channels.append((gr, fn, url))
+            logger.info(f"历史链接连通性测试完成，通过 {passed}/{len(history_items)} 条")
+        else:
+            logger.info("历史文件为空或不存在，跳过")
+
+    # 3. 去重
     if not all_channels:
         logger.error("❌ 未获取到任何频道")
         return
 
-    # 去重
     channel_map = defaultdict(list)
     seen = set()
     for g, n, u in all_channels:
@@ -681,10 +762,12 @@ async def main():
         seen.add(key)
         channel_map[(g, n)].append(u)
 
+    # 4. FFmpeg测速筛选
     if ENABLE_FFMPEG_TEST:
         logger.info("开始FFmpeg测速筛选")
         channel_map = await run_ffmpeg_test(channel_map)
 
+    # 5. 导出结果
     export_results_with_timestamp(channel_map)
     logger.info("🎉 任务全部完成！")
 
