@@ -50726,5 +50726,901 @@
     "width": 0,
     "height": 0,
     "timestamp": 1772849011.6939332
+  },
+  "http://p2.ytelc.com/videojs.php?id=https://sjlivecdn9.cbg.cn/202603070903/app_2/_definst_/ls_2.stream/chunklist.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1772850677.5351331
+  },
+  "https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4_mbd.m3u8?auth_key=1772902800-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-b85109002e068d99a6c802a139db210f&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c": {
+    "ok": false,
+    "fps": 105.0,
+    "frames": 198,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1772850679.0518847
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r3/2018/nfmedia/nfws/1000/index.m3u8?msisdn=2026030709004967fdeca6259647f88a8dcc3d9027aebd&mdspid=&spid=699054&netType=0&sid=2200322852&pid=2028597139&timestamp=20260307090049&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=608917627&ParentNodeID=-99&assertID=2200322852&client_ip=47.92.222.71&SecurityKey=20260307090049&promotionId=&mvid=2200322852&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=22c26f7e07ac9c9906f0d457e6ebe442&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 190.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850680.4050574
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/envivo_w/2018/SD/qinghai/1000/index.m3u8?msisdn=2026030709005114e8daace36442a8bad940f4155bc063&mdspid=&spid=600633&netType=0&sid=5910022166&pid=2028597139&timestamp=20260307090051&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=947472506&ParentNodeID=-99&assertID=5910022166&client_ip=47.92.222.71&SecurityKey=20260307090051&promotionId=&mvid=5900004353&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=5374efc6a9cb346ac5a0c14cc26c5d81&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 170.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850680.634618
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/sxxwzx/50/20250804/index.m3u8?msisdn=20260307090104c9731d6204474c27b65ddf11c666befb&mdspid=&spid=600572&netType=0&sid=5910022187&pid=2028597139&timestamp=20260307090104&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=956909289&ParentNodeID=-99&assertID=5910022187&client_ip=47.92.222.71&SecurityKey=20260307090104&promotionId=&mvid=5900006710&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=bb2743b60601a74581edf6ffeb5a440b&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 165.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850680.6605544
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/20200324/cctv7hd/50/index.m3u8?msisdn=202603070900356e09e32704dd43e9835bc8c7befd9a9c&mdspid=&spid=699004&netType=0&sid=5501083622&pid=2028597139&timestamp=20260307090035&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=673168121&ParentNodeID=-99&assertID=5501083622&client_ip=47.92.222.71&SecurityKey=20260307090035&promotionId=&mvid=5102910278&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=377fffa91289e339f59c4f2ac09f7274&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 172.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850680.715327
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/jyxwzh/50/20250604/index.m3u8?msisdn=20260307090102f29bce02f0734e7085d80165a9b38fa6&mdspid=&spid=699067&netType=0&sid=5910022177&pid=2028597139&timestamp=20260307090102&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=955227979&ParentNodeID=-99&assertID=5910022177&client_ip=47.92.222.71&SecurityKey=20260307090102&promotionId=&mvid=5900006705&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=8476ae12502ae08dc33556e1cf1b1e7c&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 177.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850680.966896
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/cctv/cctv1hd/600/index.m3u8?msisdn=20260307090028538c336715c44df68de08e658e02e4a4&mdspid=&spid=699004&netType=0&sid=2201057821&pid=2028597139&timestamp=20260307090028&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=608807420&ParentNodeID=-99&assertID=2201057821&client_ip=47.92.222.71&SecurityKey=20260307090028&promotionId=&mvid=2201057821&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=4570ca936955690420ea983782a1d285&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 149.0,
+    "frames": 199,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850682.317177
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r3/cctv/saishijingdian/600/index.m3u8?msisdn=202603070901106f6a21ea7fae4822bf99b3db6fb8826c&mdspid=&spid=699004&netType=0&sid=5500592947&pid=2028597139&timestamp=20260307090110&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=646596895&ParentNodeID=-99&assertID=5500592947&client_ip=47.92.222.227&SecurityKey=20260307090110&promotionId=&mvid=5101034296&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=064f5dd6178c3e830a8f06f913313e15&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 172.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850683.9697945
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/jstv/jsguoji/600/index.m3u8?msisdn=20260307090059cb8dfd75a7994a78ba477f7bfa25b1c7&mdspid=&spid=699067&netType=0&sid=5500260577&pid=2028597139&timestamp=20260307090059&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=626064674&ParentNodeID=-99&assertID=5500260577&client_ip=47.92.222.227&SecurityKey=20260307090059&promotionId=&mvid=5100186482&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=0ab8ebaa7ba732cc7f5e233fd139b086&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 165.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850684.032077
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/cftx/50/20250804/index.m3u8?msisdn=202603070901045316a934f1ca45d3817b6f9baa35d3b3&mdspid=&spid=600697&netType=0&sid=5910022193&pid=2028597139&timestamp=20260307090104&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=956923159&ParentNodeID=-99&assertID=5910022193&client_ip=47.92.222.227&SecurityKey=20260307090104&promotionId=&mvid=5900006715&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=15f7579edd0af24475f73adeac573bd4&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 153.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850684.0431647
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/cctv11hd/50/20200103/index.m3u8?msisdn=202603070900363c316b78e1a147cc99cc41269edd6539&mdspid=&spid=699004&netType=0&sid=5500988610&pid=2028597139&timestamp=20260307090036&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=667987558&ParentNodeID=-99&assertID=5500988610&client_ip=47.92.222.71&SecurityKey=20260307090036&promotionId=&mvid=5102751362&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=a6f8719966d27a879f5e73f5d997f8d5&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 144.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850684.2190375
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r1/2018/nfmedia/jjkt/1000/index.m3u8?msisdn=20260307090120a08adb6b60ca41fea454a5d2f4cea0bb&mdspid=&spid=699054&netType=0&sid=2206172388&pid=2028597139&timestamp=20260307090120&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=614952364&ParentNodeID=-99&assertID=2206172388&client_ip=47.92.222.71&SecurityKey=20260307090120&promotionId=&mvid=2206172388&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=81d80fc1143e0d5988d5d1c8adb6abfc&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 173.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850684.6653655
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/ntxwzh/50/20250604/index.m3u8?msisdn=20260307090102cb18b438a20f4728948992f7408d51e3&mdspid=&spid=699067&netType=0&sid=5910022178&pid=2028597139&timestamp=20260307090102&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=955227985&ParentNodeID=-99&assertID=5910022178&client_ip=47.92.222.71&SecurityKey=20260307090102&promotionId=&mvid=5900006706&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=de8117df4a3ac268f43cf9df124c25ae&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 182.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850685.695231
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/cetv1/50/20240709/index.m3u8?msisdn=202603070901329cf6ebf0b56f4a6a9f1cf5b82d698487&mdspid=&spid=699004&netType=0&sid=5910022150&pid=2028597139&timestamp=20260307090132&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=923287154&ParentNodeID=-99&assertID=5910022150&client_ip=47.92.222.71&SecurityKey=20260307090132&promotionId=&mvid=5900006636&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=a829b60b06146a31d68bd4110f8e8140&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850687.1512942
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/jstv/jschengshi/600/index.m3u8?msisdn=2026030709005960f7874297e245b7b284a56f28dfbb55&mdspid=&spid=699067&netType=0&sid=5500260508&pid=2028597139&timestamp=20260307090059&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=626064714&ParentNodeID=-99&assertID=5500260508&client_ip=47.92.222.227&SecurityKey=20260307090059&promotionId=&mvid=5100186409&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=ba32b6be86bde36326c0477d6febd6ea&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850687.3343577
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/20200324/cctv4ouhd/50/index.m3u8?msisdn=202603070900422854cfa690c949b0bfab82be61ab8bf2&mdspid=&spid=699004&netType=0&sid=2200179315&pid=2028597139&timestamp=20260307090042&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=608807419&ParentNodeID=-99&assertID=2200179315&client_ip=47.92.222.227&SecurityKey=20260307090042&promotionId=&mvid=2200179315&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=dcf886188f0c6c22a53d82df524d6f74&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 192.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850687.444942
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/nanjingkj/50/20230719/index.m3u8?msisdn=20260307090059bdf1a8f8acd743659ae738fd1f11e06b&mdspid=&spid=699067&netType=0&sid=5910021865&pid=2028597139&timestamp=20260307090059&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=838153729&ParentNodeID=-99&assertID=5910021865&client_ip=47.92.222.227&SecurityKey=20260307090059&promotionId=&mvid=5900006205&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=03ab4b678e17fe37e402b340fd5acd0e&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 178.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850687.8398542
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/jxwshd/50/20190820/index.m3u8?msisdn=2026030709004971921f9401a847909a5eb09aaaa3079f&mdspid=&spid=600633&netType=0&sid=5910021492&pid=2028597139&timestamp=20260307090049&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=783847495&ParentNodeID=-99&assertID=5910021492&client_ip=47.92.222.71&SecurityKey=20260307090049&promotionId=&mvid=5900004351&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=ab91d04e7493d849cb0a5e581ea214ca&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850687.9771423
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd-virtuallive5100030975-75/index.m3u8?msisdn=202603070901142d4721a3c11e48408db4499177952562&mdspid=&spid=800033&netType=0&sid=5500035175&pid=2028597139&timestamp=20260307090114&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=619495952&ParentNodeID=-99&assertID=5500035175&client_ip=47.92.222.227&SecurityKey=20260307090114&promotionId=&mvid=5100030975&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=93fdbb0bc2216ac9657765a1bba03c71&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 190.0,
+    "frames": 198,
+    "width": 852,
+    "height": 480,
+    "timestamp": 1772850688.9425073
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/20200324/cctv9hd/50/index.m3u8?msisdn=20260307090034cc90842f38524fc29690a6b50df67d64&mdspid=&spid=699004&netType=0&sid=5501083624&pid=2028597139&timestamp=20260307090034&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=673168140&ParentNodeID=-99&assertID=5501083624&client_ip=47.92.222.71&SecurityKey=20260307090034&promotionId=&mvid=5102910384&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=3b4ac2474c8de18f4e1a207a7fa1ded6&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850690.1101632
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/bjws/50/20251127/index.m3u8?msisdn=20260307090048955d223d0d3b4fbcb91561f4943a36c0&mdspid=&spid=600697&netType=0&sid=5910022306&pid=2028597139&timestamp=20260307090048&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=630287636&ParentNodeID=-99&assertID=5910022306&client_ip=47.92.222.71&SecurityKey=20260307090048&promotionId=&mvid=5101042960&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=f92ef8cddbfd34bd5917693fa43e0d33&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 154.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850690.896553
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/envivo_v/2018/SD/cctv/doc/1000/index.m3u8?msisdn=20260307090041a838cf47d9334b1aa82acf618890f46f&mdspid=&spid=699004&netType=0&sid=2200179356&pid=2028597139&timestamp=20260307090041&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=609006487&ParentNodeID=-99&assertID=2200179356&client_ip=47.92.222.71&SecurityKey=20260307090041&promotionId=&mvid=2200179356&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=72cace962602f97fb74c18c503515223&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 196.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850690.958011
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/sxdsqc/50/20250804/index.m3u8?msisdn=202603070901033ed90de74a7249f49089b53c2e0b780a&mdspid=&spid=600572&netType=0&sid=5910022190&pid=2028597139&timestamp=20260307090103&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=956909358&ParentNodeID=-99&assertID=5910022190&client_ip=47.92.222.71&SecurityKey=20260307090103&promotionId=&mvid=5900006713&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=65c822f42c29a50216853aefa4e6b32b&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 138.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850691.4492536
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/lnysj/50/20251225/index.m3u8?msisdn=20260307090105e775b7afc295490082fa36c7abf195cf&mdspid=&spid=600697&netType=0&sid=5910022326&pid=2028597139&timestamp=20260307090105&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=962067517&ParentNodeID=-99&assertID=5910022326&client_ip=47.92.222.71&SecurityKey=20260307090105&promotionId=&mvid=5900006789&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=cc1abfc73762d28859b3fe4881699292&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 185.0,
+    "frames": 199,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850691.489504
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/envivo_x/SD/lvyou/711/index.m3u8?msisdn=202603070900537de168adbc76498fb69ed7a4965d1a39&mdspid=&spid=600633&netType=0&sid=5910022165&pid=2028597139&timestamp=20260307090053&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=947472502&ParentNodeID=-99&assertID=5910022165&client_ip=47.92.222.227&SecurityKey=20260307090053&promotionId=&mvid=5900004359&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=4d6edb6c694d0077bd1e729f7c01cc77&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850691.9483798
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/jstv/jstiyu/600/index.m3u8?msisdn=202603070900573bf01b06a4754204aa43e29de0754a3e&mdspid=&spid=699067&netType=0&sid=5500260554&pid=2028597139&timestamp=20260307090057&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=626064707&ParentNodeID=-99&assertID=5500260554&client_ip=47.92.222.71&SecurityKey=20260307090057&promotionId=&mvid=5100186459&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=ea24bc7da2737b8bd4d54c27519eaa50&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 190.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850693.416287
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/20200324/cctv12hd/50/index.m3u8?msisdn=202603070900282a1153ae7df641a7b0feaf1d93e336aa&mdspid=&spid=699004&netType=0&sid=5501083627&pid=2028597139&timestamp=20260307090028&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=673168185&ParentNodeID=-99&assertID=5501083627&client_ip=47.92.222.71&SecurityKey=20260307090028&promotionId=&mvid=5102910389&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=b195e79c29df0031c6318f2526b4fe22&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 157.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850694.4029982
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/sxylpd/50/20250804/index.m3u8?msisdn=20260307090103777dcadf9bb845c4b86b718ff877bf23&mdspid=&spid=600572&netType=0&sid=5910022191&pid=2028597139&timestamp=20260307090103&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=956909362&ParentNodeID=-99&assertID=5910022191&client_ip=47.92.222.227&SecurityKey=20260307090103&promotionId=&mvid=5900006714&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=f671ed01fa856b256cf67c46b9e2aa6f&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 167.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850694.5387607
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/2018/ocn/cctv8hd/1000/index.m3u8?msisdn=2026030709002887336c510af8431ab546720ac2bcd8eb&mdspid=&spid=699004&netType=0&sid=5500212868&pid=2028597139&timestamp=20260307090028&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=624878356&ParentNodeID=-99&assertID=5500212868&client_ip=47.92.222.71&SecurityKey=20260307090028&promotionId=&mvid=5100001695&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=ae5d67d133b981a5d23ffef83a974bf5&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 175.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850694.7990823
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/2018/ocn/hubeiwshd/1000/index.m3u8?msisdn=20260307090051c0b8c9263482462bbfed95075dc64798&mdspid=&spid=600633&netType=0&sid=5910022163&pid=2028597139&timestamp=20260307090051&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=947472496&ParentNodeID=-99&assertID=5910022163&client_ip=47.92.222.71&SecurityKey=20260307090051&promotionId=&mvid=5900004355&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=e7dc5520e5f070b92373761085481c2d&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 150.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850695.100976
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/ydcmxdm/50/20251225/index.m3u8?msisdn=2026030709011970eae4a8155a4166a204441d1ba6cc82&mdspid=&spid=600603&netType=0&sid=5910022319&pid=2028597139&timestamp=20260307090119&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=961930269&ParentNodeID=-99&assertID=5910022319&client_ip=47.92.222.227&SecurityKey=20260307090119&promotionId=&mvid=5900006786&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=cd9553c6153332741e4f9c9761bd4807&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850695.2517493
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/cetv2/50/20240709/index.m3u8?msisdn=202603070901328aa7897d58844e5fb25e2d67eea28f96&mdspid=&spid=699004&netType=0&sid=5910022152&pid=2028597139&timestamp=20260307090132&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=923287211&ParentNodeID=-99&assertID=5910022152&client_ip=47.92.222.71&SecurityKey=20260307090132&promotionId=&mvid=5900006638&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=22d2d6e0de43bb2e925955e494dfad7c&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 184.0,
+    "frames": 199,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850696.8220744
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/cctv/cctv4hd/600/index.m3u8?msisdn=20260307090029df23c3070e9340d78ae90f27d5ce0dae&mdspid=&spid=699004&netType=0&sid=5500346947&pid=2028597139&timestamp=20260307090029&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=631780421&ParentNodeID=-99&assertID=5500346947&client_ip=47.92.222.227&SecurityKey=20260307090029&promotionId=&mvid=5101064235&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=8e07ba6eb68f9c9836143865e7dd9d84&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 169.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850697.7268696
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/2018/ocn/liaoningwshd/1000/index.m3u8?msisdn=2026030709004916581f8497f94b0fa99fdbf277b79878&mdspid=&spid=600572&netType=0&sid=5910022198&pid=2028597139&timestamp=20260307090049&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=630291707&ParentNodeID=-99&assertID=5910022198&client_ip=47.92.222.71&SecurityKey=20260307090049&promotionId=&mvid=5101043014&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=5fedcad3efdf84abde40eb953ca3c7b6&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 164.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850698.2843428
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r1/2018/nfmedia/nfys/1000/index.m3u8?msisdn=202603070901161690f3ba02534e1f8e7e7d939a5129f6&mdspid=&spid=699054&netType=0&sid=2206173738&pid=2028597139&timestamp=20260307090116&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=614961829&ParentNodeID=-99&assertID=2206173738&client_ip=47.92.222.71&SecurityKey=20260307090116&promotionId=&mvid=2206173738&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=f1de6077f221df32ce9079ad955318c0&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 155.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850698.6207445
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/cctv/cctv5hdnew/600/index.m3u8?msisdn=20260307090029a7c1f9615b454b02a4b60da63ca3dc1a&mdspid=&spid=699004&netType=0&sid=5500516171&pid=2028597139&timestamp=20260307090029&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=641886683&ParentNodeID=-99&assertID=5500516171&client_ip=47.92.222.227&SecurityKey=20260307090029&promotionId=&mvid=5102048712&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=0d16049bfe9342af5db3e7295cf4c2e8&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 100.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850698.8063145
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/lnsh/50/20251225/index.m3u8?msisdn=20260307090105e4af4f03db0f415494a4d65f0948029f&mdspid=&spid=600697&netType=0&sid=5910022324&pid=2028597139&timestamp=20260307090105&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=962045226&ParentNodeID=-99&assertID=5910022324&client_ip=47.92.222.227&SecurityKey=20260307090105&promotionId=&mvid=5900006792&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=e96c43cd33c084331ad70591958d5cd8&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 153.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850698.9443982
+  },
+  "https://live1-fuyun.fjtv.net/haixiapd/hd/live.m3u8?_upt=a7e49b091772859044": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 148,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1772850699.1520405
+  },
+  "http://phoneqq.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZjZG5leF9pZD1xcV9waG9uZV9saXZlJmNocz0mZGVmPTEmcz0wMDI1Mzc1ZWUzNGQwNmMyMWU0ODVjZmMyZGJlOTgxNCZ1aWQ9JnV1aWQ9YjM3ZGU3OGIxYzU3OThmYzBlZTUxZGM0YWU1YzA4MTEtNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3Mjg3NzMwOQ,,/HNDSMPP360.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 225,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1772850700.0773997
+  },
+  "https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4k_mbd.m3u8?auth_key=1772902800-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-51c799b32da325cebac88e4730b2b081&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 222,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1772850700.3014023
+  },
+  "http://zwebl02.cztv.com/live/channel01720Pnew.m3u8?auth_key=1772845693-fe7bde9cd4d522c25e3f8bc1073536c2-0-dcbbda57b5eb5e4abbf7da7aa0cc888e": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1772850700.7001214
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/lntyxx/50/20251225/index.m3u8?msisdn=20260307090105ec48779d786c421f96855e97d3d44d2e&mdspid=&spid=600697&netType=0&sid=5910022329&pid=2028597139&timestamp=20260307090105&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=962067526&ParentNodeID=-99&assertID=5910022329&client_ip=47.92.222.227&SecurityKey=20260307090105&promotionId=&mvid=5900006790&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=4fe58dcc663fc4f87156e2af4133ec1c&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 151.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850701.4875786
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/cctv/cctv2hd/600/index.m3u8?msisdn=202603070900366f6cc88e2e7243d7a59f32b2eb924647&mdspid=&spid=699004&netType=0&sid=5500346945&pid=2028597139&timestamp=20260307090036&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=631780532&ParentNodeID=-99&assertID=5500346945&client_ip=47.92.222.227&SecurityKey=20260307090036&promotionId=&mvid=5101064231&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=bcb332337fbeac20dc5268002aa3b6f2&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 136.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850701.9712424
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/jstv/jsyingshi/600/index.m3u8?msisdn=202603070901003ec4fc8b80bd4e34a28eaee09d9189ed&mdspid=&spid=699067&netType=0&sid=5500260517&pid=2028597139&timestamp=20260307090100&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=626064697&ParentNodeID=-99&assertID=5500260517&client_ip=47.92.222.227&SecurityKey=20260307090100&promotionId=&mvid=5100186424&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=be61227e1e97c051e80eaf859084f2b5&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 170.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850702.154033
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r4/peoplecn/shdiaoyu/600/index.m3u8?msisdn=20260307090109dc92bf49ca6342eeb1277926e5a5bddf&mdspid=&spid=600697&netType=0&sid=5910022184&pid=2028597139&timestamp=20260307090109&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=637444975&ParentNodeID=-99&assertID=5910022184&client_ip=47.92.222.71&SecurityKey=20260307090109&promotionId=&mvid=5100132656&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=fb6dc177c76b566c6502d49a8b16f52e&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 169.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850702.4866698
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/btws/50/20250804/index.m3u8?msisdn=202603070900524b8a86a05f974b09abd16e3138090799&mdspid=&spid=600697&netType=0&sid=5910022192&pid=2028597139&timestamp=20260307090052&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=956923145&ParentNodeID=-99&assertID=5910022192&client_ip=47.92.222.71&SecurityKey=20260307090052&promotionId=&mvid=5900006716&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=ca00dfc9420b00da75ca2082f5c1783c&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 148.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850703.796033
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/cctvlaogushi/50/20231109/index.m3u8?msisdn=2026030709004453d59a15ff66412ca063a327a2cf082b&mdspid=&spid=699004&netType=0&sid=5910022002&pid=2028597139&timestamp=20260307090044&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=884121956&ParentNodeID=-99&assertID=5910022002&client_ip=47.92.222.227&SecurityKey=20260307090044&promotionId=&mvid=5900006372&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=a5f1858951692d561ef437df17242fbc&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 180.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850703.8835208
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/20200324/cctv15hd/50/index.m3u8?msisdn=202603070900428ce0002a1ad6422bbfa9a7b625a65cd5&mdspid=&spid=699004&netType=0&sid=5501083628&pid=2028597139&timestamp=20260307090042&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=673168223&ParentNodeID=-99&assertID=5501083628&client_ip=47.92.222.227&SecurityKey=20260307090042&promotionId=&mvid=5102910391&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=596f1dfe209befb9457863180c9c053e&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850704.6007447
+  },
+  "http://113.96.132.20/tvcdn.stream3.hndt.com/tv/65c4a6d5017e1000b2b6ea2500000000_transios/playlist.m3u8?wsSecret=1f50c8c19161fcbc05c9d5414d04da28&wsTime=1772863424&wsSession=6d9ee0e063dd7950decc2024-177284923158443&wsIPSercert=f1ed5e80c31ab65580d88c6bbb451005&wsiphost=local&wsBindIP=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1772850705.1750355
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/sxqqpd/50/20250804/index.m3u8?msisdn=202603070901048d724bb8d52e4784bef387c5e9389640&mdspid=&spid=600572&netType=0&sid=5910022188&pid=2028597139&timestamp=20260307090104&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=956909303&ParentNodeID=-99&assertID=5910022188&client_ip=47.92.222.227&SecurityKey=20260307090104&promotionId=&mvid=5900006711&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=cf65d8991f9101a3e7eda76096049ae8&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 181.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850705.284339
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd-virtuallive5100002089-75/index.m3u8?msisdn=202603070901142a899a4ee79e4359b1a6ab93031d5221&mdspid=&spid=800033&netType=0&sid=5500002717&pid=2028597139&timestamp=20260307090114&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=617432318&ParentNodeID=-99&assertID=5500002717&client_ip=47.92.222.227&SecurityKey=20260307090114&promotionId=&mvid=5100002089&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=8ad45c399f098f7bff2f326680dd29f6&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 148.0,
+    "frames": 198,
+    "width": 852,
+    "height": 480,
+    "timestamp": 1772850705.7826817
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/ycxwzh/50/20250604/index.m3u8?msisdn=20260307090101a1b2b3c4b0fb427baa3015d24dea3a12&mdspid=&spid=699067&netType=0&sid=5500469360&pid=2028597139&timestamp=20260307090101&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=639731825&ParentNodeID=-99&assertID=5500469360&client_ip=47.92.222.71&SecurityKey=20260307090101&promotionId=&mvid=5102012617&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=6b70e9905f783be1ea8d28c6e891dd06&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 168.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850706.008577
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/envivo_v/SD/cctv/alabo/1000/index.m3u8?msisdn=20260307090041ac3dad80eb924884aef3d0d4e7a3b09c&mdspid=&spid=699004&netType=0&sid=2200179303&pid=2028597139&timestamp=20260307090041&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=609154345&ParentNodeID=-99&assertID=2200179303&client_ip=47.92.222.71&SecurityKey=20260307090041&promotionId=&mvid=2200179303&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=00f7e84334f8e65fd9c90f0cb74543e3&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 180.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850707.5776525
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r3/cnr/faxianzhilv/1000/index.m3u8?msisdn=2026030709004440cde04ef84d4a4db42cd86fbeea68b3&mdspid=&spid=699004&netType=0&sid=5500212893&pid=2028597139&timestamp=20260307090044&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=624878970&ParentNodeID=-99&assertID=5500212893&client_ip=47.92.222.71&SecurityKey=20260307090044&promotionId=&mvid=5100001701&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=7864f667493c250028ced734db729234&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 131.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850707.7408776
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/envivo_v/2018/SD/cctv/fayu/1000/index.m3u8?msisdn=20260307090042070ade53825c47d7a9056b5201cdaa04&mdspid=&spid=699004&netType=0&sid=2200179324&pid=2028597139&timestamp=20260307090042&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=609006476&ParentNodeID=-99&assertID=2200179324&client_ip=47.92.222.71&SecurityKey=20260307090042&promotionId=&mvid=2200179324&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=e68e496e68f2d20f0a22cf51b71a1a98&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 173.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850708.5574682
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/virtuallive2/5900002409/50/20210706/index.m3u8?msisdn=20260307090136a8bdd5711ad747ffa664cc87b7c1adda&mdspid=&spid=800033&netType=0&sid=5910019523&pid=2028597139&timestamp=20260307090136&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=713589837&ParentNodeID=-99&assertID=5910019523&client_ip=47.92.222.227&SecurityKey=20260307090136&promotionId=&mvid=5900002419&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=c080ab1b320b4f687f31a622f0d388e9&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 125.0,
+    "frames": 199,
+    "width": 852,
+    "height": 480,
+    "timestamp": 1772850709.279948
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/jstv/jsjiaoyu/600/index.m3u8?msisdn=20260307090059b8a8bfaa17784afd9f1b87cdb4b7b639&mdspid=&spid=699067&netType=0&sid=5500287493&pid=2028597139&timestamp=20260307090059&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=628008321&ParentNodeID=-99&assertID=5500287493&client_ip=47.92.222.227&SecurityKey=20260307090059&promotionId=&mvid=5101012819&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=5381d3a373a0f73e8db2521b1e132762&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 182.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850709.4147692
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/envivo_v/2018/SD/cctv/eyu/1000/index.m3u8?msisdn=20260307090044e45b4c2ff37a4e9db05b3aa5a10698bd&mdspid=&spid=699004&netType=0&sid=2200179332&pid=2028597139&timestamp=20260307090044&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=609006446&ParentNodeID=-99&assertID=2200179332&client_ip=47.92.222.71&SecurityKey=20260307090044&promotionId=&mvid=2200179332&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=0e9336878c4810308b110d357deecae5&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 128.0,
+    "frames": 199,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850709.7978609
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/shan3xiws/50/20220809/index.m3u8?msisdn=20260307090049f24ecffd0ece4ac383eca826efaa9a46&mdspid=&spid=600633&netType=0&sid=5910020475&pid=2028597139&timestamp=20260307090049&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=738910838&ParentNodeID=-99&assertID=5910020475&client_ip=47.92.222.227&SecurityKey=20260307090049&promotionId=&mvid=5900004331&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=3926adfd5645fd01ef3861e3fd8248cb&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 193.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850710.8494787
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/sxtyxx/50/20250804/index.m3u8?msisdn=20260307090103eb40dc38665743e691e55cfdc440b4c0&mdspid=&spid=600572&netType=0&sid=5910022189&pid=2028597139&timestamp=20260307090103&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=956909356&ParentNodeID=-99&assertID=5910022189&client_ip=47.92.222.71&SecurityKey=20260307090103&promotionId=&mvid=5900006712&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=0a588da907e0651fcb0020bda0bbd290&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 183.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850711.0286703
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/20200324/cctv17hd/50/index.m3u8?msisdn=20260307090042aee0b4a5b1d848b9a53c0df1d9a1c973&mdspid=&spid=699004&netType=0&sid=5501083631&pid=2028597139&timestamp=20260307090042&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=673168256&ParentNodeID=-99&assertID=5501083631&client_ip=47.92.222.227&SecurityKey=20260307090042&promotionId=&mvid=5102910396&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=eee82b10a072b6ceeb7a27fb7caca23e&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 129.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850712.2348964
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r4/dfl/xinwenzonghehd/600/index.m3u8?msisdn=20260307090059afac302294d247a6be5b1f5bbfd78b74&mdspid=&spid=600697&netType=0&sid=5910022325&pid=2028597139&timestamp=20260307090059&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=651632657&ParentNodeID=-99&assertID=5910022325&client_ip=47.92.222.227&SecurityKey=20260307090059&promotionId=&mvid=5100001716&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=20a4df75459286a2adeb85e26ba9962c&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 169.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850712.857232
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/zgtq/50/20251103/index.m3u8?msisdn=20260307090124e4a20b67211246f586ea71b246a04761&mdspid=&spid=600697&netType=0&sid=5910022296&pid=2028597139&timestamp=20260307090124&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=959986621&ParentNodeID=-99&assertID=5910022296&client_ip=47.92.222.71&SecurityKey=20260307090124&promotionId=&mvid=5900006772&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=d69e8b74b49e6b5a9e09560738b83443&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 168.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850713.1883497
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r3/cctv/titanminglan/600/index.m3u8?msisdn=202603070901092f89464fc49247e9891f1c29afe58d46&mdspid=&spid=699004&netType=0&sid=5500315687&pid=2028597139&timestamp=20260307090109&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=629943305&ParentNodeID=-99&assertID=5500315687&client_ip=47.92.222.71&SecurityKey=20260307090109&promotionId=&mvid=5101034219&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=dadeff29147e4b37baa7b804fa228e3f&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 157.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850713.4856267
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/ssws/50/20251127/index.m3u8?msisdn=2026030709005483475367757a482fa2e4ab4dac820054&mdspid=&spid=600697&netType=0&sid=5910022307&pid=2028597139&timestamp=20260307090054&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=961023778&ParentNodeID=-99&assertID=5910022307&client_ip=47.92.222.227&SecurityKey=20260307090054&promotionId=&mvid=5900006777&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=752898c5cc5edb95241031566b3d203e&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850714.0216875
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/2018/ocn/cctv3hd/1000/index.m3u8?msisdn=202603070900348ef7b5783e00426fa7559e9340b41983&mdspid=&spid=699004&netType=0&sid=5500212864&pid=2028597139&timestamp=20260307090034&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=624878271&ParentNodeID=-99&assertID=5500212864&client_ip=47.92.222.227&SecurityKey=20260307090034&promotionId=&mvid=5100001683&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=68c5f5de88c56679cbf497c3b3b908fe&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 137.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850714.650972
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/virtuallive/5100180869/75/index.m3u8?msisdn=202603070901142413a8cceaa0431782117065c7ee4997&mdspid=&spid=800033&netType=0&sid=5500242089&pid=2028597139&timestamp=20260307090114&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=625703337&ParentNodeID=-99&assertID=5500242089&client_ip=47.92.222.227&SecurityKey=20260307090114&promotionId=&mvid=5100180869&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=2a8ec2845a62a5ac0eb4d70a2a9fa551&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 198,
+    "width": 852,
+    "height": 480,
+    "timestamp": 1772850715.475933
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/2018/ocn/cctv14hd/1000/index.m3u8?msisdn=20260307090042c3401f2d039b40f8954980de0261e279&mdspid=&spid=699004&netType=0&sid=5500212875&pid=2028597139&timestamp=20260307090042&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=624878440&ParentNodeID=-99&assertID=5500212875&client_ip=47.92.222.227&SecurityKey=20260307090042&promotionId=&mvid=5100001697&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=c8690aa9cc07480b3609b89480fb244b&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 188.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850716.1100607
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/zjxwzh/50/20251127/index.m3u8?msisdn=20260307090104a3961b1423464b11ace9a0871a4fa13d&mdspid=&spid=699067&netType=0&sid=5500469365&pid=2028597139&timestamp=20260307090104&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=639731783&ParentNodeID=-99&assertID=5500469365&client_ip=47.92.222.227&SecurityKey=20260307090104&promotionId=&mvid=5102012619&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=71e25463bb0c102ba28bacd072061b83&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 185.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850716.5005748
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/envivo_x/2018/SD/cctv13/1000/index.m3u8?msisdn=202603070900307a000925194e43999789c15957e5c7b6&mdspid=&spid=699004&netType=0&sid=2202208864&pid=2028597139&timestamp=20260307090030&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=608807423&ParentNodeID=-99&assertID=2202208864&client_ip=47.92.222.227&SecurityKey=20260307090030&promotionId=&mvid=2202208864&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=0ac0a305738935fb25e10a656c53ec0b&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 126.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850717.2413542
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/jstv/lygxinwenzonghe/600/index.m3u8?msisdn=20260307090101170d2f97f478452894196144c0259802&mdspid=&spid=699067&netType=0&sid=5500469369&pid=2028597139&timestamp=20260307090101&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=639731715&ParentNodeID=-99&assertID=5500469369&client_ip=47.92.222.227&SecurityKey=20260307090101&promotionId=&mvid=5102012621&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=d684a42a0983bcbb48573ed6c6259a8f&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 174.0,
+    "frames": 199,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850717.50826
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/jstv/xzxinwenzonghe/600/index.m3u8?msisdn=20260307090101748e749c4b214f3bb32907d3fc78e975&mdspid=&spid=699067&netType=0&sid=5500469368&pid=2028597139&timestamp=20260307090101&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=639731747&ParentNodeID=-99&assertID=5500469368&client_ip=47.92.222.71&SecurityKey=20260307090101&promotionId=&mvid=5102012620&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=9c45fcb9e9640f6810a15d185d1729ac&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 183.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850718.229444
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/2018/ocn/cctv10hd/1000/index.m3u8?msisdn=2026030709003017419bd85d484be582f0ad437457309a&mdspid=&spid=699004&netType=0&sid=5500212874&pid=2028597139&timestamp=20260307090030&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=624878405&ParentNodeID=-99&assertID=5500212874&client_ip=47.92.222.227&SecurityKey=20260307090030&promotionId=&mvid=5100001696&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=e3da0a99cd8c193228d05786f9d8fba5&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 176.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850719.4315815
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/jstv/jsgonggong/600/index.m3u8?msisdn=20260307090100b2d11dcb289b4c4c8b27194efbfd7e86&mdspid=&spid=699067&netType=0&sid=5500260520&pid=2028597139&timestamp=20260307090100&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=626064693&ParentNodeID=-99&assertID=5500260520&client_ip=47.92.222.227&SecurityKey=20260307090100&promotionId=&mvid=5100186429&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=556e1e1040742142fe4dbaae5e8ff1a9&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 117.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850719.610176
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/zgnlws/50/20250804/index.m3u8?msisdn=2026030709005493baddcab4b3471a91d6d178c45b448b&mdspid=&spid=600572&netType=0&sid=5910022186&pid=2028597139&timestamp=20260307090054&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=956904896&ParentNodeID=-99&assertID=5910022186&client_ip=47.92.222.227&SecurityKey=20260307090054&promotionId=&mvid=5900006709&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=3b7b7cdddfd6089c54c5e0fa6d21f9b1&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 177.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850719.9927812
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/envivo_x/2018/SD/cctvnews/1000/index.m3u8?msisdn=20260307090045ac8b644bf7a64af3bb156956c0a9174c&mdspid=&spid=699004&netType=0&sid=2202196407&pid=2028597139&timestamp=20260307090045&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=609017205&ParentNodeID=-99&assertID=2202196407&client_ip=47.92.222.71&SecurityKey=20260307090045&promotionId=&mvid=2202196407&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=d11a2545c7117b9c6db72cd4bf6dd20f&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850720.496357
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/jstv/jszongyi/600/index.m3u8?msisdn=202603070900594e67a37547b64e0393d788fee5957534&mdspid=&spid=699067&netType=0&sid=5500260513&pid=2028597139&timestamp=20260307090059&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=626065193&ParentNodeID=-99&assertID=5500260513&client_ip=47.92.222.71&SecurityKey=20260307090059&promotionId=&mvid=5100186420&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=953752220e833353eb03a40c20183073&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 182.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850720.6905162
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/chcymdy/50/20250415/index.m3u8?msisdn=20260307090114444b6c4ab5f44db2aeefce34f64be614&mdspid=&spid=699004&netType=0&sid=5910022176&pid=2028597139&timestamp=20260307090114&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=952383261&ParentNodeID=-99&assertID=5910022176&client_ip=47.92.222.71&SecurityKey=20260307090114&promotionId=&mvid=5900006704&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=ca05a23726716a8d1473d20063793d7a&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 187.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850721.6793356
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/yxxwzh/50/20250604/index.m3u8?msisdn=202603070901020a134c58fd5f4b63883188234f581246&mdspid=&spid=699067&netType=0&sid=5910022179&pid=2028597139&timestamp=20260307090102&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=955227996&ParentNodeID=-99&assertID=5910022179&client_ip=47.92.222.71&SecurityKey=20260307090102&promotionId=&mvid=5900006707&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=6b124aa860030a3bf034dfbaefd68b53&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 166.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850723.1277983
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/nxwl/50/20251225/index.m3u8?msisdn=202603070901069474ad34727747069a7a433fa6a876b6&mdspid=&spid=600697&netType=0&sid=5910022328&pid=2028597139&timestamp=20260307090106&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=962067523&ParentNodeID=-99&assertID=5910022328&client_ip=47.92.222.227&SecurityKey=20260307090106&promotionId=&mvid=5900006788&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=799bb5f35fdd2287ba008690bfee4e5c&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 147.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850723.4363432
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/2018/ocn/cctv6hd/1000/index.m3u8?msisdn=202603070900285499b6e9bfde49b98a1776a91f29cba4&mdspid=&spid=699004&netType=0&sid=5500212872&pid=2028597139&timestamp=20260307090028&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=624878396&ParentNodeID=-99&assertID=5500212872&client_ip=47.92.222.71&SecurityKey=20260307090028&promotionId=&mvid=5100001694&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=769b16698d938fbe22398f61a1436ded&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 116.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850723.8989675
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/ydcmklcd/50/20251225/index.m3u8?msisdn=202603070901106915d7bfc6dc4f0cbbb4ab7b0abb8b56&mdspid=&spid=600603&netType=0&sid=5910022317&pid=2028597139&timestamp=20260307090110&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=961930263&ParentNodeID=-99&assertID=5910022317&client_ip=47.92.222.227&SecurityKey=20260307090110&promotionId=&mvid=5900006783&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=1502a6463ccc5ae2c0feadc801016c71&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 180.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850723.9796102
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/jstv/haxinwenzonghe/600/index.m3u8?msisdn=20260307090101ead35b06b727480683a1d46dfd965847&mdspid=&spid=699067&netType=0&sid=5500469363&pid=2028597139&timestamp=20260307090101&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=639731826&ParentNodeID=-99&assertID=5500469363&client_ip=47.92.222.71&SecurityKey=20260307090101&promotionId=&mvid=5102012618&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=88e46e90182e347b7c03ccf0e2c34f41&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 141.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850724.4838748
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/hqly/50/20250915/index.m3u8?msisdn=20260307090138f43eba06cad041f986a59dcb6934a85e&mdspid=&spid=600697&netType=0&sid=5910022200&pid=2028597139&timestamp=20260307090138&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=958475356&ParentNodeID=-99&assertID=5910022200&client_ip=47.92.222.71&SecurityKey=20260307090138&promotionId=&mvid=5900006723&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=460a98177b2a79a6f89af629d6d1300e&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 146.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850725.52753
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/lngg/50/20251225/index.m3u8?msisdn=2026030709010529503143fa4c4267af8a6a34d9c52cfb&mdspid=&spid=600697&netType=0&sid=5910022323&pid=2028597139&timestamp=20260307090105&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=962045223&ParentNodeID=-99&assertID=5910022323&client_ip=47.92.222.227&SecurityKey=20260307090105&promotionId=&mvid=5900006791&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=8683a569156e9733336bdaf46e9c2ff7&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850726.5305965
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/wxxwzh/50/20250604/index.m3u8?msisdn=2026030709010300517ef561d54bceb3a68ef1c2989ed1&mdspid=&spid=699067&netType=0&sid=5500469349&pid=2028597139&timestamp=20260307090103&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=639737327&ParentNodeID=-99&assertID=5500469349&client_ip=47.92.222.227&SecurityKey=20260307090103&promotionId=&mvid=5102012612&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=6b21525473a6b18e0c2a24242cf8fe57&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 148.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850726.8760786
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/cctv/jiangsuhd/600/index.m3u8?msisdn=20260307090030683b8fc3e6c9419b84f7bfe0b2a0ddd5&mdspid=&spid=699067&netType=0&sid=5500199408&pid=2028597139&timestamp=20260307090030&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=623899368&ParentNodeID=-99&assertID=5500199408&client_ip=47.92.222.71&SecurityKey=20260307090030&promotionId=&mvid=5100156802&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=e000c9d3e0d9e76ce1906ef40f3e4275&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 160.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850727.433984
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/cctv/cctv5plusnew/600/index.m3u8?msisdn=202603070900283af8e07ebc704d868027b91404afc5d9&mdspid=&spid=699004&netType=0&sid=5500516288&pid=2028597139&timestamp=20260307090028&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=641886773&ParentNodeID=-99&assertID=5500516288&client_ip=47.92.222.71&SecurityKey=20260307090028&promotionId=&mvid=5102048803&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=fff1884e29c7afec1e4d5510d2c85c2f&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 138.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850727.5125754
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/envivo_v/2018/SD/cctv/xibanya/1000/index.m3u8?msisdn=20260307090042f90794a77a6b448286b1ed205664c45d&mdspid=&spid=699004&netType=0&sid=2200179337&pid=2028597139&timestamp=20260307090042&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=609006450&ParentNodeID=-99&assertID=2200179337&client_ip=47.92.222.71&SecurityKey=20260307090042&promotionId=&mvid=2200179337&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=3a847fbd6c9d74df1e3e08c8d28ece8c&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 189.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850727.754887
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/virtuallive2/5900002411/50/20210706/index.m3u8?msisdn=202603070901165edf36a3deb24e8d8cea77f5db2e1932&mdspid=&spid=800033&netType=0&sid=5910019525&pid=2028597139&timestamp=20260307090116&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=713591450&ParentNodeID=-99&assertID=5910019525&client_ip=47.92.222.227&SecurityKey=20260307090116&promotionId=&mvid=5900002421&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=7728a46797cb847c806c58031b5cbb7c&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 117.0,
+    "frames": 198,
+    "width": 852,
+    "height": 480,
+    "timestamp": 1772850729.502302
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/20200324/cctv4meihd/50/index.m3u8?msisdn=202603070900422b8b3f0cc0b64789846e04009e0d6dcd&mdspid=&spid=699004&netType=0&sid=2200179344&pid=2028597139&timestamp=20260307090042&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=608807416&ParentNodeID=-99&assertID=2200179344&client_ip=47.92.222.227&SecurityKey=20260307090042&promotionId=&mvid=2200179344&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=c785d3f416987710a5cee5c2259bffe3&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850730.0300167
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/ydcmc/50/20251225/index.m3u8?msisdn=20260307090138f2b836ee881945f09d2eea02c6b72382&mdspid=&spid=600603&netType=0&sid=5910022320&pid=2028597139&timestamp=20260307090138&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=961930369&ParentNodeID=-99&assertID=5910022320&client_ip=47.92.222.227&SecurityKey=20260307090138&promotionId=&mvid=5900006785&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=34b9df30b17bb4a80fa69b8f2d3a147e&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 167.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850730.1436431
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/20210415/cctvzhongxuesheng/50/index.m3u8?msisdn=202603070900447b7b5fd5ed164c8f824ca3834d95739e&mdspid=&spid=699004&netType=0&sid=5910019355&pid=2028597139&timestamp=20260307090044&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=708869532&ParentNodeID=-99&assertID=5910019355&client_ip=47.92.222.71&SecurityKey=20260307090044&promotionId=&mvid=5900002149&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=5a5d5f471f40622e7c8440ec5516acc2&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 138.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850731.169974
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r4/dfl/dianshijuhd/600/index.m3u8?msisdn=2026030709005733182da8615449aca74413deac72ad6d&mdspid=&spid=699212&netType=0&sid=5500002274&pid=2028597139&timestamp=20260307090057&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=617290047&ParentNodeID=-99&assertID=5500002274&client_ip=47.92.222.71&SecurityKey=20260307090057&promotionId=&mvid=5100001715&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=4b3a28f9bcfc01aa095c90eecfc6e247&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 137.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850731.305175
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/envivo_x/2018/SD/chongqing/1000/index.m3u8?msisdn=20260307090054f3610b8b94574222a0a915ea2b464dab&mdspid=&spid=600697&netType=0&sid=5910022305&pid=2028597139&timestamp=20260307090054&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=738910914&ParentNodeID=-99&assertID=5910022305&client_ip=47.92.222.227&SecurityKey=20260307090054&promotionId=&mvid=5900004329&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=d8f40b6cc16895ba04a4b0716a16f573&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 144.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850731.488463
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/jstv/ymkt/600/index.m3u8?msisdn=20260307090101c58f9fb562aa415b8ef4ca0e90aea355&mdspid=&spid=699067&netType=0&sid=5500260553&pid=2028597139&timestamp=20260307090101&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=626064703&ParentNodeID=-99&assertID=5500260553&client_ip=47.92.222.71&SecurityKey=20260307090101&promotionId=&mvid=5100186455&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=071230fa5a21aee9a64e4196145476c6&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 165.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850732.955861
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd-henanwssd-600/index.m3u8?msisdn=202603070900501e9fff31e77643e6b9590ca1b25a1b25&mdspid=&spid=600633&netType=0&sid=5910021585&pid=2028597139&timestamp=20260307090050&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=790187291&ParentNodeID=-99&assertID=5910021585&client_ip=47.92.222.227&SecurityKey=20260307090050&promotionId=&mvid=5900005706&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=616d172651a748e12675e3976cf70ccf&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 178.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850733.5997348
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/jstv/tzxinwenzonghe/600/index.m3u8?msisdn=202603070901015d57b15d5acf4d5abe0ee9d057439fbf&mdspid=&spid=699067&netType=0&sid=5500469354&pid=2028597139&timestamp=20260307090101&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=639731818&ParentNodeID=-99&assertID=5500469354&client_ip=47.92.222.227&SecurityKey=20260307090101&promotionId=&mvid=5102012615&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=e9b085a5d7fef5dd84146ba1afbef056&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 158.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850733.789752
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r3/cctv/jingdiandonghua/600/index.m3u8?msisdn=202603070901194c0b489fcaa5410792a7a58af2ed05ec&mdspid=&spid=699004&netType=0&sid=5500315652&pid=2028597139&timestamp=20260307090119&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=629942219&ParentNodeID=-99&assertID=5500315652&client_ip=47.92.222.227&SecurityKey=20260307090119&promotionId=&mvid=5101034205&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=cf4a8035b839cb526f330f879e71e1f4&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850734.2749302
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r1/2018/bestv/dycj/1000/index.m3u8?msisdn=20260307090058f09f7f4065a9491988c6cbb80682f5d1&mdspid=&spid=699212&netType=0&sid=2201008312&pid=2028597139&timestamp=20260307090058&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=608780988&ParentNodeID=-99&assertID=2201008312&client_ip=47.92.222.227&SecurityKey=20260307090058&promotionId=&mvid=2201008312&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=01210d7c4f7b186e6248c60748d4337c&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 178.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850735.1235826
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r2/jstv/sqxinwenzonghe/600/index.m3u8?msisdn=20260307090101e762fc5bfed44167b3cdd0e16fa11d2e&mdspid=&spid=699067&netType=0&sid=5500469357&pid=2028597139&timestamp=20260307090101&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=639731832&ParentNodeID=-99&assertID=5500469357&client_ip=47.92.222.227&SecurityKey=20260307090101&promotionId=&mvid=5102012616&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=e6a81662e5f91794b079fa4977edb995&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 141.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850735.137214
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/cetv4/50/20240709/index.m3u8?msisdn=20260307090132e477da46c4c64479ac459f606bda9cf4&mdspid=&spid=699004&netType=0&sid=5910022154&pid=2028597139&timestamp=20260307090132&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=923287339&ParentNodeID=-99&assertID=5910022154&client_ip=47.92.222.71&SecurityKey=20260307090132&promotionId=&mvid=5900006640&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=7fbf1a2ebd9c96d5ce76f94c55455a25&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 187.0,
+    "frames": 199,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850737.2150064
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/nanjingsb/50/20230719/index.m3u8?msisdn=20260307090058a33f383c7a4046e9a831e1352c53f373&mdspid=&spid=699067&netType=0&sid=5910021864&pid=2028597139&timestamp=20260307090058&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=838151753&ParentNodeID=-99&assertID=5910021864&client_ip=47.92.222.227&SecurityKey=20260307090058&promotionId=&mvid=5900006207&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=40030c8f18b2d75acf693a9e323601fe&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 121.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850737.611388
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/envivo_v/2018/SD/jilin/1000/index.m3u8?msisdn=20260307090053ba17475251dc4f60a4a02ce74a1ab0f5&mdspid=&spid=600633&netType=0&sid=5910022164&pid=2028597139&timestamp=20260307090053&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=947472500&ParentNodeID=-99&assertID=5910022164&client_ip=47.92.222.227&SecurityKey=20260307090053&promotionId=&mvid=5900004357&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=6109e5470447bd18ae16609e06d7c7ec&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 155.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850738.068771
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/envivo_x/2018/SD/ningxia/1000/index.m3u8?msisdn=20260307090054af562ccdb40a46b3a64462355cea33cb&mdspid=&spid=600697&netType=0&sid=5910022262&pid=2028597139&timestamp=20260307090054&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=738910535&ParentNodeID=-99&assertID=5910022262&client_ip=47.92.222.227&SecurityKey=20260307090054&promotionId=&mvid=5900004337&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=ae3c5ec0f055676f8bad647c59623ee6&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 184.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850738.9421427
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/zhtc/50/20251103/index.m3u8?msisdn=202603070901363d3147edbbec4cb79ea1ac5634497bf7&mdspid=&spid=600697&netType=0&sid=5910022295&pid=2028597139&timestamp=20260307090136&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=959986618&ParentNodeID=-99&assertID=5910022295&client_ip=47.92.222.227&SecurityKey=20260307090136&promotionId=&mvid=5900006771&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=24ce0ea425c3f6da90ede026469466fe&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 182.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850739.438347
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/nanjingxwzh/50/20230719/index.m3u8?msisdn=20260307090057180fa8685a4d4c2cb1e6ba9f31de4956&mdspid=&spid=699067&netType=0&sid=5910021863&pid=2028597139&timestamp=20260307090057&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=838109047&ParentNodeID=-99&assertID=5910021863&client_ip=47.92.222.71&SecurityKey=20260307090057&promotionId=&mvid=5900006203&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=42922a9214a14e771f8df631dba3f7fa&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 182.0,
+    "frames": 199,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850740.6341975
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/wssj/50/20250915/index.m3u8?msisdn=20260307090109a2d3a9ffa2ab4e8eae997ccc2a7701e1&mdspid=&spid=600697&netType=0&sid=5910022201&pid=2028597139&timestamp=20260307090109&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=958475359&ParentNodeID=-99&assertID=5910022201&client_ip=47.92.222.71&SecurityKey=20260307090109&promotionId=&mvid=5900006724&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=c7c29cf9a74c1c521e3352d5cdd332ad&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 147.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850741.5012321
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/migu/kailu/nxjj/50/20251225/index.m3u8?msisdn=20260307090106525b80d753d54dc984dd6e8f1a2feeac&mdspid=&spid=600697&netType=0&sid=5910022327&pid=2028597139&timestamp=20260307090106&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=962067520&ParentNodeID=-99&assertID=5910022327&client_ip=47.92.222.227&SecurityKey=20260307090106&promotionId=&mvid=5900006787&mcid=500020&playurlVersion=WX-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=9884af1dc65f16e85f9074fb88721e94&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 149.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850741.8364842
+  },
+  "http://hlszymgsplive.miguvideo.com:8080/wd_r4/dfl/dongfangwshd/600/index.m3u8?msisdn=20260307090030c501d7a04a3a4e5b81e6890ae4457db5&mdspid=&spid=600697&netType=0&sid=5910022185&pid=2028597139&timestamp=20260307090030&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=651632648&ParentNodeID=-99&assertID=5910022185&client_ip=47.92.222.227&SecurityKey=20260307090030&promotionId=&mvid=5100043384&mcid=500020&playurlVersion=ZQ-A1-9.2.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=27eccd5f8ad777eea96f0e7c33ca9fab&sv=10004&ct=android": {
+    "ok": false,
+    "fps": 160.0,
+    "frames": 198,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1772850742.4794269
+  },
+  "https://v4-702cae17a28d6e4f0c0002bba021d934.livehwc4.com/play.kankanlive.com/live/1698423397390920.m3u8?sub_m3u8=true&edge_slice=true&user_session_id=1bb7229417b4f5bcf2d39b32bc52fa9a": {
+    "ok": false,
+    "fps": 34.0,
+    "frames": 80,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1772850742.5740743
   }
 }
