@@ -6,7 +6,7 @@ http://183.62.8.58:50085/tsfile/live/0002_1.m3u8?key=txiptv&amp;playlive=1&amp;a
 #EXTINF:-1 group-title="央视频道",CCTV-3综艺
 http://221.232.198.113:7777/tsfile/live/0003_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-4国际
-http://183.184.63.183:9003/hls/4/index.m3u8
+http://221.232.198.113:7777/tsfile/live/0004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-5体育
 http://221.232.198.113:7777/tsfile/live/0005_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-5+体育赛事
@@ -97,6 +97,8 @@ http://120.76.248.139/live/bfgd/4200000110.m3u8
 #EXTINF:-1 group-title="卫视频道",内蒙古卫视
 http://183.62.8.58:50085/tsfile/live/0109_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",北京卫视
+https://hsplay-360.v.btime.com/live_btime/btv_sn_20170706_s1/index.m3u8?time=1772881726&sign=be41d62fce9ce2d05cc7e4649b02dffe
+#EXTINF:-1 group-title="卫视频道",北京卫视
 http://112.80.157.19:9003/hls/24/index.m3u8
 #EXTINF:-1 group-title="卫视频道",北京卫视
 http://183.185.64.197:9003/hls/20/index.m3u8
@@ -104,8 +106,6 @@ http://183.185.64.197:9003/hls/20/index.m3u8
 http://110.241.188.75:808/hls/21/index.m3u8
 #EXTINF:-1 group-title="卫视频道",北京卫视
 http://123.154.236.207:85/tsfile/live/1028_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="卫视频道",北京卫视
-http://221.232.198.113:7777/tsfile/live/0122_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",卡通卫视
 http://116.3.65.255:777/hls/494596185/index.m3u8
 #EXTINF:-1 group-title="卫视频道",吉林卫视
@@ -201,8 +201,6 @@ http://60.187.246.177:85/tsfile/live/0113_1.m3u8?key=txiptv&amp;playlive=1&amp;a
 #EXTINF:-1 group-title="卫视频道",新疆卫视
 http://183.185.64.197:9003/hls/47/index.m3u8
 #EXTINF:-1 group-title="卫视频道",新疆卫视
-https://slstplay.xjtvs.com.cn/xjtv1/xjtv1stream.m3u8?auth_key=1772870892-5-5-c8908aaaea99102c7408791851e61224&aliyun_uuid=4cc1e236-393a-4ee5-a774-525f28df2576
-#EXTINF:-1 group-title="卫视频道",新疆卫视
 http://112.80.157.19:9003/hls/50/index.m3u8
 #EXTINF:-1 group-title="卫视频道",新闻台
 http://61.221.215.25:8800/hls/9/index.m3u8
@@ -248,8 +246,6 @@ http://183.62.8.58:50085/tsfile/live/0138_1.m3u8?key=txiptv&amp;playlive=1&amp;a
 http://221.232.198.113:7777/tsfile/live/0138_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",河北卫视
 http://1.190.183.142:9003/hls/3045/index.m3u8
-#EXTINF:-1 group-title="卫视频道",河北卫视
-https://tv.pull.hebtv.com/jishi/weishipindao.m3u8?t=1772874467&k=3dd6341a9d66903fee4f08993a9ce5f6
 #EXTINF:-1 group-title="卫视频道",河北卫视
 http://112.80.157.19:9003/hls/47/index.m3u8
 #EXTINF:-1 group-title="卫视频道",河南卫视
@@ -316,8 +312,12 @@ http://110.241.188.75:808/hls/19/index.m3u8
 http://221.232.198.113:7777/tsfile/live/0128_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",湖南卫视
 http://171.43.65.107:85/tsfile/live/0128_2.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
+#EXTINF:-1 group-title="卫视频道",湖南国际频道
+http://phoneal.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZjZG5leF9pZD1hbF9waG9uZTMmY2hzPSZkZWY9MSZzPTAyY2E2YzA0MzNhNzVmMDMyNTQ4NjQzNjJmYzQ0YTgyJnVpZD0mdXVpZD04NGQyM2U3NmQzM2JlODNmM2NjZjAwMGRhZGQ5YTdjZS02YTBlMjYzNyZ2PTImYXM9MCZlcz0xNzcyOTEzNjk5/HNGJMPP360.m3u8
 #EXTINF:-1 group-title="卫视频道",湖南电视剧
-http://phonehwei.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZjZG5leF9pZD1od19waG9uZSZjaHM9JmRlZj0xJnM9ZTllZjlkMGYwMjA2MDc3YTgyMjJkMTk3YjY0MmE4MWQmdWlkPSZ1dWlkPTQ3YTZhNTcwOGUxNGI5NjA2ZmQ4ZWMyNmY3MTdhMWQwLTZhMGUyNjM3JnY9MiZhcz0wJmVzPTE3NzI4Nzk1NDg,/HNDSJMPP360.m3u8
+http://phonehwei.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZjZG5leF9pZD1od19waG9uZSZjaHM9JmRlZj0xJnM9ZmI0NGExYjNiODE3OTlmYmViNjdmZTI0OTM0NmFkMjYmdWlkPSZ1dWlkPTRmMzk2MDY2NGEzYTkzOThmZTQ0MDcxMWMzZDY0N2Y5LTZhMGUyNjM3JnY9MiZhcz0wJmVzPTE3NzI5MDgzOTc,/HNDSJMPP360.m3u8
+#EXTINF:-1 group-title="卫视频道",湖南都市
+http://phoneqq.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZjZG5leF9pZD1xcV9waG9uZV9saXZlJmNocz0mZGVmPTEmcz03ZGUwOTY5YzE0ZThmMzdlZTAzOTMyZTA4YWRlMzJlMiZ1aWQ9JnV1aWQ9NWI0ZTQyMzVmMWM5MTdlNTZhYTk0ODlkNTA3YzgzYjYtNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3MjkwNjExMQ,,/HNDSMPP360.m3u8
 #EXTINF:-1 group-title="卫视频道",甘肃卫视
 http://110.241.188.75:808/hls/44/index.m3u8
 #EXTINF:-1 group-title="卫视频道",甘肃卫视
@@ -435,6 +435,8 @@ https://live.iill.top/huya/16913382
 https://live.iill.top/huya/11213191
 #EXTINF:-1 group-title="儿童频道",金鹰卡通
 http://1.190.183.142:9003/hls/3075/index.m3u8
+#EXTINF:-1 group-title="儿童频道",金鹰卡通
+http://phonehwei.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPWh3X3Bob25lJmNocz0mZGVmPTEmcz1iMThlMjg1ZDE3Y2QwYmQwM2EyOWNjZTdhNGRiYTQzOCZ1aWQ9JnV1aWQ9NDE3MDJlMTlhNjgyZjAxZDIwMmVlYTlhZDhjNzE5NTgtNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3MjkwMTEwNA,,/JYKTMPP360.m3u8
 
-#EXTINF:-1 group-title="更新时间",2026-03-07 17:22:47
+#EXTINF:-1 group-title="更新时间",2026-03-07 21:02:52
 https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
