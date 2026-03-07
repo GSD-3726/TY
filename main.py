@@ -56,6 +56,23 @@ GITHUB_M3U_LINKS = [
     "https://gh-proxy.com/https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/httop.m3u",
     "https://gh-proxy.com/https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/htldx_merged.m3u",
     "https://gh-proxy.com/https://raw.githubusercontent.com/3377/IPTV/master/output/result.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/Guovin/iptv-database/master/result.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/iptv-org/iptv/gh-pages/countries/cn.m3u",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv6.m3u",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/merged_output.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/xzw832/cmys/main/S_CCTV.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/xzw832/cmys/main/S_weishi.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/asdjkl6/tv/tv/.m3u/整套直播源/测试/整套直播源/l.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/asdjkl6/tv/tv/.m3u/整套直播源/测试/整套直播源/kk.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/yuanzl77/IPTV/master/live.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/ipv6.m3u",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv6.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/YueChan/Live/main/APTV.m3u",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/YanG-1989/m3u/main/Gather.m3u",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/others_output.txt",
 ]
 
 # -------------------------- 6. 延时与等待设置 ------------------------------
