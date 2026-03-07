@@ -44,7 +44,7 @@ ENABLE_FFMPEG_TEST     = True                            # 是否启用FFmpeg测
 FFMPEG_PATH            = "ffmpeg"                        # FFmpeg 程序路径（如果不在PATH中需写完整）
 FFMPEG_TEST_DURATION   = 10                               # 每个链接测试时长（秒）
 FFMPEG_CONCURRENCY     = 6                                # 并发测速数量（GitHub Actions建议≤2）
-MIN_AVG_FPS            = 18.0                             # 最低平均帧率
+MIN_AVG_FPS            = 19.0                             # 最低平均帧率
 MIN_FRAMES             = 140                              # 最低解码帧数（防止只有几秒数据）
 
 # -------------------------- 5. GitHub 源订阅设置 ---------------------------
@@ -101,6 +101,9 @@ ENABLE_HISTORY_CHECK   = True          # 是否检查历史输出文件中的链
 HISTORY_FILE           = OUTPUT_TXT_FILENAME   # 历史文件路径
 HISTORY_CHECK_CONCURRENCY = 10         # 并发检查数量
 HISTORY_CHECK_TIMEOUT  = 10             # 每个链接检查超时（秒）
+
+# ==================== 新增：migu链接过滤配置 ====================
+ENABLE_MIGU_FILTER     = True         # 是否过滤掉包含"migu"的链接（不区分大小写）
 
 
 # ============================================================================
@@ -798,6 +801,13 @@ async def main():
             logger.info(f"历史链接连通性测试完成，通过 {passed}/{len(history_items)} 条")
         else:
             logger.info("历史文件为空或不存在，跳过")
+
+    # ========== 新增：过滤migu链接 ==========
+    if ENABLE_MIGU_FILTER:
+        original_count = len(all_channels)
+        all_channels = [(g, n, u) for (g, n, u) in all_channels if 'migu' not in u.lower()]
+        filtered_count = original_count - len(all_channels)
+        logger.info(f"已过滤 {filtered_count} 条包含 'migu' 的链接，剩余 {len(all_channels)} 条")
 
     # 3. 去重
     if not all_channels:
