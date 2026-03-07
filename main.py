@@ -25,7 +25,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 TARGET_URL            = "https://iptv.809899.xyz"       # 目标网站地址
 HEADLESS              = True                            # 无头模式（GitHub运行必须True）
 BROWSER_TYPE          = "chromium"                      # 浏览器内核
-MAX_IPS               = 20                              # 最多处理多少个IP
+MAX_IPS               = 0                              # 最多处理多少个IP
 MAX_TOTAL_CHANNELS     = 0                               # 总频道上限（0=不限制）
 PAGE_LOAD_TIMEOUT      = 120000                          # 页面加载超时（毫秒）
 
@@ -224,11 +224,22 @@ def load_cache():
         for url, data in cache.items():
             if isinstance(data, dict) and "ok" in data and "timestamp" in data:
                 if now - data["timestamp"] < CACHE_EXPIRE_SECONDS:
+                    # 兼容旧版本：如果没有width/height字段，则设为0
+                    if "width" not in data:
+                        data["width"] = 0
+                        data["height"] = 0
                     valid_cache[url] = data
             else:
                 # 兼容旧格式：如果只存了速度，转换为新格式
                 if isinstance(data, (int, float)):
-                    valid_cache[url] = {"ok": data > 0, "fps": 0.0, "frames": 0, "timestamp": now}
+                    valid_cache[url] = {
+                        "ok": data > 0,
+                        "fps": 0.0,
+                        "frames": 0,
+                        "width": 0,
+                        "height": 0,
+                        "timestamp": now
+                    }
         logger.info(f"缓存加载完成，有效条目数: {len(valid_cache)}")
         return valid_cache
     except Exception as e:
@@ -279,10 +290,10 @@ def print_progress_bar(current: int, total: int, success: int, failed: int, last
     return percent_int
 
 async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
-    """调用 FFmpeg 测试流媒体质量，返回解码帧数和平均帧率"""
+    """调用 FFmpeg 测试流媒体质量，返回解码帧数、平均帧率和视频分辨率"""
     if not shutil.which(FFMPEG_PATH):
         logger.error(f"未找到FFmpeg: {FFMPEG_PATH}")
-        return {"ok": False, "fps": 0.0, "frames": 0, "message": "FFmpeg未安装"}
+        return {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0, "message": "FFmpeg未安装"}
 
     # 构造请求头，模拟浏览器，提高对平台源的兼容性
     headers = (
@@ -310,31 +321,52 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
         except asyncio.TimeoutError:
             proc.kill()
             await proc.wait()
-            return {"ok": False, "fps": 0.0, "frames": 0, "message": "连接超时"}
+            return {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0, "message": "连接超时"}
 
         output = stderr.decode('utf-8', errors='ignore')
 
+        # 提取帧率和帧数
         frame_matches = re.findall(r'frame=\s*(\d+)', output)
         fps_matches = re.findall(r'fps=\s*([\d.]+)', output)
-
         frames = int(frame_matches[-1]) if frame_matches else 0
         avg_fps = float(fps_matches[-1]) if fps_matches else 0.0
+
+        # 提取视频分辨率
+        width, height = 0, 0
+        # 查找 "Video: " 行中的分辨率信息
+        video_line_match = re.search(r'Stream #0:0.*Video:.* (\d+)x(\d+)', output, re.IGNORECASE)
+        if video_line_match:
+            width = int(video_line_match.group(1))
+            height = int(video_line_match.group(2))
+        else:
+            # 备选方案：查找常见的分辨率模式
+            res_match = re.search(r' (\d{3,4})x(\d{3,4})', output)
+            if res_match:
+                width = int(res_match.group(1))
+                height = int(res_match.group(2))
+
         is_smooth = frames >= MIN_FRAMES and avg_fps >= MIN_AVG_FPS
 
-        return {"ok": is_smooth, "fps": avg_fps, "frames": frames}
+        return {
+            "ok": is_smooth,
+            "fps": avg_fps,
+            "frames": frames,
+            "width": width,
+            "height": height
+        }
     except Exception as e:
-        return {"ok": False, "fps": 0.0, "frames": 0, "message": f"异常: {str(e)[:50]}"}
+        return {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0, "message": f"异常: {str(e)[:50]}"}
 
 async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
     """
     对频道映射中的链接进行FFmpeg测速筛选，返回每个频道有效链接列表。
-    取消预检，直接测速；日志仅输出进度条。
+    测速结果包含分辨率，排序时先按分辨率面积降序，再按帧率降序。
     """
     if not channel_map:
         return {}
     cache = load_cache() if ENABLE_CACHE else {}
     new_cache = {}
-    result_map = defaultdict(list)
+    result_map = defaultdict(list)  # key: (group, name) -> list of (url, fps, width, height)
     total = sum(len(us) for us in channel_map.values())
     cached_ok = 0
     pending = []
@@ -346,7 +378,13 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
             if cache_item and isinstance(cache_item, dict) and "ok" in cache_item:
                 if is_cache_valid(cache_item.get("timestamp", 0)):
                     if cache_item["ok"]:
-                        result_map[(g, n)].append((u, cache_item.get("fps", 0)))
+                        # 从缓存中获取分辨率和帧率
+                        result_map[(g, n)].append((
+                            u,
+                            cache_item.get("fps", 0.0),
+                            cache_item.get("width", 0),
+                            cache_item.get("height", 0)
+                        ))
                     cached_ok += 1
                     continue
             if SKIP_INTERNAL_IP and is_internal_ip(u):
@@ -357,8 +395,9 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     if not pending:
         final = {}
         for k, vs in result_map.items():
-            vs.sort(key=lambda x: -x[1])
-            final[k] = [u for u, _ in vs[:MAX_LINKS_PER_CHANNEL]]
+            # 按分辨率面积降序、帧率降序排序
+            vs.sort(key=lambda x: (-x[2]*x[3], -x[1]))
+            final[k] = [u for u, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]
         return final
 
     # 2. 并发测速（FFmpeg）
@@ -379,7 +418,7 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
         c += 1
         if res["ok"]:
             ok += 1
-            result_map[(g, n)].append((u, res["fps"]))
+            result_map[(g, n)].append((u, res["fps"], res["width"], res["height"]))
         else:
             ng += 1
         if ENABLE_CACHE:
@@ -387,6 +426,8 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
                 "ok": res["ok"],
                 "fps": res["fps"],
                 "frames": res.get("frames", 0),
+                "width": res.get("width", 0),
+                "height": res.get("height", 0),
                 "timestamp": time.time()
             }
         lp = print_progress_bar(c, len(tasks), ok, ng, lp)
@@ -399,8 +440,8 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     # 4. 排序并截取
     final = {}
     for k, vs in result_map.items():
-        vs.sort(key=lambda x: -x[1])
-        final[k] = [u for u, _ in vs[:MAX_LINKS_PER_CHANNEL]]
+        vs.sort(key=lambda x: (-x[2]*x[3], -x[1]))
+        final[k] = [u for u, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]
 
     logger.info(f"测速完成，共 {len(final)} 个频道通过筛选")
     return final
@@ -697,7 +738,10 @@ async def main():
                 )
                 total_rows = await rows.count()
                 process_count = min(total_rows, MAX_IPS) if MAX_IPS > 0 else total_rows
-                logger.info(f"准备处理前 {process_count} 个IP")
+                if MAX_IPS > 0 and process_count < total_rows:
+                    logger.info(f"总共找到 {total_rows} 个IP，准备处理前 {process_count} 个IP")
+                else:
+                    logger.info(f"总共找到 {total_rows} 个IP，准备处理全部 {process_count} 个IP")
 
                 web_channels = []
                 for i in range(process_count):
@@ -762,9 +806,9 @@ async def main():
         seen.add(key)
         channel_map[(g, n)].append(u)
 
-    # 4. FFmpeg测速筛选
+    # 4. FFmpeg测速筛选（包含分辨率排序）
     if ENABLE_FFMPEG_TEST:
-        logger.info("开始FFmpeg测速筛选")
+        logger.info("开始FFmpeg测速筛选（按分辨率优先排序）")
         channel_map = await run_ffmpeg_test(channel_map)
 
     # 5. 导出结果
