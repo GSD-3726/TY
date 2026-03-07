@@ -25,7 +25,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 TARGET_URL            = "https://iptv.809899.xyz"       # 目标网站地址
 HEADLESS              = True                            # 无头模式（GitHub运行必须True）
 BROWSER_TYPE          = "chromium"                      # 浏览器内核
-MAX_IPS               = 30                              # 最多处理多少个IP
+MAX_IPS               = 50                              # 最多处理多少个IP
 MAX_TOTAL_CHANNELS     = 0                               # 总频道上限（0=不限制）
 PAGE_LOAD_TIMEOUT      = 120000                          # 页面加载超时（毫秒）
 
