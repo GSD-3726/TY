@@ -97,7 +97,7 @@ SKIP_INTERNAL_IP       = True    # 是否跳过内网IP
 ENABLE_VERBOSE_LOGGING = False   # 详细日志已关闭
 
 # ==================== 新增：历史链接检查配置 ====================
-ENABLE_HISTORY_CHECK   = False          # 是否检查历史输出文件中的链接
+ENABLE_HISTORY_CHECK   = True          # 是否检查历史输出文件中的链接
 HISTORY_FILE           = OUTPUT_TXT_FILENAME   # 历史文件路径
 HISTORY_CHECK_CONCURRENCY = 10         # 并发检查数量
 HISTORY_CHECK_TIMEOUT  = 5             # 每个链接检查超时（秒）
