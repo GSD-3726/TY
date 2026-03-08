@@ -44,8 +44,8 @@ ENABLE_FFMPEG_TEST     = True                            # 是否启用FFmpeg测
 FFMPEG_PATH            = "ffmpeg"                        # FFmpeg 程序路径（如果不在PATH中需写完整）
 FFMPEG_TEST_DURATION   = 10                               # 每个链接测试时长（秒）
 FFMPEG_CONCURRENCY     = 6                                # 并发测速数量（GitHub Actions建议≤2）
-MIN_AVG_FPS            = 24                             # 最低平均帧率
-MIN_FRAMES             = 210                              # 最低解码帧数（防止只有几秒数据）
+MIN_AVG_FPS            = 22                             # 最低平均帧率
+MIN_FRAMES             = 175                              # 最低解码帧数（防止只有几秒数据）
 
 # -------------------------- 5. GitHub 源订阅设置 ---------------------------
 ENABLE_GITHUB_SOURCES = True                            # 是否启用GitHub源
@@ -650,7 +650,7 @@ async def check_url_connectivity(url: str, timeout: int) -> bool:
 # ========================= 结果导出 =========================================
 # ============================================================================
 def export_results_with_timestamp(channel_map):
-    # 修改点：使用北京时间（UTC+8）生成当前时间
+    # 使用北京时间（UTC+8）生成当前时间
     now = (datetime.datetime.utcnow() + datetime.timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
     gu = UPDATE_STREAM_URL
     g = defaultdict(list)
@@ -666,8 +666,7 @@ def export_results_with_timestamp(channel_map):
                 continue
             chs = g[gro]
             if gro == "央视频道":
-                # ----- 修改开始：保留每个频道的多个链接，并按 CCTV_ORDER 排序 -----
-                from collections import defaultdict
+                # ----- 保留每个频道的多个链接，并按 CCTV_ORDER 排序 -----
                 name_to_urls = defaultdict(list)
                 for name, url in chs:
                     name_to_urls[name].append(url)
@@ -677,7 +676,7 @@ def export_results_with_timestamp(channel_map):
                         for url in name_to_urls[name]:
                             ordered_chs.append((name, url))
                 chs = ordered_chs
-                # ----- 修改结束 -----
+                # ----- 结束 -----
             else:
                 chs = sorted(chs, key=lambda x: x[0])
             # 过滤空名称频道
@@ -697,8 +696,7 @@ def export_results_with_timestamp(channel_map):
             f.write(f"{gro},#genre#\n")
             chs = g[gro]
             if gro == "央视频道":
-                # ----- 修改开始：保留每个频道的多个链接，并按 CCTV_ORDER 排序 -----
-                from collections import defaultdict
+                # ----- 保留每个频道的多个链接，并按 CCTV_ORDER 排序 -----
                 name_to_urls = defaultdict(list)
                 for name, url in chs:
                     name_to_urls[name].append(url)
@@ -708,7 +706,7 @@ def export_results_with_timestamp(channel_map):
                         for url in name_to_urls[name]:
                             ordered_chs.append((name, url))
                 chs = ordered_chs
-                # ----- 修改结束 -----
+                # ----- 结束 -----
             else:
                 chs = sorted(chs, key=lambda x: x[0])
             chs = [(n, u) for n, u in chs if n.strip()]
@@ -811,7 +809,7 @@ async def main():
             await ctx.close()
             await browser.close()
 
-    # ========== 新增：检查历史链接 ==========
+    # ========== 检查历史链接 ==========
     if ENABLE_HISTORY_CHECK:
         history_items = parse_txt_file(HISTORY_FILE)
         if history_items:
@@ -839,7 +837,7 @@ async def main():
         else:
             logger.info("历史文件为空或不存在，跳过")
 
-    # ========== 新增：过滤migu链接 ==========
+    # ========== 过滤migu链接 ==========
     if ENABLE_MIGU_FILTER:
         original_count = len(all_channels)
         all_channels = [(g, n, u) for (g, n, u) in all_channels if 'migu' not in u.lower()]
