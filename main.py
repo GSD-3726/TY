@@ -666,8 +666,18 @@ def export_results_with_timestamp(channel_map):
                 continue
             chs = g[gro]
             if gro == "央视频道":
-                d = {n: u for n, u in chs}
-                chs = [(n, d[n]) for n in CCTV_ORDER if n in d]
+                # ----- 修改开始：保留每个频道的多个链接，并按 CCTV_ORDER 排序 -----
+                from collections import defaultdict
+                name_to_urls = defaultdict(list)
+                for name, url in chs:
+                    name_to_urls[name].append(url)
+                ordered_chs = []
+                for name in CCTV_ORDER:
+                    if name in name_to_urls:
+                        for url in name_to_urls[name]:
+                            ordered_chs.append((name, url))
+                chs = ordered_chs
+                # ----- 修改结束 -----
             else:
                 chs = sorted(chs, key=lambda x: x[0])
             # 过滤空名称频道
@@ -687,8 +697,18 @@ def export_results_with_timestamp(channel_map):
             f.write(f"{gro},#genre#\n")
             chs = g[gro]
             if gro == "央视频道":
-                d = {n: u for n, u in chs}
-                chs = [(n, d[n]) for n in CCTV_ORDER if n in d]
+                # ----- 修改开始：保留每个频道的多个链接，并按 CCTV_ORDER 排序 -----
+                from collections import defaultdict
+                name_to_urls = defaultdict(list)
+                for name, url in chs:
+                    name_to_urls[name].append(url)
+                ordered_chs = []
+                for name in CCTV_ORDER:
+                    if name in name_to_urls:
+                        for url in name_to_urls[name]:
+                            ordered_chs.append((name, url))
+                chs = ordered_chs
+                # ----- 修改结束 -----
             else:
                 chs = sorted(chs, key=lambda x: x[0])
             chs = [(n, u) for n, u in chs if n.strip()]
