@@ -44,8 +44,8 @@ ENABLE_FFMPEG_TEST     = True                            # 是否启用FFmpeg测
 FFMPEG_PATH            = "ffmpeg"                        # FFmpeg 程序路径（如果不在PATH中需写完整）
 FFMPEG_TEST_DURATION   = 10                               # 每个链接测试时长（秒）
 FFMPEG_CONCURRENCY     = 6                                # 并发测速数量（GitHub Actions建议≤2）
-MIN_AVG_FPS            = 20                             # 最低平均帧率
-MIN_FRAMES             = 180                              # 最低解码帧数（防止只有几秒数据）
+MIN_AVG_FPS            = 24                             # 最低平均帧率
+MIN_FRAMES             = 210                              # 最低解码帧数（防止只有几秒数据）
 
 # -------------------------- 5. GitHub 源订阅设置 ---------------------------
 ENABLE_GITHUB_SOURCES = True                            # 是否启用GitHub源
