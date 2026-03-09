@@ -58438,5 +58438,85 @@
     "width": 1920,
     "height": 1080,
     "timestamp": 1773025264.8620732
+  },
+  "http://14.29.45.99/tvcdn.stream3.hndt.com/tv/65c4a6d5017e1000b2b6ea2500000000_transios/playlist.m3u8?wsSecret=1a753cd10459374f26f3b8e199cc53c6&wsTime=1773059950&wsSession=b9718051454b46e937c04504-177304731783762&wsIPSercert=f1ed5e80c31ab65580d88c6bbb451005&wsiphost=local&wsBindIP=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1773050967.1693642
+  },
+  "http://p2.ytelc.com/videojs.php?id=https://sjlivecdn9.cbg.cn/202603091703/app_2/_definst_/ls_2.stream/chunklist.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1773050967.4642386
+  },
+  "http://zwebl02.cztv.com/live/channel01720Pnew.m3u8?auth_key=1773044285-f9dd280aa6bcea728602e8e8096a1ecd-0-125b31340c9678dfc9566a4e1185df77": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1773050967.6541662
+  },
+  "http://phoneqq.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZjZG5leF9pZD1xcV9waG9uZV9saXZlJmNocz0mZGVmPTEmcz1lZmFjZWMzNGU1MDMyN2QzYjEzYTczZTg5MTQ4YjBhNSZ1aWQ9JnV1aWQ9NjUzYTllMjczYTljMzdmNTAxYTAyYjM3YjZiYmI4MTktNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3MzA1NDAxMA,,/HNDSMPP360.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 225,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1773050968.1753185
+  },
+  "https://live1-fuyun.fjtv.net/haixiapd/hd/live.m3u8?_upt=2755fac51773053755": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 199,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1773050968.4296563
+  },
+  "http://phoneqq.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZjZG5leF9pZD1xcV9waG9uZV9saXZlJmNocz0mZGVmPTEmcz02NjIyOWIyYTdkMDg2N2E1ZmY0NDFiYTljNmI2ZDJhZiZ1aWQ9JnV1aWQ9OTJjYmU2NjlkN2YxNGNiY2Q2YzhhYmExZmM4NDE1MWQtNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3MzA2MDk1MA,,/HNYLMPP360.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 225,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1773050969.2073324
+  },
+  "http://phoneqq.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPXFxX3Bob25lX2xpdmUmY2hzPSZkZWY9MSZzPWRmY2Q2M2Q4NDgwNDY4YjU1NWVkZjVmYTg2ZWIwMjE4JnVpZD0mdXVpZD02MzQ3NGU2ZDNlYTU4YTdmYzFlYTY2ZTc5NDQxMTRhYi02YTBlMjYzNyZ2PTImYXM9MCZlcz0xNzczMDU3Mzcw/HNDSJMPP360.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 225,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1773050969.825209
+  },
+  "https://v4-e6b1c5baf4e240fe63adbf68dda23435.livehwc4.com/play.kankanlive.com/live/1698423397390920.m3u8?sub_m3u8=true&edge_slice=true&user_session_id=82bfbe3c33fa8c3dc2bb9e88abbcb8ac": {
+    "ok": true,
+    "fps": 38.0,
+    "frames": 188,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1773050975.7524192
+  },
+  "https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4k_mbd.m3u8?auth_key=1773100800-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-a7488557c27934799eeb348d0186ab75&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c": {
+    "ok": true,
+    "fps": 34.0,
+    "frames": 222,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1773050976.9907737
+  },
+  "https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4_mbd.m3u8?auth_key=1773100800-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-3fd89d76eaa0621857bdbf8f1d41022b&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c": {
+    "ok": true,
+    "fps": 23.0,
+    "frames": 198,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1773050980.941276
   }
 }
