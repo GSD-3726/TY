@@ -60,11 +60,11 @@ http://116.169.46.79:85/tsfile/live/1003_1.m3u8?key=txiptv&amp;playlive=1&amp;au
 #EXTINF:-1 group-title="央视频道",CCTV-3综艺
 http://125.43.255.86:85/tsfile/live/1009_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-4国际
-https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4_mbd.m3u8?auth_key=1773144000-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-3e4d77cf2b0a3df8e0d83b01ef30503f&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c
+https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4_mbd.m3u8?auth_key=1773230400-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-57a258aba87b5db9d0626b60284c4579&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c
+#EXTINF:-1 group-title="央视频道",CCTV-4国际
+https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4k_mbd.m3u8?auth_key=1773230400-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-9ffac0d27d302dd90f264a758033169d&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c
 #EXTINF:-1 group-title="央视频道",CCTV-4国际
 http://175.153.92.45:85/tsfile/live/1004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="央视频道",CCTV-4国际
-https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4k_mbd.m3u8?auth_key=1773144000-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-f9a1e4b4564b215d8ba014e0aeead4c9&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c
 #EXTINF:-1 group-title="央视频道",CCTV-4国际
 http://183.185.64.197:9003/hls/4/index.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-4国际
@@ -98,7 +98,7 @@ http://171.127.163.53:85/tsfile/live/0005_1.m3u8?key=txiptv&amp;playlive=1&amp;a
 #EXTINF:-1 group-title="央视频道",CCTV-5体育
 http://116.169.46.79:85/tsfile/live/1006_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-5体育
-http://175.153.92.45:85/tsfile/live/1028_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
+http://171.213.195.109:85/tsfile/live/0005_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-5+体育赛事
 http://171.127.163.53:85/tsfile/live/1000_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-5+体育赛事
@@ -415,8 +415,6 @@ http://183.185.64.197:9003/hls/38/index.m3u8
 #EXTINF:-1 group-title="卫视频道",内蒙卫视
 http://171.120.15.105:9003/hls/38/index.m3u8
 #EXTINF:-1 group-title="卫视频道",内蒙卫视
-http://183.184.63.183:9003/hls/38/index.m3u8
-#EXTINF:-1 group-title="卫视频道",内蒙卫视
 http://115.55.24.170:85/tsfile/live/1103_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",内蒙古卫视
 http://110.241.188.75:808/hls/39/index.m3u8
@@ -587,13 +585,13 @@ http://115.55.24.170:85/tsfile/live/1096_1.m3u8?key=txiptv&amp;playlive=1&amp;au
 #EXTINF:-1 group-title="卫视频道",山西卫视
 http://171.127.163.53:85/tsfile/live/0118_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",山西卫视
-https://livehhhttps.sxrtv.com/lsdream/q8RVWgs/1000/b2sqfR0.m3u8
-#EXTINF:-1 group-title="卫视频道",山西卫视
 http://61.139.24.167:85/tsfile/live/0118_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",山西卫视
 http://171.213.195.109:85/tsfile/live/0118_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",山西卫视
 http://101.66.198.178:85/tsfile/live/0118_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
+#EXTINF:-1 group-title="卫视频道",山西卫视
+http://101.66.198.253:85/tsfile/live/0118_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",广东卫视
 http://171.213.195.109:85/tsfile/live/0125_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",广东卫视
@@ -789,6 +787,8 @@ http://nn.7x9d.cn/地方台8563/海南.php?id=hnws
 #EXTINF:-1 group-title="卫视频道",海南卫视
 http://183.185.64.197:9003/hls/28/index.m3u8
 #EXTINF:-1 group-title="卫视频道",海峡卫视
+https://live1-fuyun.fjtv.net/haixiapd/hd/live.m3u8?_upt=9217c2661773186509
+#EXTINF:-1 group-title="卫视频道",海峡卫视
 http://r.jdshipin.com/WtYt3
 #EXTINF:-1 group-title="卫视频道",深圳卫视
 http://171.213.195.109:85/tsfile/live/0126_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
@@ -863,9 +863,7 @@ http://123.14.80.225:9003/hls/20/index.m3u8
 #EXTINF:-1 group-title="卫视频道",湖南卫视高清
 http://123.14.85.242:9003/hls/20/index.m3u8
 #EXTINF:-1 group-title="卫视频道",湖南国际频道
-http://phonehwei.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPWh3X3Bob25lJmNocz0mZGVmPTEmcz1hNzcxZDI2Y2U3YjRmMjQxZTIxM2MyNzg3ZjVhOWY4YiZ1aWQ9JnV1aWQ9OTFiMjUwNWVlMjExZTA0ZjM4MWZkODU4YWFmOGJhOWQtNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3MzE1NDg3MA,,/HNGJMPP360.m3u8
-#EXTINF:-1 group-title="卫视频道",湖南电视剧
-http://phonehwei.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPWh3X3Bob25lJmNocz0mZGVmPTEmcz1hYTg4MjViNTVhNmUwZDJhYWY5ODcxZTVhZWVlYmRlYyZ1aWQ9JnV1aWQ9NTZiNGZmMzYxOTRlMDU2NDYwYWZiMWFmMThkOGMyY2EtNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3MzE0NDcxMg,,/HNDSJMPP360.m3u8
+http://phonehwei.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZjZG5leF9pZD1od19waG9uZSZjaHM9JmRlZj0xJnM9YjhkNjc3MTNjNGI0ZWQ3NzlkOTM4Y2M4ZjQ4YjlkM2ImdWlkPSZ1dWlkPTZhYmY3MDRmMjRhZWRmNDcyODZiMDE2ZGJhMWU3MDhkLTZhMGUyNjM3JnY9MiZhcz0wJmVzPTE3NzMxODM3MTE,/HNGJMPP360.m3u8
 #EXTINF:-1 group-title="卫视频道",甘肃卫视
 http://171.120.15.105:9003/hls/25/index.m3u8
 #EXTINF:-1 group-title="卫视频道",甘肃卫视
@@ -963,7 +961,7 @@ http://183.186.182.213:85/tsfile/live/0136_1.m3u8?key=txiptv&amp;playlive=1&amp;
 #EXTINF:-1 group-title="卫视频道",陕西卫视
 http://124.163.145.22:85/tsfile/live/1043_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",陕西卫视
-http://stream.snrtv.com/sxbc-star-cfnJLQ.m3u8
+http://stream.snrtv.com/sxbc-star-klnLP9.m3u8
 #EXTINF:-1 group-title="卫视频道",青海卫视
 http://115.55.24.170:85/tsfile/live/1011_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",青海卫视
@@ -1018,6 +1016,8 @@ http://171.127.163.53:85/tsfile/live/1008_1.m3u8?key=txiptv&amp;playlive=1&amp;a
 #EXTINF:-1 group-title="电影频道",龙华电影
 http://iptv.4666888.xyz/iptv2A.php?id=45
 
+#EXTINF:-1 group-title="4K专区",南国都市
+https://tencentplay.gztv.com/live/nanguodushi.m3u8?txSecret=550af55c0ea34ce492748481415b6dfa&txTime=1903e7b17de
 #EXTINF:-1 group-title="4K专区",河南卫视
 http://115.55.24.170:85/tsfile/live/1018_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="4K专区",翡翠台
@@ -1074,5 +1074,5 @@ http://175.153.92.45:85/tsfile/live/1039_1.m3u8?key=txiptv&amp;playlive=1&amp;au
 #EXTINF:-1 group-title="儿童频道",金鹰卡通
 http://116.169.46.79:85/tsfile/live/1039_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 
-#EXTINF:-1 group-title="更新时间",2026-03-10 18:35:12
+#EXTINF:-1 group-title="更新时间",2026-03-11 05:47:11
 https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
