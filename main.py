@@ -37,7 +37,7 @@ EXTRACT_MODE          = "酒店提取"
 OUTPUT_DIR            = Path(__file__).parent           # 输出目录（当前脚本目录）
 OUTPUT_M3U_FILENAME   = OUTPUT_DIR / "iptv_channels.m3u"
 OUTPUT_TXT_FILENAME   = OUTPUT_DIR / "iptv_channels.txt"
-MAX_LINKS_PER_CHANNEL = 10                               # 每个频道最多保留几条链接
+MAX_LINKS_PER_CHANNEL = 5                               # 每个频道最多保留几条链接
 
 # -------------------------- 4. 测速设置（FFmpeg 解码测速）-------------------
 ENABLE_FFMPEG_TEST     = True                            # 是否启用FFmpeg测速
@@ -54,24 +54,24 @@ GITHUB_M3U_LINKS = [
     "https://gh-proxy.com/https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/migu.m3u",
     "https://gh-proxy.com/https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/httop_merged.m3u",
     "https://gh-proxy.com/https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/httop.m3u",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/htldx_merged.m3u",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/htldx_merged.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/3377/IPTV/master/output/result.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/Guovin/iptv-database/master/result.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/iptv-org/iptv/gh-pages/countries/cn.m3u",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv6.m3u",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/iptv-org/iptv/gh-pages/countries/cn.m3u8",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u8",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv6.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/merged_output.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/xzw832/cmys/main/S_CCTV.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/xzw832/cmys/main/S_weishi.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/asdjkl6/tv/tv/.m3u/整套直播源/测试/整套直播源/l.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/asdjkl6/tv/tv/.m3u/整套直播源/测试/整套直播源/kk.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/yuanzl77/IPTV/master/live.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/ipv6.m3u",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/ipv6.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv6.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/YueChan/Live/main/APTV.m3u",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/YanG-1989/m3u/main/Gather.m3u",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/YueChan/Live/main/APTV.m3u8",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/YanG-1989/m3u/main/Gather.m3u8",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/others_output.txt",
 ]
 
@@ -387,13 +387,14 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
 async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
     """
     对频道映射中的链接进行FFmpeg测速筛选，返回每个频道有效链接列表。
-    测速结果包含分辨率，排序时先按分辨率面积降序，再按帧率降序。
+    测速结果包含分辨率，排序时优先排列【本次参与测速】的链接，其次按分辨率面积降序，最后按帧率降序。
     """
     if not channel_map:
         return {}
     cache = load_cache() if ENABLE_CACHE else {}
     new_cache = {}
-    result_map = defaultdict(list)  # key: (group, name) -> list of (url, fps, width, height)
+    # 数据结构变更: (url, fps, width, height, is_new_test)
+    result_map = defaultdict(list)  # key: (group, name) -> list of tuple
     total = sum(len(us) for us in channel_map.values())
     cached_ok = 0
     pending = []
@@ -405,12 +406,13 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
             if cache_item and isinstance(cache_item, dict) and "ok" in cache_item:
                 if is_cache_valid(cache_item.get("timestamp", 0)):
                     if cache_item["ok"]:
-                        # 从缓存中获取分辨率和帧率
+                        # 从缓存中获取分辨率和帧率，标记为【非本次测速】(False)
                         result_map[(g, n)].append((
                             u,
                             cache_item.get("fps", 0.0),
                             cache_item.get("width", 0),
-                            cache_item.get("height", 0)
+                            cache_item.get("height", 0),
+                            False  # <--- 关键修改：缓存命中标记为 False
                         ))
                     cached_ok += 1
                     continue
@@ -422,9 +424,9 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     if not pending:
         final = {}
         for k, vs in result_map.items():
-            # 按分辨率面积降序、帧率降序排序
-            vs.sort(key=lambda x: (-x[2]*x[3], -x[1]))
-            final[k] = [u for u, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]
+            # 排序规则：1. is_new_test (True在前) 2. 分辨率面积降序 3. 帧率降序
+            vs.sort(key=lambda x: (-x[4], -x[2]*x[3], -x[1]))
+            final[k] = [u for u, _, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]
         return final
 
     # 2. 并发测速（FFmpeg）
@@ -445,7 +447,8 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
         c += 1
         if res["ok"]:
             ok += 1
-            result_map[(g, n)].append((u, res["fps"], res["width"], res["height"]))
+            # 标记为【本次测速】(True)
+            result_map[(g, n)].append((u, res["fps"], res["width"], res["height"], True))
         else:
             ng += 1
         if ENABLE_CACHE:
@@ -467,8 +470,12 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     # 4. 排序并截取
     final = {}
     for k, vs in result_map.items():
-        vs.sort(key=lambda x: (-x[2]*x[3], -x[1]))
-        final[k] = [u for u, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]
+        # ========== 核心排序逻辑修改 ==========
+        # x[4] 是 is_new_test (True/False)
+        # -x[4] 确保 True (1) 排在 False (0) 前面
+        vs.sort(key=lambda x: (-x[4], -x[2]*x[3], -x[1]))
+        # 提取URL时注意元组长度变化 (现在是5个元素)
+        final[k] = [u for u, _, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]
 
     logger.info(f"测速完成，共 {len(final)} 个频道通过筛选")
     return final
@@ -860,7 +867,7 @@ async def main():
 
     # 4. FFmpeg测速筛选（包含分辨率排序）
     if ENABLE_FFMPEG_TEST:
-        logger.info("开始FFmpeg测速筛选（按分辨率优先排序）")
+        logger.info("开始FFmpeg测速筛选（本次新测速链接将优先排列）")
         channel_map = await run_ffmpeg_test(channel_map)
 
     # 5. 导出结果
