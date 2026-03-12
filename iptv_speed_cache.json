@@ -38110,5 +38110,85 @@
     "width": 1920,
     "height": 1080,
     "timestamp": 1773307596.1354566
+  },
+  "http://113.96.132.20/tvcdn.stream3.hndt.com/tv/65c4a6d5017e1000b2b6ea2500000000_transios/playlist.m3u8?wsSecret=b09803ac1440270c7e8f8126aed948b3&wsTime=1773320450&wsSession=c4a6f52c58359c3af0d024df-177330645989943&wsIPSercert=f1ed5e80c31ab65580d88c6bbb451005&wsiphost=local&wsBindIP=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1773309592.7672129
+  },
+  "https://live1-fuyun.fjtv.net/dnpd/hd/live.m3u8?_upt=2e9f406b1773313920": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 148,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1773309593.9667053
+  },
+  "http://phoneal.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b24mY2RuZXhfaWQ9YWxfcGhvbmUzJmNocz0mZGVmPTEmcz1hZGMxNGYxMjQyMmJkYjg3YTFhZWFjMTllMTNlNTA1NCZ1aWQ9JnV1aWQ9NzBiNzhlYjNhNTJmYWY2Njg4MzEzYWU5NWY3NTcwZDQtNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3MzMzNDgxNg,,/HNJSMPP360.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 225,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1773309594.2886453
+  },
+  "http://zwebl02.cztv.com/live/channel01720Pnew.m3u8?auth_key=1773302823-5b0f869cb96bf4c90c54e503ed8844a7-0-706a0658b245c0cf2a41b5334b960d72": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1773309594.4307158
+  },
+  "https://tv.pull.hebtv.com/jishi/weishipindao.m3u8?t=1773308546&k=9126279455639db0e274c5f3270b9d5f": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1773309595.7012093
+  },
+  "https://live1-fuyun.fjtv.net/haixiapd/hd/live.m3u8?_upt=926fb4bf1773316180": {
+    "ok": true,
+    "fps": 90.0,
+    "frames": 216,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1773309596.624944
+  },
+  "https://v4-702cae17a28d6e4f0c0002bba021d934.livehwc4.com/play.kankanlive.com/live/1698423397390920.m3u8?sub_m3u8=true&edge_slice=true&user_session_id=4c5207da70cd1a5db291fc300c998912": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1773309598.7174234
+  },
+  "https://slstplay.xjtvs.com.cn/xjtv1/xjtv1stream.m3u8?auth_key=1773310105-8-8-136e46c6bce05214e599910ba5a60301&aliyun_uuid=95467c4f-c7f6-487f-9da4-e57460ad5855": {
+    "ok": true,
+    "fps": 77.0,
+    "frames": 185,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1773309601.4856339
+  },
+  "https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4_mbd.m3u8?auth_key=1773360000-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-d8b9ceaf43d6a5a0ae36038c85368faa&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c": {
+    "ok": true,
+    "fps": 35.0,
+    "frames": 204,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1773309603.0496569
+  },
+  "https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4k_mbd.m3u8?auth_key=1773360000-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-d9b54b5f7940edeffb789abaa78d7e83&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1773309607.050023
   }
 }
