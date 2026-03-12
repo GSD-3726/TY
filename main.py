@@ -76,7 +76,7 @@ GITHUB_M3U_LINKS = [
 ]
 
 # -------------------------- 6. 延时与等待设置 ------------------------------
-DELAY_BETWEEN_IPS      = 0.5                             # 切换IP间隔（秒）
+DELAY_BETWEEN_IPS      = 0.1                             # 切换IP间隔（秒）
 DELAY_AFTER_CLICK      = 1.0                             # 点击弹窗等待（秒）
 MAX_CHANNELS_PER_IP    = 0                               # 单个IP最多提取频道数
 DATA_LOAD_TIMEOUT      = 60                             # 数据加载超时（秒）
