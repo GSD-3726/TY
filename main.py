@@ -37,7 +37,7 @@ EXTRACT_MODE          = "酒店提取"
 OUTPUT_DIR            = Path(__file__).parent           # 输出目录（当前脚本目录）
 OUTPUT_M3U_FILENAME   = OUTPUT_DIR / "iptv_channels.m3u"
 OUTPUT_TXT_FILENAME   = OUTPUT_DIR / "iptv_channels.txt"
-MAX_LINKS_PER_CHANNEL = 5                               # 每个频道最多保留几条链接
+MAX_LINKS_PER_CHANNEL = 10                               # 每个频道最多保留几条链接
 
 # -------------------------- 4. 测速设置（FFmpeg 解码测速）-------------------
 ENABLE_FFMPEG_TEST     = True                            # 是否启用FFmpeg测速
@@ -387,7 +387,7 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
 async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
     """
     对频道映射中的链接进行FFmpeg测速筛选，返回每个频道有效链接列表。
-    测速结果包含分辨率，排序时优先排列【本次参与测速】的链接，其次按分辨率面积降序，最后按帧率降序。
+    测速结果包含分辨率，排序时先按分辨率面积降序，再按帧率降序（不考虑是否本次新测速）。
     """
     if not channel_map:
         return {}
@@ -412,7 +412,7 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
                             cache_item.get("fps", 0.0),
                             cache_item.get("width", 0),
                             cache_item.get("height", 0),
-                            False  # <--- 关键修改：缓存命中标记为 False
+                            False  # <--- 标记：缓存命中
                         ))
                     cached_ok += 1
                     continue
@@ -424,8 +424,8 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     if not pending:
         final = {}
         for k, vs in result_map.items():
-            # 排序规则：1. is_new_test (True在前) 2. 分辨率面积降序 3. 帧率降序
-            vs.sort(key=lambda x: (-x[4], -x[2]*x[3], -x[1]))
+            # 排序：先按分辨率面积降序，再按帧率降序（不考虑新旧）
+            vs.sort(key=lambda x: (-x[2]*x[3], -x[1]))
             final[k] = [u for u, _, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]
         return final
 
@@ -470,10 +470,9 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     # 4. 排序并截取
     final = {}
     for k, vs in result_map.items():
-        # ========== 核心排序逻辑修改 ==========
-        # x[4] 是 is_new_test (True/False)
-        # -x[4] 确保 True (1) 排在 False (0) 前面
-        vs.sort(key=lambda x: (-x[4], -x[2]*x[3], -x[1]))
+        # ========== 修改后的排序逻辑 ==========
+        # 先按分辨率面积降序，再按帧率降序，不考虑新旧标记（即移除原先优先最新测速的规则）
+        vs.sort(key=lambda x: (-x[2]*x[3], -x[1]))
         # 提取URL时注意元组长度变化 (现在是5个元素)
         final[k] = [u for u, _, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]
 
@@ -654,7 +653,7 @@ async def check_url_connectivity(url: str, timeout: int) -> bool:
         return False
 
 # ============================================================================
-# ========================= 结果导出 =========================================
+# ========================= 结果导出（已修复央视频道输出逻辑）==================
 # ============================================================================
 def export_results_with_timestamp(channel_map):
     # 使用北京时间（UTC+8）生成当前时间
@@ -673,17 +672,53 @@ def export_results_with_timestamp(channel_map):
                 continue
             chs = g[gro]
             if gro == "央视频道":
-                # ----- 保留每个频道的多个链接，并按 CCTV_ORDER 排序 -----
+                # ----- 修复后的央视频道处理：先按标准顺序，无法映射的保留原名称并排序后附加 -----
+                # 构建原始名称到URL列表的映射
                 name_to_urls = defaultdict(list)
                 for name, url in chs:
                     name_to_urls[name].append(url)
+
+                # 建立原始名称到标准名称的映射（尽可能匹配）
+                name_to_std = {}
+                for name in name_to_urls.keys():
+                    std = None
+                    # 先尝试完全匹配
+                    if name in CCTV_ORDER:
+                        std = name
+                    else:
+                        # 尝试按数字匹配（如CCTV-1匹配到CCTV-1综合）
+                        cctv_match = CCTV_PATTERN.search(name)
+                        if cctv_match:
+                            num = cctv_match.group(2)  # 数字或"5+"
+                            for std_candidate in CCTV_ORDER:
+                                if num in std_candidate:
+                                    std = std_candidate
+                                    break
+                    name_to_std[name] = std
+
+                # 构建标准名称到URL列表的映射（合并同一标准名称的所有URL）
+                std_to_urls = defaultdict(list)
+                remaining = []  # 存放无法映射的 (原始名称, url)
+                for name, urls in name_to_urls.items():
+                    std = name_to_std.get(name)
+                    if std:
+                        std_to_urls[std].extend(urls)
+                    else:
+                        for url in urls:
+                            remaining.append((name, url))
+
+                # 按CCTV_ORDER顺序输出
                 ordered_chs = []
-                for name in CCTV_ORDER:
-                    if name in name_to_urls:
-                        for url in name_to_urls[name]:
-                            ordered_chs.append((name, url))
+                for std_name in CCTV_ORDER:
+                    if std_name in std_to_urls:
+                        for url in std_to_urls[std_name]:
+                            ordered_chs.append((std_name, url))
+
+                # 剩余无法映射的按名称排序后附加
+                remaining.sort(key=lambda x: x[0])
+                ordered_chs.extend(remaining)
                 chs = ordered_chs
-                # ----- 结束 -----
+                # ----- 修复结束 -----
             else:
                 chs = sorted(chs, key=lambda x: x[0])
             # 过滤空名称频道
@@ -703,15 +738,44 @@ def export_results_with_timestamp(channel_map):
             f.write(f"{gro},#genre#\n")
             chs = g[gro]
             if gro == "央视频道":
-                # ----- 保留每个频道的多个链接，并按 CCTV_ORDER 排序 -----
+                # ----- 同样处理央视频道（复用上述逻辑） -----
                 name_to_urls = defaultdict(list)
                 for name, url in chs:
                     name_to_urls[name].append(url)
+
+                name_to_std = {}
+                for name in name_to_urls.keys():
+                    std = None
+                    if name in CCTV_ORDER:
+                        std = name
+                    else:
+                        cctv_match = CCTV_PATTERN.search(name)
+                        if cctv_match:
+                            num = cctv_match.group(2)
+                            for std_candidate in CCTV_ORDER:
+                                if num in std_candidate:
+                                    std = std_candidate
+                                    break
+                    name_to_std[name] = std
+
+                std_to_urls = defaultdict(list)
+                remaining = []
+                for name, urls in name_to_urls.items():
+                    std = name_to_std.get(name)
+                    if std:
+                        std_to_urls[std].extend(urls)
+                    else:
+                        for url in urls:
+                            remaining.append((name, url))
+
                 ordered_chs = []
-                for name in CCTV_ORDER:
-                    if name in name_to_urls:
-                        for url in name_to_urls[name]:
-                            ordered_chs.append((name, url))
+                for std_name in CCTV_ORDER:
+                    if std_name in std_to_urls:
+                        for url in std_to_urls[std_name]:
+                            ordered_chs.append((std_name, url))
+
+                remaining.sort(key=lambda x: x[0])
+                ordered_chs.extend(remaining)
                 chs = ordered_chs
                 # ----- 结束 -----
             else:
@@ -865,9 +929,9 @@ async def main():
         seen.add(key)
         channel_map[(g, n)].append(u)
 
-    # 4. FFmpeg测速筛选（包含分辨率排序）
+    # 4. FFmpeg测速筛选（包含分辨率排序，已修改排序规则）
     if ENABLE_FFMPEG_TEST:
-        logger.info("开始FFmpeg测速筛选（本次新测速链接将优先排列）")
+        logger.info("开始FFmpeg测速筛选（链接将按分辨率优先、帧率其次排序）")
         channel_map = await run_ffmpeg_test(channel_map)
 
     # 5. 导出结果
