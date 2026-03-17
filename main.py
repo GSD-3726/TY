@@ -81,7 +81,7 @@ DELAY_AFTER_CLICK      = 0.3                             # 点击弹窗等待（
 MAX_CHANNELS_PER_IP    = 0                               # 单个IP最多提取频道数
 DATA_LOAD_TIMEOUT      = 60                             # 数据加载超时（秒）
 AFTER_START_WAIT       = 30                              # 点击【开始提取】后等待秒数
-MODAL_WAIT_TIMEOUT     = 2000                            # 等待模态框出现（毫秒）[新增，原硬编码5000]
+MODAL_WAIT_TIMEOUT     = 1000                            # 等待模态框出现（毫秒）[新增，原硬编码5000]
 
 # -------------------------- 7. 数据清洗设置 --------------------------------
 ENABLE_CHINESE_CLEAN   = True                            # 清理非中文字符
