@@ -198,6 +198,9 @@ classify_channel = build_classifier()
 
 def normalize_cctv(name: str) -> str:
     name_lower = name.lower()
+    # 处理 CCTV4K / CCTV-4K / CCTV 4K 等变体，确保归类到 4K专区
+    if re.search(r'cctv[-\s]?4k', name_lower):
+        return "CCTV-4K"
     if "cctv5+" in name_lower:
         return "CCTV-5+体育赛事" if CCTV_USE_MAPPING else "CCTV5+"
     cctv_match = CCTV_PATTERN.search(name_lower)
