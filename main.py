@@ -77,10 +77,11 @@ GITHUB_M3U_LINKS = [
 
 # -------------------------- 6. 延时与等待设置 ------------------------------
 DELAY_BETWEEN_IPS      = 0.1                             # 切换IP间隔（秒）
-DELAY_AFTER_CLICK      = 1.0                             # 点击弹窗等待（秒）
+DELAY_AFTER_CLICK      = 0.3                             # 点击弹窗等待（秒） [原1.0，现优化为0.3]
 MAX_CHANNELS_PER_IP    = 0                               # 单个IP最多提取频道数
 DATA_LOAD_TIMEOUT      = 60                             # 数据加载超时（秒）
 AFTER_START_WAIT       = 30                              # 点击【开始提取】后等待秒数
+MODAL_WAIT_TIMEOUT     = 2000                            # 等待模态框出现（毫秒）[新增，原硬编码5000]
 
 # -------------------------- 7. 数据清洗设置 --------------------------------
 ENABLE_CHINESE_CLEAN   = True                            # 清理非中文字符
@@ -563,8 +564,8 @@ async def extract_one_ip(page, row, idx):
                 await row.click()
         else:
             await row.click()
-        await asyncio.sleep(DELAY_AFTER_CLICK)
-        if not await wait_for_element(page, ".modal-dialog", 5000):
+        await asyncio.sleep(DELAY_AFTER_CLICK)  # 使用配置的点击后等待时间
+        if not await wait_for_element(page, ".modal-dialog", MODAL_WAIT_TIMEOUT):  # 使用配置的模态框超时
             return []
         items = page.locator(".modal-dialog .item-content")
         total = await items.count()
