@@ -79,6 +79,7 @@ GITHUB_M3U_LINKS = [
     "https://gh-proxy.com/https://raw.githubusercontent.com/YanG-1989/m3u/main/Gather.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/others_output.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/mursor1985/LIVE/refs/heads/main/yylunbo.m3u",
 ]
 
 # -------------------------- 5. FFmpeg测速设置 -------------------------------
