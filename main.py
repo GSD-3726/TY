@@ -825,7 +825,7 @@ async def main():
 
         try:
             logger.info(f"正在访问：{TARGET_URL}")
-            await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT*1000, wait_until="networkidle")
+            await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT*1000, wait_until="domcontentloaded")
 
             eng_sel = build_selector(PAGE_CONFIG["engine_search"], "a.sidebar-link,button,div.segment-item")
             if eng_sel:
