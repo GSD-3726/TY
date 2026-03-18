@@ -20,34 +20,40 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 # ============================================================================
 # ======================== 【中文配置区】=====================================
 # ============================================================================
+# 所有可调参数均集中于此，分类整理，方便修改
 
-# -------------------------- 1. 网站与爬取设置 -------------------------------
+# -------------------------- 1. 基础设置 ------------------------------------
 TARGET_URL            = "https://iptv.809899.xyz"       # 目标网站地址
 HEADLESS              = True                            # 无头模式（GitHub运行必须True）
 BROWSER_TYPE          = "chromium"                      # 浏览器内核
-MAX_IPS               = 100                              # 最多处理多少个IP
-MAX_TOTAL_CHANNELS     = 0                               # 总频道上限（0=不限制）
-PAGE_LOAD_TIMEOUT      = 120000                          # 页面加载超时（毫秒）
-
-# -------------------------- 2. 提取模式选择【核心：二选一】------------------
-# "酒店提取" 或者  "组播提取"
-EXTRACT_MODE          = "酒店提取"
-
-# -------------------------- 3. 输出文件设置 --------------------------------
 OUTPUT_DIR            = Path(__file__).parent           # 输出目录（当前脚本目录）
-OUTPUT_M3U_FILENAME   = OUTPUT_DIR / "iptv_channels.m3u"
-OUTPUT_TXT_FILENAME   = OUTPUT_DIR / "iptv_channels.txt"
+OUTPUT_M3U_FILENAME   = OUTPUT_DIR / "iptv_channels.m3u" # M3U输出文件
+OUTPUT_TXT_FILENAME   = OUTPUT_DIR / "iptv_channels.txt" # TXT输出文件
 MAX_LINKS_PER_CHANNEL = 10                               # 每个频道最多保留几条链接
+DEFAULT_PROTOCOL      = "http://"                        # 默认协议（用于补全链接）
 
-# -------------------------- 4. 测速设置（FFmpeg 解码测速）-------------------
-ENABLE_FFMPEG_TEST     = True                            # 是否启用FFmpeg测速
-FFMPEG_PATH            = "ffmpeg"                        # FFmpeg 程序路径（如果不在PATH中需写完整）
-FFMPEG_TEST_DURATION   = 10                               # 每个链接测试时长（秒）
-FFMPEG_CONCURRENCY     = 6                                # 并发测速数量（GitHub Actions建议≤2）
-MIN_AVG_FPS            = 24                             # 最低平均帧率
-MIN_FRAMES             = 210                              # 最低解码帧数（防止只有几秒数据）
+# -------------------------- 2. 爬取控制 ------------------------------------
+EXTRACT_MODE          = "酒店提取"                       # "酒店提取" 或 "组播提取"
+MAX_IPS               = 100                              # 最多处理多少个IP
+MAX_TOTAL_CHANNELS    = 0                                # 总频道上限（0=不限制）
+MAX_CHANNELS_PER_IP   = 0                                # 单个IP最多提取频道数
+DELAY_BETWEEN_IPS     = 0.1                              # 切换IP间隔（秒）
+DELAY_AFTER_CLICK     = 0.3                              # 点击弹窗后等待（秒）
+MODAL_WAIT_TIMEOUT    = 1000                             # 等待模态框出现（毫秒）
 
-# -------------------------- 5. GitHub 源订阅设置 ---------------------------
+# -------------------------- 3. 超时与等待 ----------------------------------
+PAGE_LOAD_TIMEOUT      = 120000                          # 页面加载超时（毫秒）
+DATA_LOAD_TIMEOUT      = 60                              # 数据加载总超时（秒）
+AFTER_START_WAIT       = 30                              # 点击【开始提取】后等待秒数
+IP_ADDR_TIMEOUT        = 1000                            # 读取IP地址超时（毫秒）
+CHANNEL_NAME_TIMEOUT   = 1000                            # 读取频道名称超时（毫秒）
+CHANNEL_URL_TIMEOUT    = 1000                            # 读取频道链接超时（毫秒）
+SCROLL_TIMEOUT         = 1000                            # 滚动到元素视野的超时（毫秒）
+CLICK_TIMEOUT          = 10000                           # 点击元素的超时（毫秒）
+WAIT_FOR_ELEMENT_TIMEOUT = 30000                         # wait_for_element默认超时（毫秒）
+DATA_CHECK_INTERVAL    = 30                              # 数据加载检查间隔（秒）
+
+# -------------------------- 4. GitHub源订阅 --------------------------------
 ENABLE_GITHUB_SOURCES = True                            # 是否启用GitHub源
 GITHUB_M3U_LINKS = [
     "https://gh-proxy.com/https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV_AutoUpdate.m3u8",
@@ -75,58 +81,32 @@ GITHUB_M3U_LINKS = [
     "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/others_output.txt",
 ]
 
-# -------------------------- 6. 延时与等待设置 ------------------------------
-DELAY_BETWEEN_IPS      = 0.1                             # 切换IP间隔（秒）
-DELAY_AFTER_CLICK      = 0.3                             # 点击弹窗等待（秒） [原1.0，现优化为0.3]
-MAX_CHANNELS_PER_IP    = 0                               # 单个IP最多提取频道数
-DATA_LOAD_TIMEOUT      = 60                             # 数据加载超时（秒）
-AFTER_START_WAIT       = 30                              # 点击【开始提取】后等待秒数
-MODAL_WAIT_TIMEOUT     = 1000                            # 等待模态框出现（毫秒）[新增，原硬编码5000]
+# -------------------------- 5. FFmpeg测速设置 -------------------------------
+ENABLE_FFMPEG_TEST     = True                            # 是否启用FFmpeg测速
+FFMPEG_PATH            = "ffmpeg"                        # FFmpeg 程序路径（如果不在PATH中需写完整）
+FFMPEG_TEST_DURATION   = 10                              # 每个链接测试时长（秒）
+FFMPEG_CONCURRENCY     = 6                               # 并发测速数量（GitHub Actions建议≤2）
+MIN_AVG_FPS            = 24                              # 最低平均帧率
+MIN_FRAMES             = 210                             # 最低解码帧数（防止只有几秒数据）
 
-# -------------------------- 7. 数据清洗设置 --------------------------------
-ENABLE_CHINESE_CLEAN   = True                            # 清理非中文字符
-ENABLE_DEDUPLICATION   = True                            # 全局去重
-ENABLE_SCREENSHOTS     = False                           # 调试截图
-CCTV_USE_MAPPING       = True                            # CCTV映射中文名称
-
-# -------------------------- 8. 网络协议 ------------------------------------
-DEFAULT_PROTOCOL       = "http://"                       # 默认协议
-
-# -------------------------- 9. 测速缓存设置 --------------------------------
+# -------------------------- 6. 缓存设置 ------------------------------------
 ENABLE_CACHE           = True                            # 启用测速缓存
 CACHE_FILE             = OUTPUT_DIR / "iptv_speed_cache.json"
 CACHE_EXPIRE_HOURS     = 72                              # 缓存过期小时
 
-# -------------------------- 10. 更新信息显示 --------------------------------
-TIME_DISPLAY_AT_TOP    = False                           # 更新时间是否放顶部
-UPDATE_STREAM_URL      = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8"
+# -------------------------- 7. 数据处理 ------------------------------------
+ENABLE_CHINESE_CLEAN   = True                            # 清理非中文字符
+ENABLE_DEDUPLICATION   = True                            # 全局去重
+CCTV_USE_MAPPING       = True                            # CCTV映射中文名称
+ENABLE_HISTORY_CHECK   = True                            # 检查历史输出文件中的链接
+HISTORY_FILE           = OUTPUT_TXT_FILENAME             # 历史文件路径
+HISTORY_CHECK_CONCURRENCY = 10                           # 并发检查数量
+HISTORY_CHECK_TIMEOUT  = 10                              # 每个链接检查超时（秒）
+ENABLE_MIGU_FILTER     = True                            # 过滤包含"migu"的链接
+SKIP_INTERNAL_IP       = True                            # 跳过内网IP
+ENABLE_URL_PRE_CHECK   = False                           # 预检已禁用，直接测速
 
-# -------------------------- 11. 页面按钮文字匹配 ----------------------------
-PAGE_CONFIG = {
-    "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
-    "hotel":        ["酒店提取"],
-    "multicast":    ["组播提取"],
-    "start_button": ["开始播放", "开始搜索", "开始提取"],
-}
-
-# -------------------------- 12. 其他配置（预检已禁用）-----------------------
-ENABLE_URL_PRE_CHECK   = False   # 已禁用，直接测速
-SKIP_INTERNAL_IP       = True    # 是否跳过内网IP
-ENABLE_VERBOSE_LOGGING = False   # 详细日志已关闭
-
-# ==================== 新增：历史链接检查配置 ====================
-ENABLE_HISTORY_CHECK   = True          # 是否检查历史输出文件中的链接
-HISTORY_FILE           = OUTPUT_TXT_FILENAME   # 历史文件路径
-HISTORY_CHECK_CONCURRENCY = 10         # 并发检查数量
-HISTORY_CHECK_TIMEOUT  = 10             # 每个链接检查超时（秒）
-
-# ==================== 新增：migu链接过滤配置 ====================
-ENABLE_MIGU_FILTER     = True         # 是否过滤掉包含"migu"的链接（不区分大小写）
-
-
-# ============================================================================
-# ============================ 频道分类规则 ==================================
-# ============================================================================
+# -------------------------- 8. 频道分类规则 --------------------------------
 CATEGORY_RULES = [
     {"name": "4K专区",      "keywords": ["4k"]},
     {"name": "央视频道",    "keywords": ["cctv", "cetv", "央视","中央"]},
@@ -153,6 +133,19 @@ CCTV_ORDER = [
     "CCTV-12社会与法", "CCTV-13新闻", "CCTV-14少儿", "CCTV-15音乐",
     "CCTV-16奥林匹克", "CCTV-17农业农村", "CETV1", "CETV2", "CETV4", "CETV5"
 ]
+
+# -------------------------- 9. 页面按钮匹配 --------------------------------
+PAGE_CONFIG = {
+    "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
+    "hotel":        ["酒店提取"],
+    "multicast":    ["组播提取"],
+    "start_button": ["开始播放", "开始搜索", "开始提取"],
+}
+
+# -------------------------- 10. 日志与更新 --------------------------------
+TIME_DISPLAY_AT_TOP    = False                           # 更新时间是否放顶部
+UPDATE_STREAM_URL      = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8"
+ENABLE_VERBOSE_LOGGING = False                           # 详细日志已关闭
 
 # ============================================================================
 # ============================= 日志配置（北京时间） ===========================
@@ -526,9 +519,9 @@ def parse_m3u_file(content):
 # ============================================================================
 # ========================= 页面点击与提取 ===================================
 # ============================================================================
-async def robust_click(loc, timeout=10000):
+async def robust_click(loc, timeout=CLICK_TIMEOUT):
     try:
-        await loc.scroll_into_view_if_needed(timeout=3000)
+        await loc.scroll_into_view_if_needed(timeout=SCROLL_TIMEOUT)
         await asyncio.sleep(0.2)
         await loc.click(force=True, timeout=timeout)
         return True
@@ -539,7 +532,7 @@ async def robust_click(loc, timeout=10000):
         except:
             return False
 
-async def wait_for_element(page, sel, timeout=30000):
+async def wait_for_element(page, sel, timeout=WAIT_FOR_ELEMENT_TIMEOUT):
     try:
         await page.wait_for_selector(sel, timeout=timeout)
         return True
@@ -550,7 +543,7 @@ async def wait_for_element(page, sel, timeout=30000):
 async def extract_one_ip(page, row, idx):
     e = []
     try:
-        addr = await row.locator("div.item-title").first.inner_text(timeout=3000)
+        addr = await row.locator("div.item-title").first.inner_text(timeout=IP_ADDR_TIMEOUT)
         addr = addr.strip()
         if not addr:
             return []
@@ -575,8 +568,8 @@ async def extract_one_ip(page, row, idx):
             total = min(total, MAX_CHANNELS_PER_IP)
         for i in range(total):
             try:
-                n = await items.nth(i).locator(".item-title").inner_text(timeout=2000)
-                u = await items.nth(i).locator(".item-subtitle").inner_text(timeout=2000)
+                n = await items.nth(i).locator(".item-title").inner_text(timeout=CHANNEL_NAME_TIMEOUT)
+                u = await items.nth(i).locator(".item-subtitle").inner_text(timeout=CHANNEL_URL_TIMEOUT)
                 n, u = n.strip(), u.strip()
                 if not n or not u:
                     continue
@@ -596,8 +589,8 @@ async def extract_one_ip(page, row, idx):
 
 async def wait_data(page):
     logger.info("等待数据加载...")
-    for _ in range(DATA_LOAD_TIMEOUT // 30 + 1):
-        await asyncio.sleep(30)
+    for _ in range(DATA_LOAD_TIMEOUT // DATA_CHECK_INTERVAL + 1):
+        await asyncio.sleep(DATA_CHECK_INTERVAL)
         ok = await page.evaluate('''()=>{
             for(let i of document.querySelectorAll('div.ios-list-item')){
                 let s=i.querySelector('.item-subtitle')?.innerText||'';
