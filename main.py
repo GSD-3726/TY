@@ -45,11 +45,11 @@ MODAL_WAIT_TIMEOUT    = 1000                             # 等待模态框出现
 PAGE_LOAD_TIMEOUT      = 120000                          # 页面加载超时（毫秒）
 DATA_LOAD_TIMEOUT      = 60                              # 数据加载总超时（秒）
 AFTER_START_WAIT       = 30                              # 点击【开始提取】后等待秒数
-IP_ADDR_TIMEOUT        = 1000                            # 读取IP地址超时（毫秒）
-CHANNEL_NAME_TIMEOUT   = 1000                            # 读取频道名称超时（毫秒）
-CHANNEL_URL_TIMEOUT    = 1000                            # 读取频道链接超时（毫秒）
-SCROLL_TIMEOUT         = 1000                            # 滚动到元素视野的超时（毫秒）
-CLICK_TIMEOUT          = 10000                           # 点击元素的超时（毫秒）
+IP_ADDR_TIMEOUT        = 500                            # 读取IP地址超时（毫秒）
+CHANNEL_NAME_TIMEOUT   = 200                            # 读取频道名称超时（毫秒）
+CHANNEL_URL_TIMEOUT    = 200                            # 读取频道链接超时（毫秒）
+SCROLL_TIMEOUT         = 100                            # 滚动到元素视野的超时（毫秒）
+CLICK_TIMEOUT          = 100                           # 点击元素的超时（毫秒）
 WAIT_FOR_ELEMENT_TIMEOUT = 30000                         # wait_for_element默认超时（毫秒）
 DATA_CHECK_INTERVAL    = 30                              # 数据加载检查间隔（秒）
 
