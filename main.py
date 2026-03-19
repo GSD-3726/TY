@@ -86,8 +86,8 @@ ENABLE_FFMPEG_TEST     = True                            # 是否启用FFmpeg测
 FFMPEG_PATH            = "ffmpeg"                        # FFmpeg 程序路径（如果不在PATH中需写完整）
 FFMPEG_TEST_DURATION   = 10                              # 每个链接测试时长（秒）
 FFMPEG_CONCURRENCY     = 6                               # 并发测速数量（GitHub Actions建议≤2）
-MIN_AVG_FPS            = 24                              # 最低平均帧率
-MIN_FRAMES             = 210                             # 最低解码帧数（防止只有几秒数据）
+MIN_AVG_FPS            = 30                              # 最低平均帧率
+MIN_FRAMES             = 270                             # 最低解码帧数（防止只有几秒数据）
 
 # -------------------------- 6. 缓存设置 ------------------------------------
 ENABLE_CACHE           = True                            # 启用测速缓存
