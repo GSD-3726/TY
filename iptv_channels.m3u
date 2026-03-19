@@ -18,6 +18,8 @@ http://183.191.98.89:9003/hls/2/index.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-3综艺
 http://39.165.39.49:85/tsfile/live/1003_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-4国际
+https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4_mbd.m3u8?auth_key=1773998100-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-f8f124f64a33900b1a06f3ad8f237153&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c
+#EXTINF:-1 group-title="央视频道",CCTV-4国际
 http://39.165.39.49:85/tsfile/live/1004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-4国际
 http://183.234.143.5:85/tsfile/live/0004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
@@ -114,6 +116,8 @@ http://183.234.143.5:85/tsfile/live/1118_1.m3u8?key=txiptv&amp;playlive=1&amp;au
 http://39.164.164.132:9901/tsfile/live/1035_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",内蒙古卫视
 http://42.237.158.128:9003/hls/54/index.m3u8
+#EXTINF:-1 group-title="卫视频道",力作团圆
+https://live.ottiptv.cc/yy/1382745094
 #EXTINF:-1 group-title="卫视频道",北京卫视
 http://42.237.158.128:9003/hls/31/index.m3u8
 #EXTINF:-1 group-title="卫视频道",北京卫视
@@ -296,5 +300,5 @@ http://183.234.143.5:85/tsfile/live/1120_1.m3u8?key=txiptv&amp;playlive=1&amp;au
 #EXTINF:-1 group-title="儿童频道",金鹰卡通移动
 http://39.165.39.49:85/tsfile/live/1156_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 
-#EXTINF:-1 group-title="更新时间",2026-03-19 21:35:52
+#EXTINF:-1 group-title="更新时间",2026-03-20 05:56:54
 https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
