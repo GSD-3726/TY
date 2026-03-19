@@ -45454,5 +45454,61 @@
     "width": 0,
     "height": 0,
     "timestamp": 1773889237.5931742
+  },
+  "https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4_mbd.m3u8?auth_key=1773954000-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-2f1ecd96a5299f5d8e2c64c3d0783242&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c": {
+    "ok": false,
+    "fps": 191.0,
+    "frames": 198,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1773902421.2495701
+  },
+  "https://live.ottiptv.cc/yy/1454782258": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1773902421.2803726
+  },
+  "https://piccpndks.v.kcdnvip.com/audio/liaoning_2/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1773902423.709065
+  },
+  "https://live.ottiptv.cc/yy/1458133834": {
+    "ok": false,
+    "fps": 40.0,
+    "frames": 191,
+    "width": 720,
+    "height": 1280,
+    "timestamp": 1773902425.5186687
+  },
+  "https://live.ottiptv.cc/yy/1354930924": {
+    "ok": false,
+    "fps": 33.0,
+    "frames": 201,
+    "width": 406,
+    "height": 720,
+    "timestamp": 1773902426.6057703
+  },
+  "https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4k_mbd.m3u8?auth_key=1773954000-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-2cac53d30a9da4249793bfe2ad88998d&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c": {
+    "ok": false,
+    "fps": 73.0,
+    "frames": 203,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1773902426.8276365
+  },
+  "https://live.ottiptv.cc/yy/1382745189": {
+    "ok": false,
+    "fps": 30.0,
+    "frames": 199,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1773902427.2863615
   }
 }
