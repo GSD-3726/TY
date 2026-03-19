@@ -170,12 +170,9 @@ logger.setLevel(log_level)
 logger.handlers.clear()
 
 stdout_h = logging.StreamHandler(sys.stdout)
-file_h = logging.FileHandler(OUTPUT_DIR / 'iptv_extractor.log', encoding='utf-8')
 formatter = BeijingFormatter("%(asctime)s - %(levelname)s - %(message)s")
 stdout_h.setFormatter(formatter)
-file_h.setFormatter(formatter)
 logger.addHandler(stdout_h)
-logger.addHandler(file_h)
 
 # ============================================================================
 # ========================= 工具函数 =========================================
