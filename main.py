@@ -181,6 +181,16 @@ CCTV_PATTERN = re.compile(r'(cctv)[-\s]?(\d{1,3}|5\+)', re.IGNORECASE)
 CHINESE_ONLY_PATTERN = re.compile(r'[^\u4e00-\u9fff]')
 INTERNAL_IP_PATTERN = re.compile(r'^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|127\.0\.0\.1)')
 
+# 中文数字映射（用于“中央一套”等）
+CHINESE_NUM_MAP = {
+    '一': '1', '二': '2', '三': '3', '四': '4', '五': '5',
+    '六': '6', '七': '7', '八': '8', '九': '9', '十': '10',
+    '十一': '11', '十二': '12', '十三': '13', '十四': '14',
+    '十五': '15', '十六': '16', '十七': '17'
+}
+# 按长度降序排序，确保“十一”优先于“十”
+CHINESE_NUM_PATTERN = '|'.join(sorted(CHINESE_NUM_MAP.keys(), key=len, reverse=True))
+
 def build_classifier():
     compiled = []
     for rule in CATEGORY_RULES:
@@ -192,18 +202,34 @@ def build_classifier():
 classify_channel = build_classifier()
 
 def normalize_cctv(name: str) -> str:
+    """将频道名归一化为标准 CCTV 格式，支持英文 CCTV 和中文 中央X套/台"""
     name_lower = name.lower()
-    # 处理 CCTV4K / CCTV-4K / CCTV 4K 等变体，确保归类到 4K专区
+    # 处理 CCTV4K
     if re.search(r'cctv[-\s]?4k', name_lower):
         return "CCTV-4K"
     if "cctv5+" in name_lower:
         return "CCTV-5+体育赛事" if CCTV_USE_MAPPING else "CCTV5+"
+    
+    # 匹配英文 cctv
     cctv_match = CCTV_PATTERN.search(name_lower)
     if cctv_match:
         num = cctv_match.group(2)
         if CCTV_USE_MAPPING and num in CCTV_NAME_MAPPING:
             return f"CCTV-{num}{CCTV_NAME_MAPPING[num]}"
         return f"CCTV-{num}"
+    
+    # 匹配中文 "中央" 后跟数字（如“中央一套”、“中央二台移动”）
+    # 正则：中央\s*([中文数字组合])[套台]?
+    chinese_pattern = rf'中央\s*({CHINESE_NUM_PATTERN})'
+    ch_match = re.search(chinese_pattern, name)
+    if ch_match:
+        ch_num = ch_match.group(1)
+        num = CHINESE_NUM_MAP.get(ch_num)
+        if num:
+            if CCTV_USE_MAPPING and num in CCTV_NAME_MAPPING:
+                return f"CCTV-{num}{CCTV_NAME_MAPPING[num]}"
+            return f"CCTV-{num}"
+    
     return name
 
 def clean_chinese_only(name: str) -> str:
