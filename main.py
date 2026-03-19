@@ -104,7 +104,7 @@ HISTORY_CHECK_CONCURRENCY = 10                           # 并发检查数量
 HISTORY_CHECK_TIMEOUT  = 10                              # 每个链接检查超时（秒）
 ENABLE_MIGU_FILTER     = True                            # 过滤包含"migu"的链接
 SKIP_INTERNAL_IP       = True                            # 跳过内网IP
-ENABLE_URL_PRE_CHECK   = False                           # 预检已禁用，直接测速
+ENABLE_URL_PRE_CHECK   = True                           # 预检已禁用，直接测速
 
 # -------------------------- 8. 频道分类规则 --------------------------------
 CATEGORY_RULES = [
