@@ -8,7 +8,6 @@ CCTV-2财经,http://175.153.94.192:85/tsfile/live/1002_1.m3u8?key=txiptv&amp;pla
 CCTV-2财经,http://221.6.57.25:9003/hls/2/index.m3u8
 CCTV-2财经,http://183.191.98.89:9003/hls/2/index.m3u8
 CCTV-3综艺,http://39.165.39.49:85/tsfile/live/1003_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-CCTV-4国际,https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4_mbd.m3u8?auth_key=1773998100-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-f8f124f64a33900b1a06f3ad8f237153&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c
 CCTV-4国际,http://39.165.39.49:85/tsfile/live/1004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-4国际,http://183.234.143.5:85/tsfile/live/0004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-5体育,http://39.165.39.49:85/tsfile/live/1089_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
@@ -35,6 +34,7 @@ CCTV-10科教,http://110.241.188.75:808/hls/10/index.m3u8
 CCTV-11戏曲,http://39.164.164.132:9901/tsfile/live/1010_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 CCTV-11戏曲,http://42.237.158.128:9003/hls/11/index.m3u8
 CCTV-11戏曲,http://110.241.188.75:808/hls/11/index.m3u8
+CCTV-11戏曲,http://171.117.85.157:9003/hls/12/index.m3u8
 CCTV-12社会与法,http://39.165.39.49:85/tsfile/live/1000_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-12社会与法,http://175.10.18.168:9999/tsfile/live/0012_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-13新闻,http://39.165.39.49:85/tsfile/live/1084_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
@@ -57,6 +57,7 @@ CETV1,http://183.234.143.5:85/tsfile/live/1122_1.m3u8?key=txiptv&amp;playlive=1&
 云南卫视,http://183.234.143.5:85/tsfile/live/1105_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 人间卫视,http://61.216.67.119:1935/bltvhd/bltv1/chunklist_w1266569526.m3u
 兵团卫视,http://183.234.143.5:85/tsfile/live/1118_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
+内蒙卫视,http://171.117.85.157:9003/hls/38/index.m3u8
 内蒙古卫视,http://39.164.164.132:9901/tsfile/live/1035_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 内蒙古卫视,http://42.237.158.128:9003/hls/54/index.m3u8
 力作团圆,https://live.ottiptv.cc/yy/1382745094
@@ -107,6 +108,7 @@ CETV1,http://183.234.143.5:85/tsfile/live/1122_1.m3u8?key=txiptv&amp;playlive=1&
 贵州卫视,http://175.153.94.192:85/tsfile/live/1035_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 辽宁卫视,http://175.153.94.192:85/tsfile/live/1032_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 陕西卫视,http://183.234.143.5:85/tsfile/live/1109_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
+陕西卫视,http://stream.snrtv.com/sxbc-star-uBFQX0.m3u8
 青海卫视,http://39.164.164.132:9901/tsfile/live/1037_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 黑龙江卫视,http://39.164.164.132:9901/tsfile/live/1030_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 黑龙江卫视,http://175.153.94.192:85/tsfile/live/1031_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
@@ -149,7 +151,8 @@ CETV1,http://183.234.143.5:85/tsfile/live/1122_1.m3u8?key=txiptv&amp;playlive=1&
 金鹰卡通,http://42.237.158.128:9003/hls/58/index.m3u8
 金鹰卡通,http://175.153.94.192:85/tsfile/live/1039_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 金鹰卡通,http://183.234.143.5:85/tsfile/live/1120_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
+金鹰卡通,http://phonehwei.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPWh3X3Bob25lJmNocz0mZGVmPTEmcz1lNGY4MjFlYWEwODM4ZGI4Y2ExZjUyMzdmOGVkMjI0YSZ1aWQ9JnV1aWQ9M2VkMzliZGMzNjcxZGM5NGQ5Njc0NzczYWI4MDdlNjktNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3NDAwNzAyOQ,,/JYKTMPP360.m3u8
 金鹰卡通移动,http://39.165.39.49:85/tsfile/live/1156_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 
 更新时间,#genre#
-2026-03-20 11:30:59,https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
+2026-03-20 18:04:19,https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
