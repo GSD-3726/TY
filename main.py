@@ -148,8 +148,8 @@ UPDATE_STREAM_URL      = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3
 ENABLE_VERBOSE_LOGGING = False                           # 详细日志已关闭
 
 # -------------------------- 11. 预检配置 [新增] ----------------------------
-PRECHECK_CONCURRENCY = 10                                 # 预检并发数
-PRECHECK_TIMEOUT     = 3                                  # 每个链接预检超时（秒）
+PRECHECK_CONCURRENCY = 20                                 # 预检并发数
+PRECHECK_TIMEOUT     = 2                                  # 每个链接预检超时（秒）
 
 # ============================================================================
 # ============================= 日志配置（北京时间） ===========================
