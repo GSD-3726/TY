@@ -207,6 +207,7 @@ def normalize_cctv(name: str) -> str:
     # 处理 CCTV4K
     if re.search(r'cctv[-\s]?4k', name_lower):
         return "CCTV-4K"
+    # 优先匹配 CCTV5+（避免被普通数字匹配误判）
     if "cctv5+" in name_lower:
         return "CCTV-5+体育赛事" if CCTV_USE_MAPPING else "CCTV5+"
     
@@ -469,7 +470,6 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
                 continue
             pending.append((g, n, u))
 
-    # [修改] 输出格式：添加空格，与用户要求一致
     logger.info(f"总链接: {total} 缓存有效: {cached_ok} 需处理: {len(pending)}")
 
     # 2. [新增] 预检：对 pending 中的 URL 进行快速连通性检查
@@ -487,7 +487,6 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
             ok_urls = {url for url, ok in results if ok}
             # 仅保留通过预检的条目
             pending = [(g, n, u) for g, n, u in pending if u in ok_urls]
-        # [修改] 输出格式：与用户要求一致
         logger.info(f"预检完成：{len(ok_urls)}/{len(all_urls)} 链接可通过，剩余 {len(pending)} 个待测速条目")
 
     if not pending:
@@ -856,6 +855,47 @@ def export_results_with_timestamp(channel_map):
     logger.info(f"导出完成：{len(channel_map)} 个频道")
 
 # ============================================================================
+# ================= 新增：URL 去重函数 =======================================
+# ============================================================================
+def deduplicate_urls_per_channel(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
+    """
+    确保每个 URL 只出现在一个频道中。
+    如果同一 URL 被多个频道引用，则根据以下规则保留一个：
+      - 优先保留名称中包含 '+' 或 'plus' 的（如 CCTV-5+）
+      - 否则保留名称较长的（更具体）
+    """
+    # 构建 URL -> 频道列表的映射
+    url_to_channels = defaultdict(list)
+    for (group, name), urls in channel_map.items():
+        for url in urls:
+            url_to_channels[url].append((group, name))
+
+    # 决定每个 URL 应保留的频道
+    url_to_chosen = {}
+    for url, channels in url_to_channels.items():
+        if len(channels) == 1:
+            url_to_chosen[url] = channels[0]
+        else:
+            # 规则：优先选择名称包含 '+' 或 'plus' 的
+            plus_channels = [ch for ch in channels if '+' in ch[1].lower() or 'plus' in ch[1].lower()]
+            if plus_channels:
+                chosen = plus_channels[0]  # 如果有多个，取第一个
+            else:
+                # 否则选择名称最长的（更具体）
+                chosen = max(channels, key=lambda ch: len(ch[1]))
+            url_to_chosen[url] = chosen
+            # 可选：输出调试信息
+            # logger.debug(f"URL {url} 重复分配给了 {channels}，保留 {chosen}")
+
+    # 重新构建去重后的频道映射
+    new_map = defaultdict(list)
+    for (group, name), urls in channel_map.items():
+        for url in urls:
+            if url_to_chosen[url] == (group, name):
+                new_map[(group, name)].append(url)
+    return dict(new_map)
+
+# ============================================================================
 # ========================= 主流程 ===========================================
 # ============================================================================
 async def main():
@@ -1027,6 +1067,9 @@ async def main():
         final_channel_map = await run_ffmpeg_test(original_channel_map)
     else:
         final_channel_map = original_channel_map
+
+    # ========== 【新增】URL 去重，确保每个 URL 只属于一个频道 ==========
+    final_channel_map = deduplicate_urls_per_channel(final_channel_map)
 
     # 5. 提取所有通过的 URL
     passed_urls = set()
