@@ -24358,5 +24358,493 @@
     "width": 1920,
     "height": 1080,
     "timestamp": 1774086262.9857109
+  },
+  "http://14.29.45.72/tvcdn.stream3.hndt.com/tv/65c4a6d5017e1000b2b6ea2500000000_transios/playlist.m3u8?wsSecret=a2e0a65230ae3e318be57bec699000a5&wsTime=1774140473&wsSession=a8464f98017b06bebe0845dd-177412715451564&wsIPSercert=f1ed5e80c31ab65580d88c6bbb451005&wsBindIP=2&wsserid=1168265744816512145": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129014.9283192
+  },
+  "https://hwapi.yntv.net/ew265l/z1z6s5.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129016.0760903
+  },
+  "http://phonehwei.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPWh3X3Bob25lJmNocz0mZGVmPTEmcz1hMGQwYzhjNTEzNWU2OTA0ZDI5ZjhjM2VlNzcyMWI3NyZ1aWQ9JnV1aWQ9MDExMzg1NDc4NWIyODQ0MzBjM2QzODhmODJmNmYzOTctNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3NDE1MTcxMw,,/HNDSMPP360.m3u8": {
+    "ok": true,
+    "fps": 143.0,
+    "frames": 225,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1774129017.7810717
+  },
+  "http://113.140.71.86:60001/hls/46/index.m3u8": {
+    "ok": false,
+    "fps": 21.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129026.784662
+  },
+  "http://113.140.71.86:60001/hls/11/index.m3u8": {
+    "ok": false,
+    "fps": 21.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129026.9865828
+  },
+  "http://113.140.71.86:60001/hls/38/index.m3u8": {
+    "ok": false,
+    "fps": 20.0,
+    "frames": 98,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129028.257709
+  },
+  "http://113.140.71.86:60001/hls/8/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129029.2355347
+  },
+  "http://113.140.71.86:60001/hls/36/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129029.2355473
+  },
+  "http://phoneqq.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPXFxX3Bob25lX2xpdmUmY2hzPSZkZWY9MSZzPWRiNjM0ZTYzYjg4NTMzNDA5YmE2YjNjZDI1ODk4YzAwJnVpZD0mdXVpZD1lYjVjMjJlZjZiMDM5MjMxNmMyMDFlNzNjY2ViZGFiNS02YTBlMjYzNyZ2PTImYXM9MCZlcz0xNzc0MTUxODMw/JYKTMPP360.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 225,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1774129029.8657813
+  },
+  "http://113.140.71.86:60001/hls/7/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129031.0835304
+  },
+  "http://113.140.71.86:60001/hls/4/index.m3u8": {
+    "ok": true,
+    "fps": 46.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129033.219885
+  },
+  "http://113.140.71.86:60001/hls/22/index.m3u8": {
+    "ok": true,
+    "fps": 83.0,
+    "frames": 223,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129035.6278489
+  },
+  "http://113.140.71.86:60001/hls/27/index.m3u8": {
+    "ok": true,
+    "fps": 33.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129035.8055508
+  },
+  "http://stream.snrtv.com/sxbc-star-moEFIP.m3u8": {
+    "ok": true,
+    "fps": 174.0,
+    "frames": 224,
+    "width": 720,
+    "height": 404,
+    "timestamp": 1774129036.8460839
+  },
+  "http://113.140.71.86:60001/hls/18/index.m3u8": {
+    "ok": true,
+    "fps": 68.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129040.1410882
+  },
+  "http://113.140.71.86:60001/hls/6/index.m3u8": {
+    "ok": true,
+    "fps": 61.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129041.0716517
+  },
+  "https://tv.pull.hebtv.com/jishi/weishipindao.m3u8?t=1774134010&k=de3a6056f9cc471b36f19424dad2a317": {
+    "ok": false,
+    "fps": 120.0,
+    "frames": 156,
+    "width": 960,
+    "height": 540,
+    "timestamp": 1774129041.469344
+  },
+  "http://113.140.71.86:60001/hls/41/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129044.243922
+  },
+  "http://113.140.71.86:60001/hls/19/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129044.8733366
+  },
+  "http://113.140.71.86:60001/hls/42/index.m3u8": {
+    "ok": true,
+    "fps": 46.0,
+    "frames": 216,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129047.2210047
+  },
+  "http://113.140.71.86:60001/hls/26/index.m3u8": {
+    "ok": false,
+    "fps": 20.0,
+    "frames": 217,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129048.734878
+  },
+  "http://113.140.71.86:60001/hls/34/index.m3u8": {
+    "ok": true,
+    "fps": 75.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129049.102345
+  },
+  "https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4k_mbd.m3u8?auth_key=1774180800-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-fd636948a4bf4ffb1f64e0b0d30ddd64&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 197,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1774129051.0958087
+  },
+  "http://113.140.71.86:60001/hls/32/index.m3u8": {
+    "ok": true,
+    "fps": 29.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129051.5386977
+  },
+  "https://v4-e6b1c5baf4e240fe63adbf68dda23435.livehwc4.com/play.kankanlive.com/live/1698423397390920.m3u8?sub_m3u8=true&edge_slice=true&user_session_id=d5c976cfecfac53b8fc915d63d885237": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129056.0807364
+  },
+  "http://113.140.71.86:60001/hls/37/index.m3u8": {
+    "ok": true,
+    "fps": 45.0,
+    "frames": 223,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129056.7285826
+  },
+  "http://113.140.71.86:60001/hls/2/index.m3u8": {
+    "ok": true,
+    "fps": 43.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129058.3085315
+  },
+  "http://phoneqq.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPXFxX3Bob25lX2xpdmUmY2hzPSZkZWY9MSZzPWQ3MDI1YmYyMzQ0MTE4MWQ0YTQ5YTI3YThkZDJiNDc1JnVpZD0mdXVpZD1mODNmNzVmNmMxNDg5NTJiNjEwZTZlNjkwZmEzODJmNC02YTBlMjYzNyZ2PTImYXM9MCZlcz0xNzc0MTU1MzM2/CSXWMPP360.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 225,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1774129058.6237032
+  },
+  "http://113.140.71.86:60001/hls/43/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129059.8808908
+  },
+  "http://113.140.71.86:60001/hls/21/index.m3u8": {
+    "ok": true,
+    "fps": 68.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129061.3006003
+  },
+  "http://113.140.71.86:60001/hls/14/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129062.2287345
+  },
+  "http://phoneqq.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPXFxX3Bob25lX2xpdmUmY2hzPSZkZWY9MSZzPTRlYjVhYjQzY2MyMzdjNDNiZGY5MWY5YmVhNmYxZGUwJnVpZD0mdXVpZD1iNmJmZjY0OTRhMjE3YTRlZDdmY2M5OGIyNzgxNjZmNS02YTBlMjYzNyZ2PTImYXM9MCZlcz0xNzc0MTU1MzEz/HNYLMPP360.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 225,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1774129063.3547208
+  },
+  "http://113.140.71.86:60001/hls/44/index.m3u8": {
+    "ok": true,
+    "fps": 42.0,
+    "frames": 216,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129066.0022502
+  },
+  "http://113.140.71.86:60001/hls/1/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129066.5474937
+  },
+  "http://113.140.71.86:60001/hls/3/index.m3u8": {
+    "ok": true,
+    "fps": 87.0,
+    "frames": 225,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129067.1435533
+  },
+  "http://113.140.71.86:60001/hls/5/index.m3u8": {
+    "ok": false,
+    "fps": 21.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129071.5652242
+  },
+  "http://113.140.71.86:60001/hls/35/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129074.8919966
+  },
+  "http://phonehwei.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPWh3X3Bob25lJmNocz0mZGVmPTEmcz1jZDAzZWY1ODU3NTVkZTZmZmJlYjEyODNjNTAzMThlNSZ1aWQ9JnV1aWQ9ZDg3YmZkYzFhYWEwZDcwZjg3ZGZhNWRjNTA0MDU3OTItNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3NDE1MTczNQ,,/HNDSJMPP360.m3u8": {
+    "ok": true,
+    "fps": 141.0,
+    "frames": 225,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1774129075.3941314
+  },
+  "http://113.140.71.86:60001/hls/39/index.m3u8": {
+    "ok": true,
+    "fps": 46.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129075.5488172
+  },
+  "http://113.140.71.86:60001/hls/13/index.m3u8": {
+    "ok": true,
+    "fps": 25.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129076.7288082
+  },
+  "http://113.140.71.86:60001/hls/31/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129081.5564759
+  },
+  "http://113.140.71.86:60001/hls/24/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129082.1523333
+  },
+  "http://113.140.71.86:60001/hls/17/index.m3u8": {
+    "ok": true,
+    "fps": 40.0,
+    "frames": 225,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129082.696859
+  },
+  "http://113.140.71.86:60001/hls/45/index.m3u8": {
+    "ok": true,
+    "fps": 42.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129084.675725
+  },
+  "http://phoneqq.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPXFxX3Bob25lX2xpdmUmY2hzPSZkZWY9MSZzPWFkZmUwMDhlYmI0MTM3NjliZGRiNzYzYzcwOTBmZmJiJnVpZD0mdXVpZD00Yzc0MjhjM2Q1ZWFlMDRmZmI4OTgwZjBkOTFiOGZmNi02YTBlMjYzNyZ2PTImYXM9MCZlcz0xNzc0MTU1MzI3/HNGJMPP360.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 225,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1774129084.701688
+  },
+  "http://113.140.71.86:60001/hls/40/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129086.616167
+  },
+  "http://113.140.71.86:60001/hls/9/index.m3u8": {
+    "ok": false,
+    "fps": 21.0,
+    "frames": 225,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129087.2019494
+  },
+  "https://live1-fuyun.fjtv.net/dnpd/hd/live.m3u8?_upt=e312f2501774134008": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 148,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1774129088.4230354
+  },
+  "http://113.140.71.86:60001/hls/10/index.m3u8": {
+    "ok": true,
+    "fps": 72.0,
+    "frames": 225,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129088.5255382
+  },
+  "http://113.140.71.86:60001/hls/20/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129090.5570335
+  },
+  "http://phonehwei.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPWh3X3Bob25lJmNocz0mZGVmPTEmcz00Mjg4ZWUwMDYxZWY1MGYyOWJmNTMwZTFhMWRjMTUzMyZ1aWQ9JnV1aWQ9YzIzYzUzZDg1NzViMTcwMjBmNjJhNjc4ODY2YTQ5ZDgtNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3NDE1MjAwNQ,,/HNGGMPP360.m3u8": {
+    "ok": true,
+    "fps": 157.0,
+    "frames": 225,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1774129092.0848992
+  },
+  "http://113.140.71.86:60001/hls/23/index.m3u8": {
+    "ok": false,
+    "fps": 80.0,
+    "frames": 200,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129093.0811315
+  },
+  "http://113.140.71.86:60001/hls/12/index.m3u8": {
+    "ok": true,
+    "fps": 37.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129093.4416738
+  },
+  "https://livehhhttps.sxrtv.com/lsdream/q8RVWgs/1000/d1sqnR0.m3u8": {
+    "ok": true,
+    "fps": 90.0,
+    "frames": 225,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1774129094.4412763
+  },
+  "http://113.140.71.86:60001/hls/28/index.m3u8": {
+    "ok": true,
+    "fps": 77.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129095.3694096
+  },
+  "http://zwebl02.cztv.com/live/channel01720Pnew.m3u8?auth_key=1774126035-42a855b669bd52dd188ee2d8ed0126ea-0-6e96257e408c0320af660658ab05a9a9": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 200,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1774129095.373214
+  },
+  "http://113.140.71.86:60001/hls/25/index.m3u8": {
+    "ok": true,
+    "fps": 52.0,
+    "frames": 223,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129099.2621636
+  },
+  "http://113.140.71.86:60001/hls/29/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129099.6822178
+  },
+  "http://113.140.71.86:60001/hls/33/index.m3u8": {
+    "ok": true,
+    "fps": 33.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129103.189854
+  },
+  "http://113.140.71.86:60001/hls/15/index.m3u8": {
+    "ok": true,
+    "fps": 28.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1774129105.0960183
+  },
+  "http://113.140.71.86:60001/hls/16/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774129107.0926235
   }
 }
