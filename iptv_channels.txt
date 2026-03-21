@@ -16,6 +16,7 @@ CCTV-3综艺,http://113.9.153.156:9003/hls/3003/index.m3u8
 CCTV-3综艺,http://60.223.94.69:9003/hls/3/index.m3u8
 CCTV-4国际,http://39.165.39.49:85/tsfile/live/1004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-4国际,http://171.116.70.231:9003/hls/4/index.m3u8
+CCTV-4国际,https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4_mbd.m3u8?auth_key=1774137600-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-db5c99fb0274b7e77e94617baf3262ca&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c
 CCTV-4国际,http://113.9.153.156:9003/hls/3004/index.m3u8
 CCTV-4国际,http://183.234.143.5:85/tsfile/live/0004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-5体育,http://39.165.39.49:85/tsfile/live/1005_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
@@ -72,6 +73,7 @@ CCTV-14少儿,http://175.153.94.192:85/tsfile/live/1016_1.m3u8?key=txiptv&amp;pl
 CCTV-14少儿,http://113.9.153.156:9003/hls/3014/index.m3u8
 CCTV-14少儿,http://183.191.98.89:9003/hls/15/index.m3u8
 CCTV-15音乐,http://39.165.39.49:85/tsfile/live/1086_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
+CCTV-15音乐,http://171.12.60.21:9003/hls/15/index.m3u8
 CCTV-15音乐,http://113.9.153.156:9003/hls/3015/index.m3u8
 CCTV-15音乐,http://60.223.94.69:9003/hls/15/index.m3u8
 CCTV-17农业农村,http://39.165.39.49:85/tsfile/live/1088_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
@@ -173,7 +175,7 @@ CETV1,http://183.234.143.5:85/tsfile/live/1122_1.m3u8?key=txiptv&amp;playlive=1&
 湖南卫视,http://171.116.70.231:9003/hls/33/index.m3u8
 湖南卫视,http://183.234.143.5:85/tsfile/live/1090_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 湖南卫视移动,http://39.165.39.49:85/tsfile/live/1140_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-湖南国际频道,http://phonehwei.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPWh3X3Bob25lJmNocz0mZGVmPTEmcz1lNGQxMmM2MTUwYjk1ZTk0YzhkNmU5M2QxNWExMTg0MCZ1aWQ9JnV1aWQ9ZTk3YjJlYjQ3NjU2N2U2MDRjMTE1MGM2OGRhOThlOWEtNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3NDA2NTMyOQ,,/HNGJMPP360.m3u8
+湖南爱晚,http://phonehwei.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPWh3X3Bob25lJmNocz0mZGVmPTEmcz05NmEyM2QxMTY1Zjg4YThlM2IyZTExZWVhNWVjZTEzYiZ1aWQ9JnV1aWQ9ODhlN2JmNWY1NDNjNjIwNjc4MjliMjg5MzlmOWM0ZTAtNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3NDA5NDEwNg,,/HNGGMPP360.m3u8
 甘肃卫视,http://42.237.158.128:9003/hls/51/index.m3u8
 福建卫视,http://171.116.70.231:9003/hls/24/index.m3u8
 西藏卫视,http://113.9.153.156:9003/hls/3070/index.m3u8
@@ -243,4 +245,4 @@ CETV1,http://183.234.143.5:85/tsfile/live/1122_1.m3u8?key=txiptv&amp;playlive=1&
 黑龙江少儿,http://113.9.153.156:9003/hls/3026/index.m3u8
 
 更新时间,#genre#
-2026-03-21 08:24:54,https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
+2026-03-21 17:44:23,https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
