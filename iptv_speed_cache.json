@@ -24190,5 +24190,61 @@
     "width": 1920,
     "height": 1080,
     "timestamp": 1774043099.5851169
+  },
+  "http://113.96.132.86/tvcdn.stream3.hndt.com/tv/65c4a6d5017e1000b2b6ea2500000000_transios/playlist.m3u8?wsSecret=a20cbec8651ac4d74492798205277f7d&wsTime=1774064534&wsSession=51374d4cbad3ae01fd129b3b-177405155902749&wsIPSercert=f1ed5e80c31ab65580d88c6bbb451005&wsBindIP=2&wsserid=1168290946500470439": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774052679.8354068
+  },
+  "https://live1-fuyun.fjtv.net/dnpd/hd/live.m3u8?_upt=838e1a641774059138": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 148,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1774052682.524955
+  },
+  "https://live1-fuyun.fjtv.net/haixiapd/hd/live.m3u8?_upt=cc7b72d31774059840": {
+    "ok": false,
+    "fps": 120.0,
+    "frames": 193,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1774052682.9727192
+  },
+  "https://piccpndks.v.kcdnvip.com/audio/sichuan_2/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774052683.3952794
+  },
+  "https://tv.pull.hebtv.com/jishi/weishipindao.m3u8?t=1774055179&k=6b706d708dc0d6d0248b6c938e6c90c0": {
+    "ok": false,
+    "fps": 74.0,
+    "frames": 200,
+    "width": 960,
+    "height": 540,
+    "timestamp": 1774052686.6597943
+  },
+  "https://live.ottiptv.cc/yy/1456668939": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774052694.070997
+  },
+  "https://v4-702cae17a28d6e4f0c0002bba021d934.livehwc4.com/play.kankanlive.com/live/1698423397390920.m3u8?sub_m3u8=true&edge_slice=true&user_session_id=79153b91dd955ae9ec5d6c02553d6d6d": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1774052694.0714684
   }
 }
