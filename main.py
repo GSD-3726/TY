@@ -1000,7 +1000,7 @@ async def main():
             await ctx.close()
             await browser.close()
 
-    # ========== 检查历史链接（不参与统计，但仍可加入） ==========
+    # ========== 历史链接处理（新增主动去重） ==========
     if ENABLE_HISTORY_CHECK:
         history_items = parse_txt_file(HISTORY_FILE)
         if history_items:
@@ -1014,21 +1014,39 @@ async def main():
 
             tasks = [check_one(name, url) for name, url in history_items]
             passed = 0
+            history_good = []  # 存储 (name, url) 通过连通性测试的条目
             for coro in asyncio.as_completed(tasks):
                 name, url, ok = await coro
                 if ok:
                     passed += 1
-                    # 对频道名进行标准化和分类
+                    history_good.append((name, url))
+            logger.info(f"历史链接连通性测试完成，通过 {passed}/{len(history_items)} 条")
+
+            # --- 新增：移除新获取链接中与有效历史链接重复的URL ---
+            if history_good:
+                history_urls = set(url for _, url in history_good)
+                # 统计新获取链接中重复的数量
+                new_urls_set = set(u for (_, _, u, _) in all_entries)
+                duplicate_urls = new_urls_set & history_urls
+                if duplicate_urls:
+                    original_new_count = len(all_entries)
+                    # 过滤掉 all_entries 中URL在 duplicate_urls 的条目
+                    all_entries = [entry for entry in all_entries if entry[2] not in duplicate_urls]
+                    removed_count = original_new_count - len(all_entries)
+                    logger.info(f"从新获取链接中移除 {removed_count} 条与历史有效链接重复的条目，涉及 {len(duplicate_urls)} 个URL")
+
+                # 将历史有效链接转换为标准化后的条目，并加入 all_entries
+                for name, url in history_good:
                     nn = normalize_cctv(name)
                     gr = classify_channel(nn)
-                    if gr:  # 只有能分类的才加入
+                    if gr:
                         fn = nn if gr == "央视频道" else (clean_chinese_only(name) if ENABLE_CHINESE_CLEAN else name)
-                        # 历史链接也加入 all_entries，但单独标记 source="history"，不参与统计
-                        source = "history"
-                        source_urls[source].add(url)
+                        # 来源标记为 "history"
+                        all_entries.append((gr, fn, url, "history"))
+                        # 更新 source_urls 和 url_info
+                        source_urls["history"].add(url)
                         url_info[url].add((gr, fn))
-                        all_entries.append((gr, fn, url, source))
-            logger.info(f"历史链接连通性测试完成，通过 {passed}/{len(history_items)} 条")
+                logger.info(f"已将 {len(history_good)} 条有效历史链接加入待处理队列")
         else:
             logger.info("历史文件为空或不存在，跳过")
 
