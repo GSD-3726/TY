@@ -78,7 +78,7 @@ GITHUB_M3U_LINKS = [
     "https://gh-proxy.com/https://raw.githubusercontent.com/YanG-1989/m3u/main/Gather.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/others_output.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/mursor1985/LIVE/refs/heads/main/yylunbo.m3u",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/mursor1985/LIVE/refs/heads/main/yylunbo.m3u"
 ]
 
 # -------------------------- 5. FFmpeg测速设置 -------------------------------
@@ -884,8 +884,6 @@ def deduplicate_urls_per_channel(channel_map: Dict[Tuple[str, str], List[str]]) 
                 # 否则选择名称最长的（更具体）
                 chosen = max(channels, key=lambda ch: len(ch[1]))
             url_to_chosen[url] = chosen
-            # 可选：输出调试信息
-            # logger.debug(f"URL {url} 重复分配给了 {channels}，保留 {chosen}")
 
     # 重新构建去重后的频道映射
     new_map = defaultdict(list)
@@ -1000,7 +998,32 @@ async def main():
             await ctx.close()
             await browser.close()
 
+    # ========== 过滤migu链接 ==========
+    if ENABLE_MIGU_FILTER:
+        original_count = len(all_entries)
+        # 过滤包含 migu 的链接，需要同时从 all_entries 和 source_urls 中移除
+        filtered_entries = []
+        filtered_urls = set()
+        for (g, n, u, s) in all_entries:
+            if 'migu' not in u.lower():
+                filtered_entries.append((g, n, u, s))
+            else:
+                filtered_urls.add(u)
+        all_entries = filtered_entries
+        
+        # 【修复】同时清理 url_info 和 source_urls
+        for u in filtered_urls:
+            if u in url_info:
+                del url_info[u]
+            # 从所有 source 的集合中移除该 url
+            for s in source_urls:
+                source_urls[s].discard(u)
+
+        filtered_count = original_count - len(all_entries)
+        logger.info(f"已过滤 {filtered_count} 条包含 'migu' 的链接，剩余 {len(all_entries)} 条")
+
     # ========== 历史链接处理（新增主动去重） ==========
+    history_good = []
     if ENABLE_HISTORY_CHECK:
         history_items = parse_txt_file(HISTORY_FILE)
         if history_items:
@@ -1014,7 +1037,6 @@ async def main():
 
             tasks = [check_one(name, url) for name, url in history_items]
             passed = 0
-            history_good = []  # 存储 (name, url) 通过连通性测试的条目
             for coro in asyncio.as_completed(tasks):
                 name, url, ok = await coro
                 if ok:
@@ -1028,10 +1050,22 @@ async def main():
                 # 统计新获取链接中重复的数量
                 new_urls_set = set(u for (_, _, u, _) in all_entries)
                 duplicate_urls = new_urls_set & history_urls
+                
                 if duplicate_urls:
                     original_new_count = len(all_entries)
-                    # 过滤掉 all_entries 中URL在 duplicate_urls 的条目
+                    # 1. 过滤 all_entries
                     all_entries = [entry for entry in all_entries if entry[2] not in duplicate_urls]
+                    
+                    # 2. 【修复】同步更新 source_urls
+                    for u in duplicate_urls:
+                        for s in list(source_urls.keys()):
+                            source_urls[s].discard(u)
+                    
+                    # 3. 【修复】同步更新 url_info
+                    for u in duplicate_urls:
+                        if u in url_info:
+                            del url_info[u]
+
                     removed_count = original_new_count - len(all_entries)
                     logger.info(f"从新获取链接中移除 {removed_count} 条与历史有效链接重复的条目，涉及 {len(duplicate_urls)} 个URL")
 
@@ -1049,24 +1083,6 @@ async def main():
                 logger.info(f"已将 {len(history_good)} 条有效历史链接加入待处理队列")
         else:
             logger.info("历史文件为空或不存在，跳过")
-
-    # ========== 过滤migu链接 ==========
-    if ENABLE_MIGU_FILTER:
-        original_count = len(all_entries)
-        # 过滤包含 migu 的链接，需要同时从 all_entries 和 source_urls 中移除
-        filtered_entries = []
-        filtered_urls = set()
-        for (g, n, u, s) in all_entries:
-            if 'migu' not in u.lower():
-                filtered_entries.append((g, n, u, s))
-            else:
-                filtered_urls.add(u)
-        all_entries = filtered_entries
-        # 从 source_urls 中移除被过滤的 URL
-        for s in list(source_urls.keys()):
-            source_urls[s] = {u for u in source_urls[s] if u not in filtered_urls}
-        filtered_count = original_count - len(all_entries)
-        logger.info(f"已过滤 {filtered_count} 条包含 'migu' 的链接，剩余 {len(all_entries)} 条")
 
     # 3. 构建原始频道映射（用于测速）
     if not all_entries:
