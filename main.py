@@ -45,11 +45,11 @@ MODAL_WAIT_TIMEOUT    = 1                                # 等待模态框出现
 PAGE_LOAD_TIMEOUT      = 120                             # 页面加载超时（秒）
 DATA_LOAD_TIMEOUT      = 60                              # 数据加载总超时（秒）
 AFTER_START_WAIT       = 30                              # 点击【开始提取】后等待秒数
-IP_ADDR_TIMEOUT        = 0.1                             # 读取IP地址超时（秒）
-CHANNEL_NAME_TIMEOUT   = 0.1                             # 读取频道名称超时（秒）
-CHANNEL_URL_TIMEOUT    = 0.1                             # 读取频道链接超时（秒）
-SCROLL_TIMEOUT         = 0.1                             # 滚动到元素视野的超时（秒）
-CLICK_TIMEOUT          = 0.1                              # 点击元素的超时（秒）
+IP_ADDR_TIMEOUT        = 1.0                             # 读取IP地址超时（秒）
+CHANNEL_NAME_TIMEOUT   = 1.0                             # 读取频道名称超时（秒）
+CHANNEL_URL_TIMEOUT    = 1.0                             # 读取频道链接超时（秒）
+SCROLL_TIMEOUT         = 1.0                             # 滚动到元素视野的超时（秒）
+CLICK_TIMEOUT          = 1.0                             # 点击元素的超时（秒）
 WAIT_FOR_ELEMENT_TIMEOUT = 30                             # wait_for_element默认超时（秒）
 DATA_CHECK_INTERVAL    = 30                              # 数据加载检查间隔（秒）
 
@@ -104,7 +104,7 @@ HISTORY_CHECK_CONCURRENCY = 10                           # 并发检查数量
 HISTORY_CHECK_TIMEOUT  = 5                              # 每个链接检查超时（秒）
 ENABLE_MIGU_FILTER     = True                            # 过滤包含"migu"的链接
 SKIP_INTERNAL_IP       = True                            # 跳过内网IP
-ENABLE_URL_PRE_CHECK   = True                            # [修改] 预检开关（True=启用，False=跳过预检直接测速）
+ENABLE_URL_PRE_CHECK   = True                            # 预检开关（True=启用，False=跳过预检直接测速）
 
 # -------------------------- 8. 频道分类规则 --------------------------------
 CATEGORY_RULES = [
@@ -145,10 +145,10 @@ PAGE_CONFIG = {
 # -------------------------- 10. 日志与更新 --------------------------------
 TIME_DISPLAY_AT_TOP    = False                           # 更新时间是否放顶部
 UPDATE_STREAM_URL      = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8"
-ENABLE_VERBOSE_LOGGING = False                           # 详细日志已关闭
+ENABLE_VERBOSE_LOGGING = False                           # 详细日志已关闭（保留配置，未使用）
 
-# -------------------------- 11. 预检配置 [新增] ----------------------------
-PRECHECK_CONCURRENCY = 20                                 # 预检并发数
+# -------------------------- 11. 预检配置 ------------------------------------
+PRECHECK_CONCURRENCY = 15                                 # 预检并发数
 PRECHECK_TIMEOUT     = 2                                  # 每个链接预检超时（秒）
 
 # ============================================================================
@@ -304,7 +304,7 @@ def is_cache_valid(timestamp):
     return time.time() - timestamp < CACHE_EXPIRE_SECONDS
 
 # ============================================================================
-# ========================= 预检函数 [新增] ===================================
+# ========================= 预检函数 =========================================
 # ============================================================================
 async def precheck_url(session: aiohttp.ClientSession, url: str) -> bool:
     """
@@ -447,6 +447,7 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     result_map = defaultdict(list)  # key: (group, name) -> list of tuple
     total = sum(len(us) for us in channel_map.values())
     cached_ok = 0
+    cached_failed_skipped = 0  # [新增] 统计因缓存失败而跳过的链接数
     pending = []  # 待测速条目 (group, name, url)
 
     # 1. 检查缓存，跳过内网IP
@@ -455,24 +456,29 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
             cache_item = cache.get(u)
             if cache_item and isinstance(cache_item, dict) and "ok" in cache_item:
                 if is_cache_valid(cache_item.get("timestamp", 0)):
+                    # [FIX] 如果缓存有效且成功，直接使用；如果缓存有效但失败，跳过该链接
                     if cache_item["ok"]:
-                        # 从缓存中获取分辨率和帧率，标记为【非本次测速】(False)
+                        # 缓存有效且成功，加入结果
                         result_map[(g, n)].append((
                             u,
                             cache_item.get("fps", 0.0),
                             cache_item.get("width", 0),
                             cache_item.get("height", 0),
-                            False  # <--- 标记：缓存命中
+                            False  # 标记：缓存命中
                         ))
-                    cached_ok += 1
+                        cached_ok += 1
+                    else:
+                        # 缓存有效但失败，跳过该链接（既不加入结果也不重新测试）
+                        cached_failed_skipped += 1
                     continue
+            # 如果缓存无效或没有缓存，则继续后续处理
             if SKIP_INTERNAL_IP and is_internal_ip(u):
                 continue
             pending.append((g, n, u))
 
-    logger.info(f"总链接: {total} 缓存有效: {cached_ok} 需处理: {len(pending)}")
+    logger.info(f"总链接: {total} 缓存有效且成功: {cached_ok} 缓存有效但失败(跳过): {cached_failed_skipped} 需处理: {len(pending)}")
 
-    # 2. [新增] 预检：对 pending 中的 URL 进行快速连通性检查
+    # 2. 预检：对 pending 中的 URL 进行快速连通性检查
     if ENABLE_URL_PRE_CHECK and pending:
         # 提取所有待测URL（去重）
         all_urls = list(set(u for _, _, u in pending))
@@ -655,24 +661,31 @@ async def extract_one_ip(page, row, idx):
         pass
     return e
 
+# [FIX] 优化 wait_data 函数，先检查一次数据，避免最初不必要的等待
 async def wait_data(page):
     logger.info("等待数据加载...")
-    for _ in range(DATA_LOAD_TIMEOUT // DATA_CHECK_INTERVAL + 1):
-        await asyncio.sleep(DATA_CHECK_INTERVAL)
-        ok = await page.evaluate('''()=>{
+    # 先检查一次
+    async def data_ready():
+        return await page.evaluate('''()=>{
             for(let i of document.querySelectorAll('div.ios-list-item')){
                 let s=i.querySelector('.item-subtitle')?.innerText||'';
                 if(s.includes('频道:'))return true;
             }return false;
         }''')
-        if ok:
+    if await data_ready():
+        logger.info("数据加载完成")
+        return True
+    # 若未就绪，循环等待
+    for _ in range(DATA_LOAD_TIMEOUT // DATA_CHECK_INTERVAL + 1):
+        await asyncio.sleep(DATA_CHECK_INTERVAL)
+        if await data_ready():
             logger.info("数据加载完成")
             return True
     logger.error("数据加载超时，爬取失败")
     return False
 
 # ============================================================================
-# ================= 新增：历史链接检查函数 ===================================
+# ================= 历史链接检查函数 =========================================
 # ============================================================================
 def parse_txt_file(filepath: Path) -> List[Tuple[str, str]]:
     """解析 iptv_channels.txt 文件，返回 (频道名, URL) 列表，忽略注释行和空行"""
@@ -855,7 +868,7 @@ def export_results_with_timestamp(channel_map):
     logger.info(f"导出完成：{len(channel_map)} 个频道")
 
 # ============================================================================
-# ================= 新增：URL 去重函数 =======================================
+# ================= URL 去重函数 ============================================
 # ============================================================================
 def deduplicate_urls_per_channel(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
     """
@@ -1102,8 +1115,9 @@ async def main():
     else:
         final_channel_map = original_channel_map
 
-    # ========== 【新增】URL 去重，确保每个 URL 只属于一个频道 ==========
-    final_channel_map = deduplicate_urls_per_channel(final_channel_map)
+    # ========== URL 去重，确保每个 URL 只属于一个频道，并受 ENABLE_DEDUPLICATION 开关控制 ==========
+    if ENABLE_DEDUPLICATION:
+        final_channel_map = deduplicate_urls_per_channel(final_channel_map)
 
     # 5. 提取所有通过的 URL
     passed_urls = set()
