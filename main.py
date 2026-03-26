@@ -98,13 +98,8 @@ CACHE_EXPIRE_HOURS     = 72                              # 缓存过期小时
 ENABLE_CHINESE_CLEAN   = True                            # 清理非中文字符
 ENABLE_DEDUPLICATION   = True                            # 全局去重
 CCTV_USE_MAPPING       = True                            # CCTV映射中文名称
-ENABLE_HISTORY_CHECK   = True                            # 检查历史输出文件中的链接
-HISTORY_FILE           = OUTPUT_TXT_FILENAME             # 历史文件路径
-HISTORY_CHECK_CONCURRENCY = 10                           # 并发检查数量
-HISTORY_CHECK_TIMEOUT  = 5                              # 每个链接检查超时（秒）
 ENABLE_MIGU_FILTER     = True                            # 过滤包含"migu"的链接
 SKIP_INTERNAL_IP       = True                            # 跳过内网IP
-ENABLE_URL_PRE_CHECK   = True                            # 预检开关（True=启用，False=跳过预检直接测速）
 
 # -------------------------- 8. 频道分类规则 --------------------------------
 CATEGORY_RULES = [
@@ -147,9 +142,9 @@ TIME_DISPLAY_AT_TOP    = False                           # 更新时间是否放
 UPDATE_STREAM_URL      = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8"
 ENABLE_VERBOSE_LOGGING = False                           # 详细日志已关闭（保留配置，未使用）
 
-# -------------------------- 11. 预检配置 ------------------------------------
-PRECHECK_CONCURRENCY = 15                                 # 预检并发数
-PRECHECK_TIMEOUT     = 2                                  # 每个链接预检超时（秒）
+# -------------------------- 11. 连通性/预检配置 -----------------------------
+CONNECTIVITY_CONCURRENCY = 20                           # 连通性测试并发数
+CONNECTIVITY_TIMEOUT     = 3                                  # 连通性测试超时（秒）
 
 # ============================================================================
 # ============================= 日志配置（北京时间） ===========================
@@ -304,29 +299,29 @@ def is_cache_valid(timestamp):
     return time.time() - timestamp < CACHE_EXPIRE_SECONDS
 
 # ============================================================================
-# ========================= 预检函数 =========================================
+# ========================= 连通性测试函数 ====================================
 # ============================================================================
-async def precheck_url(session: aiohttp.ClientSession, url: str) -> bool:
-    """
-    快速检查URL是否可连通：
-    - 对于HTTP链接，优先HEAD，失败则GET并读取前1024字节。
-    - 非HTTP链接（如rtsp）直接返回True，避免误判。
-    """
+async def check_url_connectivity(url: str, timeout: int) -> bool:
+    """检查URL是否可连通（读取前1024字节）"""
     if not url.startswith(('http://', 'https://')):
         return True
     try:
-        # 先尝试HEAD请求（轻量级）
-        async with session.head(url, timeout=PRECHECK_TIMEOUT, allow_redirects=True) as resp:
-            if resp.status == 200:
-                return True
-        # 若HEAD失败或状态非200，改用GET并读取前1024字节
-        async with session.get(url, timeout=PRECHECK_TIMEOUT, allow_redirects=True) as resp:
-            if resp.status == 200:
-                await resp.content.read(1024)
+        timeout_obj = aiohttp.ClientTimeout(total=timeout)
+        async with aiohttp.ClientSession(timeout=timeout_obj) as session:
+            async with session.get(url, headers={'User-Agent': 'Mozilla/5.0'}, allow_redirects=True) as resp:
+                if resp.status != 200:
+                    return False
+                # 尝试读取一点数据，确保不是空响应
+                try:
+                    await resp.content.readexactly(1024)
+                except asyncio.IncompleteReadError as e:
+                    # 如果不足1024，但读到了部分，也算成功
+                    return len(e.partial) > 0
+                except Exception:
+                    return False
                 return True
     except Exception:
-        pass
-    return False
+        return False
 
 # ============================================================================
 # ========================= 重试、进度、FFmpeg测速 =============================
@@ -437,17 +432,17 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
 async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
     """
     对频道映射中的链接进行FFmpeg测速筛选，返回每个频道有效链接列表。
-    测速结果包含分辨率，排序时先按分辨率面积降序，再按帧率降序（不考虑是否本次新测速）。
+    测速结果包含分辨率，排序时先按分辨率面积降序，再按帧率降序。
     """
     if not channel_map:
         return {}
     cache = load_cache() if ENABLE_CACHE else {}
     new_cache = {}
-    # 数据结构变更: (url, fps, width, height, is_new_test)
+    # 数据结构: (url, fps, width, height, is_new_test)
     result_map = defaultdict(list)  # key: (group, name) -> list of tuple
     total = sum(len(us) for us in channel_map.values())
     cached_ok = 0
-    cached_failed_skipped = 0  # [新增] 统计因缓存失败而跳过的链接数
+    cached_failed_skipped = 0  # 统计因缓存失败而跳过的链接数
     pending = []  # 待测速条目 (group, name, url)
 
     # 1. 检查缓存，跳过内网IP
@@ -456,9 +451,8 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
             cache_item = cache.get(u)
             if cache_item and isinstance(cache_item, dict) and "ok" in cache_item:
                 if is_cache_valid(cache_item.get("timestamp", 0)):
-                    # [FIX] 如果缓存有效且成功，直接使用；如果缓存有效但失败，跳过该链接
                     if cache_item["ok"]:
-                        # 缓存有效且成功，加入结果
+                        # 缓存有效且成功，直接使用
                         result_map[(g, n)].append((
                             u,
                             cache_item.get("fps", 0.0),
@@ -468,7 +462,7 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
                         ))
                         cached_ok += 1
                     else:
-                        # 缓存有效但失败，跳过该链接（既不加入结果也不重新测试）
+                        # 缓存有效但失败，跳过该链接
                         cached_failed_skipped += 1
                     continue
             # 如果缓存无效或没有缓存，则继续后续处理
@@ -478,23 +472,6 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
 
     logger.info(f"总链接: {total} 缓存有效且成功: {cached_ok} 缓存有效但失败(跳过): {cached_failed_skipped} 需处理: {len(pending)}")
 
-    # 2. 预检：对 pending 中的 URL 进行快速连通性检查
-    if ENABLE_URL_PRE_CHECK and pending:
-        # 提取所有待测URL（去重）
-        all_urls = list(set(u for _, _, u in pending))
-        async with aiohttp.ClientSession() as session:
-            sem = asyncio.Semaphore(PRECHECK_CONCURRENCY)
-
-            async def check_one(url):
-                async with sem:
-                    return url, await precheck_url(session, url)
-
-            results = await asyncio.gather(*[check_one(url) for url in all_urls])
-            ok_urls = {url for url, ok in results if ok}
-            # 仅保留通过预检的条目
-            pending = [(g, n, u) for g, n, u in pending if u in ok_urls]
-        logger.info(f"预检完成：{len(ok_urls)}/{len(all_urls)} 链接可通过，剩余 {len(pending)} 个待测速条目")
-
     if not pending:
         logger.info("没有需要测速的链接，直接返回缓存结果")
         final = {}
@@ -503,7 +480,7 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
             final[k] = [u for u, _, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]
         return final
 
-    # 3. 并发测速（FFmpeg）
+    # 2. 并发测速（FFmpeg）
     sem = asyncio.Semaphore(FFMPEG_CONCURRENCY)
 
     async def test_one(item):
@@ -536,12 +513,12 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
             }
         lp = print_progress_bar(c, len(tasks), ok, ng, lp)
 
-    # 4. 更新缓存
+    # 3. 更新缓存
     if ENABLE_CACHE and new_cache:
         cache.update(new_cache)
         save_cache(cache)
 
-    # 5. 排序并截取
+    # 4. 排序并截取
     final = {}
     for k, vs in result_map.items():
         vs.sort(key=lambda x: (-x[2]*x[3], -x[1]))
@@ -589,6 +566,40 @@ def parse_m3u_file(content):
                 ch.append((gr, fn, u))
             g = n = u = ""
     return ch
+
+# ============================================================================
+# ========================= 本地TXT解析 (iptv_channels.txt) ==================
+# ============================================================================
+def parse_iptv_txt_file(filepath: Path) -> List[Tuple[str, str, str]]:
+    """解析 iptv_channels.txt 文件，返回 (group, name, url) 列表"""
+    if not filepath.exists():
+        logger.info(f"文件不存在: {filepath}")
+        return []
+    channels = []
+    current_group = "未分类"
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                if line.endswith('#genre#'):
+                    current_group = line.split(',')[0].strip()
+                    continue
+                if ',' in line:
+                    parts = line.split(',', 1)
+                    if len(parts) == 2:
+                        name, url = parts[0].strip(), parts[1].strip()
+                        if name and url:
+                            # 归一化频道名
+                            nn = normalize_cctv(name)
+                            gr = classify_channel(nn) or current_group
+                            fn = nn if gr == "央视频道" else (clean_chinese_only(name) if ENABLE_CHINESE_CLEAN else name)
+                            channels.append((gr, fn, url))
+        logger.info(f"从 {filepath} 解析到 {len(channels)} 个链接")
+    except Exception as e:
+        logger.error(f"解析文件失败: {e}")
+    return channels
 
 # ============================================================================
 # ========================= 页面点击与提取 ===================================
@@ -661,7 +672,6 @@ async def extract_one_ip(page, row, idx):
         pass
     return e
 
-# [FIX] 优化 wait_data 函数，先检查一次数据，避免最初不必要的等待
 async def wait_data(page):
     logger.info("等待数据加载...")
     # 先检查一次
@@ -685,50 +695,43 @@ async def wait_data(page):
     return False
 
 # ============================================================================
-# ================= 历史链接检查函数 =========================================
+# ================= URL 去重函数 ============================================
 # ============================================================================
-def parse_txt_file(filepath: Path) -> List[Tuple[str, str]]:
-    """解析 iptv_channels.txt 文件，返回 (频道名, URL) 列表，忽略注释行和空行"""
-    if not filepath.exists():
-        logger.info(f"历史文件不存在: {filepath}")
-        return []
-    channels = []
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith('更新时间') or line.endswith('#genre#'):
-                    continue
-                if ',' in line:
-                    parts = line.split(',', 1)
-                    if len(parts) == 2:
-                        name, url = parts[0].strip(), parts[1].strip()
-                        if name and url:
-                            channels.append((name, url))
-        logger.info(f"从历史文件解析到 {len(channels)} 个链接")
-    except Exception as e:
-        logger.error(f"解析历史文件失败: {e}")
-    return channels
+def deduplicate_urls_per_channel(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
+    """
+    确保每个 URL 只出现在一个频道中。
+    如果同一 URL 被多个频道引用，则根据以下规则保留一个：
+      - 优先保留名称中包含 '+' 或 'plus' 的（如 CCTV-5+）
+      - 否则保留名称较长的（更具体）
+    """
+    # 构建 URL -> 频道列表的映射
+    url_to_channels = defaultdict(list)
+    for (group, name), urls in channel_map.items():
+        for url in urls:
+            url_to_channels[url].append((group, name))
 
-async def check_url_connectivity(url: str, timeout: int) -> bool:
-    """检查URL是否可连通（读取前1024字节）"""
-    try:
-        timeout_obj = aiohttp.ClientTimeout(total=timeout)
-        async with aiohttp.ClientSession(timeout=timeout_obj) as session:
-            async with session.get(url, headers={'User-Agent': 'Mozilla/5.0'}, allow_redirects=True) as resp:
-                if resp.status != 200:
-                    return False
-                # 尝试读取一点数据，确保不是空响应
-                try:
-                    await resp.content.readexactly(1024)
-                except asyncio.IncompleteReadError as e:
-                    # 如果不足1024，但读到了部分，也算成功
-                    return len(e.partial) > 0
-                except Exception:
-                    return False
-                return True
-    except Exception:
-        return False
+    # 决定每个 URL 应保留的频道
+    url_to_chosen = {}
+    for url, channels in url_to_channels.items():
+        if len(channels) == 1:
+            url_to_chosen[url] = channels[0]
+        else:
+            # 规则：优先选择名称包含 '+' 或 'plus' 的
+            plus_channels = [ch for ch in channels if '+' in ch[1].lower() or 'plus' in ch[1].lower()]
+            if plus_channels:
+                chosen = plus_channels[0]  # 如果有多个，取第一个
+            else:
+                # 否则选择名称最长的（更具体）
+                chosen = max(channels, key=lambda ch: len(ch[1]))
+            url_to_chosen[url] = chosen
+
+    # 重新构建去重后的频道映射
+    new_map = defaultdict(list)
+    for (group, name), urls in channel_map.items():
+        for url in urls:
+            if url_to_chosen[url] == (group, name):
+                new_map[(group, name)].append(url)
+    return dict(new_map)
 
 # ============================================================================
 # ========================= 结果导出 =========================================
@@ -868,72 +871,34 @@ def export_results_with_timestamp(channel_map):
     logger.info(f"导出完成：{len(channel_map)} 个频道")
 
 # ============================================================================
-# ================= URL 去重函数 ============================================
-# ============================================================================
-def deduplicate_urls_per_channel(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
-    """
-    确保每个 URL 只出现在一个频道中。
-    如果同一 URL 被多个频道引用，则根据以下规则保留一个：
-      - 优先保留名称中包含 '+' 或 'plus' 的（如 CCTV-5+）
-      - 否则保留名称较长的（更具体）
-    """
-    # 构建 URL -> 频道列表的映射
-    url_to_channels = defaultdict(list)
-    for (group, name), urls in channel_map.items():
-        for url in urls:
-            url_to_channels[url].append((group, name))
-
-    # 决定每个 URL 应保留的频道
-    url_to_chosen = {}
-    for url, channels in url_to_channels.items():
-        if len(channels) == 1:
-            url_to_chosen[url] = channels[0]
-        else:
-            # 规则：优先选择名称包含 '+' 或 'plus' 的
-            plus_channels = [ch for ch in channels if '+' in ch[1].lower() or 'plus' in ch[1].lower()]
-            if plus_channels:
-                chosen = plus_channels[0]  # 如果有多个，取第一个
-            else:
-                # 否则选择名称最长的（更具体）
-                chosen = max(channels, key=lambda ch: len(ch[1]))
-            url_to_chosen[url] = chosen
-
-    # 重新构建去重后的频道映射
-    new_map = defaultdict(list)
-    for (group, name), urls in channel_map.items():
-        for url in urls:
-            if url_to_chosen[url] == (group, name):
-                new_map[(group, name)].append(url)
-    return dict(new_map)
-
-# ============================================================================
-# ========================= 主流程 ===========================================
+# ========================= 主流程 (新逻辑) ===================================
 # ============================================================================
 async def main():
+    overall_start_time = time.time()
+    
     if EXTRACT_MODE not in ["酒店提取", "组播提取"]:
         logger.error("配置错误！EXTRACT_MODE 只能填写：酒店提取 或 组播提取")
         return
 
-    logger.info(f"✅ 当前运行模式：【{EXTRACT_MODE}】")
-    all_entries = []  # 每个元素为 (group, name, url, source)
+    logger.info(f"✅ 当前运行模式：【{EXTRACT_MODE}】(优化版)")
 
-    # 用于统计的来源字典：source -> set of URLs
-    source_urls = defaultdict(set)
-    # 记录每个URL对应的 (group, name) 集合（可能多个频道共用同一URL）
-    url_info = defaultdict(set)
-
-    # 1. 从 GitHub 源获取
+    # -------------------------------------------------------------------------
+    # 第一步：获取 GitHub 和 网页 的全部原始链接
+    # -------------------------------------------------------------------------
+    all_entries = []
+    
+    # 1.1 GitHub 源
     if ENABLE_GITHUB_SOURCES:
+        logger.info("--- 正在获取 GitHub 源 ---")
         for url in GITHUB_M3U_LINKS:
             txt = await download_github_m3u(url)
             if txt:
                 channels = parse_m3u_file(txt)
-                for (g, n, u) in channels:
-                    source_urls[url].add(u)
-                    url_info[u].add((g, n))
-                    all_entries.append((g, n, u, url))
+                all_entries.extend(channels)
+        logger.info(f"GitHub源累计获取: {len(all_entries)} 条")
 
-    # 2. 从网站爬取
+    # 1.2 网站爬取
+    web_entries = []
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=HEADLESS,
@@ -943,7 +908,7 @@ async def main():
         page = await ctx.new_page()
 
         try:
-            logger.info(f"正在访问：{TARGET_URL}")
+            logger.info(f"--- 正在爬取网站: {TARGET_URL} ---")
             await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT*1000, wait_until="domcontentloaded")
 
             eng_sel = build_selector(PAGE_CONFIG["engine_search"], "a.sidebar-link,button,div.segment-item")
@@ -955,11 +920,9 @@ async def main():
 
             if EXTRACT_MODE == "酒店提取":
                 tab_sel = build_selector(PAGE_CONFIG["hotel"], "div.segment-item")
-                logger.info("点击网页按钮：【酒店提取】")
             else:
                 tab_sel = build_selector(PAGE_CONFIG["multicast"], "div.segment-item")
-                logger.info("点击网页按钮：【组播提取】")
-
+            
             tab = page.locator(tab_sel).first
             await robust_click(tab)
 
@@ -971,38 +934,24 @@ async def main():
             logger.info(f"⏳ 等待 {AFTER_START_WAIT} 秒后开始提取数据...")
             await asyncio.sleep(AFTER_START_WAIT)
 
-            if not await wait_data(page):
-                logger.error("❌ 网站爬取失败")
-            else:
+            if await wait_data(page):
                 rows = page.locator("div.ios-list-item").filter(
                     has=page.locator("div.item-subtitle:has-text('频道:')")
                 )
                 total_rows = await rows.count()
                 process_count = min(total_rows, MAX_IPS) if MAX_IPS > 0 else total_rows
-                if MAX_IPS > 0 and process_count < total_rows:
-                    logger.info(f"总共找到 {total_rows} 个IP，准备处理前 {process_count} 个IP")
-                else:
-                    logger.info(f"总共找到 {total_rows} 个IP，准备处理全部 {process_count} 个IP")
+                
+                logger.info(f"找到 {total_rows} 个IP，准备处理前 {process_count} 个")
 
-                web_channels = []
                 for i in range(process_count):
                     entries = await extract_one_ip(page, rows.nth(i), i + 1)
                     if entries:
-                        web_channels.extend(entries)
-                    if MAX_TOTAL_CHANNELS > 0 and len(web_channels) >= MAX_TOTAL_CHANNELS:
-                        web_channels = web_channels[:MAX_TOTAL_CHANNELS]
-                        logger.info("已达频道上限，停止提取")
+                        web_entries.extend(entries)
+                    if MAX_TOTAL_CHANNELS > 0 and len(web_entries) >= MAX_TOTAL_CHANNELS:
+                        web_entries = web_entries[:MAX_TOTAL_CHANNELS]
                         break
                     await asyncio.sleep(DELAY_BETWEEN_IPS)
-
-                # 记录网站爬取的条目
-                for (g, n, u) in web_channels:
-                    source = "web"
-                    source_urls[source].add(u)
-                    url_info[u].add((g, n))
-                    all_entries.append((g, n, u, source))
-
-                logger.info(f"网站提取完成：{len(web_channels)} 条")
+                logger.info(f"网站爬取完成: {len(web_entries)} 条")
 
         except Exception as e:
             logger.exception("❌ 爬取过程异常")
@@ -1010,140 +959,121 @@ async def main():
             await page.close()
             await ctx.close()
             await browser.close()
+    
+    all_entries.extend(web_entries)
 
-    # ========== 过滤migu链接 ==========
+    # -------------------------------------------------------------------------
+    # 第二步：读取根目录 iptv_channels.txt 里的链接
+    # -------------------------------------------------------------------------
+    logger.info("--- 正在读取本地 iptv_channels.txt ---")
+    iptv_txt_path = OUTPUT_DIR / "iptv_channels.txt"
+    txt_entries = parse_iptv_txt_file(iptv_txt_path)
+    all_entries.extend(txt_entries)
+    
+    logger.info(f"三源合并后总条目数: {len(all_entries)}")
+
+    # -------------------------------------------------------------------------
+    # 过滤 Migu & 内网IP
+    # -------------------------------------------------------------------------
     if ENABLE_MIGU_FILTER:
         original_count = len(all_entries)
-        # 过滤包含 migu 的链接，需要同时从 all_entries 和 source_urls 中移除
-        filtered_entries = []
-        filtered_urls = set()
-        for (g, n, u, s) in all_entries:
-            if 'migu' not in u.lower():
-                filtered_entries.append((g, n, u, s))
-            else:
-                filtered_urls.add(u)
-        all_entries = filtered_entries
-        
-        # 【修复】同时清理 url_info 和 source_urls
-        for u in filtered_urls:
-            if u in url_info:
-                del url_info[u]
-            # 从所有 source 的集合中移除该 url
-            for s in source_urls:
-                source_urls[s].discard(u)
+        all_entries = [(g, n, u) for g, n, u in all_entries if 'migu' not in u.lower()]
+        logger.info(f"过滤Migu: 移除 {original_count - len(all_entries)} 条")
 
-        filtered_count = original_count - len(all_entries)
-        logger.info(f"已过滤 {filtered_count} 条包含 'migu' 的链接，剩余 {len(all_entries)} 条")
+    if SKIP_INTERNAL_IP:
+        original_count = len(all_entries)
+        all_entries = [(g, n, u) for g, n, u in all_entries if not is_internal_ip(u)]
+        logger.info(f"过滤内网IP: 移除 {original_count - len(all_entries)} 条")
 
-    # ========== 历史链接处理（新增主动去重） ==========
-    history_good = []
-    if ENABLE_HISTORY_CHECK:
-        history_items = parse_txt_file(HISTORY_FILE)
-        if history_items:
-            logger.info(f"开始对 {len(history_items)} 个历史链接进行连通性测试...")
-            sem = asyncio.Semaphore(HISTORY_CHECK_CONCURRENCY)
+    # -------------------------------------------------------------------------
+    # 第三步：合并去重 (URL级别去重)
+    # -------------------------------------------------------------------------
+    logger.info("--- 正在合并去重 ---")
+    # 先构建临时 Map
+    temp_channel_map = defaultdict(list)
+    for g, n, u in all_entries:
+        temp_channel_map[(g, n)].append(u)
 
-            async def check_one(name, url):
-                async with sem:
-                    ok = await check_url_connectivity(url, HISTORY_CHECK_TIMEOUT)
-                    return name, url, ok
-
-            tasks = [check_one(name, url) for name, url in history_items]
-            passed = 0
-            for coro in asyncio.as_completed(tasks):
-                name, url, ok = await coro
-                if ok:
-                    passed += 1
-                    history_good.append((name, url))
-            logger.info(f"历史链接连通性测试完成，通过 {passed}/{len(history_items)} 条")
-
-            # --- 新增：移除新获取链接中与有效历史链接重复的URL ---
-            if history_good:
-                history_urls = set(url for _, url in history_good)
-                # 统计新获取链接中重复的数量
-                new_urls_set = set(u for (_, _, u, _) in all_entries)
-                duplicate_urls = new_urls_set & history_urls
-                
-                if duplicate_urls:
-                    original_new_count = len(all_entries)
-                    # 1. 过滤 all_entries
-                    all_entries = [entry for entry in all_entries if entry[2] not in duplicate_urls]
-                    
-                    # 2. 【修复】同步更新 source_urls
-                    for u in duplicate_urls:
-                        for s in list(source_urls.keys()):
-                            source_urls[s].discard(u)
-                    
-                    # 3. 【修复】同步更新 url_info
-                    for u in duplicate_urls:
-                        if u in url_info:
-                            del url_info[u]
-
-                    removed_count = original_new_count - len(all_entries)
-                    logger.info(f"从新获取链接中移除 {removed_count} 条与历史有效链接重复的条目，涉及 {len(duplicate_urls)} 个URL")
-
-                # 将历史有效链接转换为标准化后的条目，并加入 all_entries
-                for name, url in history_good:
-                    nn = normalize_cctv(name)
-                    gr = classify_channel(nn)
-                    if gr:
-                        fn = nn if gr == "央视频道" else (clean_chinese_only(name) if ENABLE_CHINESE_CLEAN else name)
-                        # 来源标记为 "history"
-                        all_entries.append((gr, fn, url, "history"))
-                        # 更新 source_urls 和 url_info
-                        source_urls["history"].add(url)
-                        url_info[url].add((gr, fn))
-                logger.info(f"已将 {len(history_good)} 条有效历史链接加入待处理队列")
-        else:
-            logger.info("历史文件为空或不存在，跳过")
-
-    # 3. 构建原始频道映射（用于测速）
-    if not all_entries:
-        logger.error("❌ 未获取到任何频道")
-        return
-
-    # 从 url_info 构建原始 channel_map（每个URL可能对应多个(g,n)）
-    original_channel_map = defaultdict(list)
-    for u, gn_set in url_info.items():
-        for (g, n) in gn_set:
-            original_channel_map[(g, n)].append(u)
-
-    # 4. FFmpeg测速筛选（包含预检步骤）
-    if ENABLE_FFMPEG_TEST:
-        logger.info("开始FFmpeg测速筛选（链接将按分辨率优先、帧率其次排序）")
-        final_channel_map = await run_ffmpeg_test(original_channel_map)
-    else:
-        final_channel_map = original_channel_map
-
-    # ========== URL 去重，确保每个 URL 只属于一个频道，并受 ENABLE_DEDUPLICATION 开关控制 ==========
+    # 确保每个URL只属于一个频道
     if ENABLE_DEDUPLICATION:
-        final_channel_map = deduplicate_urls_per_channel(final_channel_map)
+        temp_channel_map = deduplicate_urls_per_channel(temp_channel_map)
 
-    # 5. 提取所有通过的 URL
-    passed_urls = set()
-    for us in final_channel_map.values():
-        passed_urls.update(us)
+    # 提取所有唯一URL及其对应的 (group, name)
+    url_to_gn = {}
+    for (g, n), urls in temp_channel_map.items():
+        for u in urls:
+            # 如果一个URL对应多个频道，这里会覆盖，保留最后一个映射关系
+            # 但由于上面做了 deduplicate_urls_per_channel，这里应该是一一对应的
+            url_to_gn[u] = (g, n)
+    
+    unique_urls = list(url_to_gn.keys())
+    logger.info(f"去重后唯一URL数: {len(unique_urls)}")
 
-    # 6. 统计汇总
-    logger.info("========== 汇总统计 ==========")
-    # 网站爬取统计
-    web_total = len(source_urls.get("web", set()))
-    web_passed = len(passed_urls & source_urls.get("web", set()))
-    web_percent = (web_passed / web_total * 100) if web_total > 0 else 0
-    logger.info(f"网站爬取有效链接: {web_passed} / {web_total} ({web_percent:.1f}%)")
+    # -------------------------------------------------------------------------
+    # 第四步：连通性测试 (只保留可以连通的)
+    # -------------------------------------------------------------------------
+    logger.info("--- 正在进行连通性测试 (前置筛选) ---")
+    connectivity_start = time.time()
+    
+    sem = asyncio.Semaphore(CONNECTIVITY_CONCURRENCY)
+    async def check_one(url):
+        async with sem:
+            ok = await check_url_connectivity(url, CONNECTIVITY_TIMEOUT)
+            return url, ok
 
-    # GitHub源统计
-    logger.info("GitHub源有效率:")
-    for gh_url in GITHUB_M3U_LINKS:
-        if gh_url in source_urls:
-            total = len(source_urls[gh_url])
-            passed = len(passed_urls & source_urls[gh_url])
-            percent = (passed / total * 100) if total > 0 else 0
-            logger.info(f"  - {gh_url} : {passed} / {total} ({percent:.1f}%)")
-    logger.info("==============================")
+    tasks = [check_one(url) for url in unique_urls]
+    connected_urls = []
+    c, ok, ng, lp = 0, 0, 0, -100
+    print_progress_bar(0, len(tasks), ok, ng, lp)
+    
+    for coro in asyncio.as_completed(tasks):
+        url, is_ok = await coro
+        c += 1
+        if is_ok:
+            ok += 1
+            connected_urls.append(url)
+        else:
+            ng += 1
+        lp = print_progress_bar(c, len(tasks), ok, ng, lp)
 
-    # 7. 导出结果
+    connectivity_time = time.time() - connectivity_start
+    logger.info(f"连通性测试耗时: {connectivity_time:.2f}s")
+
+    # -------------------------------------------------------------------------
+    # 构建测速用的 Channel Map
+    # -------------------------------------------------------------------------
+    channel_map_for_test = defaultdict(list)
+    for url in connected_urls:
+        g, n = url_to_gn[url]
+        channel_map_for_test[(g, n)].append(url)
+
+    # -------------------------------------------------------------------------
+    # 第五步：FFmpeg 测速 & 第六步：缓存
+    # -------------------------------------------------------------------------
+    logger.info("--- 正在进行 FFmpeg 测速 ---")
+    ffmpeg_start = time.time()
+    
+    final_channel_map = {}
+    if ENABLE_FFMPEG_TEST:
+        final_channel_map = await run_ffmpeg_test(channel_map_for_test)
+    else:
+        final_channel_map = channel_map_for_test
+        
+    ffmpeg_time = time.time() - ffmpeg_start
+    logger.info(f"FFmpeg 测速耗时: {ffmpeg_time:.2f}s")
+
+    # -------------------------------------------------------------------------
+    # 导出结果
+    # -------------------------------------------------------------------------
     export_results_with_timestamp(final_channel_map)
+    
+    total_time = time.time() - overall_start_time
+    logger.info("="*30)
+    logger.info(f"⏱️  阶段耗时统计:")
+    logger.info(f"  - 连通性测试: {connectivity_time:.2f}s")
+    logger.info(f"  - FFmpeg 测速: {ffmpeg_time:.2f}s")
+    logger.info(f"  - 总运行时间: {total_time:.2f}s")
+    logger.info("="*30)
     logger.info("🎉 任务全部完成！")
 
 if __name__ == "__main__":
