@@ -34,7 +34,7 @@ DEFAULT_PROTOCOL      = "http://"                        # 默认协议（用于
 
 # -------------------------- 2. 爬取控制 ------------------------------------
 EXTRACT_MODE          = "酒店提取"                       # "酒店提取" 或 "组播提取"
-MAX_IPS               = 10                              # 最多处理多少个IP
+MAX_IPS               = 100                              # 最多处理多少个IP
 MAX_TOTAL_CHANNELS    = 0                                # 总频道上限（0=不限制）
 MAX_CHANNELS_PER_IP   = 0                                # 单个IP最多提取频道数
 DELAY_BETWEEN_IPS     = 0.1                              # 切换IP间隔（秒）
@@ -45,11 +45,11 @@ MODAL_WAIT_TIMEOUT    = 1                                # 等待模态框出现
 PAGE_LOAD_TIMEOUT      = 120                             # 页面加载超时（秒）
 DATA_LOAD_TIMEOUT      = 60                              # 数据加载总超时（秒）
 AFTER_START_WAIT       = 30                              # 点击【开始提取】后等待秒数
-IP_ADDR_TIMEOUT        = 1.0                             # 读取IP地址超时（秒）
-CHANNEL_NAME_TIMEOUT   = 1.0                             # 读取频道名称超时（秒）
-CHANNEL_URL_TIMEOUT    = 1.0                             # 读取频道链接超时（秒）
-SCROLL_TIMEOUT         = 1.0                             # 滚动到元素视野的超时（秒）
-CLICK_TIMEOUT          = 1.0                             # 点击元素的超时（秒）
+IP_ADDR_TIMEOUT        = 0.1                             # 读取IP地址超时（秒）
+CHANNEL_NAME_TIMEOUT   = 0.1                             # 读取频道名称超时（秒）
+CHANNEL_URL_TIMEOUT    = 0.1                             # 读取频道链接超时（秒）
+SCROLL_TIMEOUT         = 0.1                             # 滚动到元素视野的超时（秒）
+CLICK_TIMEOUT          = 0.1                             # 点击元素的超时（秒）
 WAIT_FOR_ELEMENT_TIMEOUT = 30                             # wait_for_element默认超时（秒）
 DATA_CHECK_INTERVAL    = 30                              # 数据加载检查间隔（秒）
 
@@ -143,8 +143,8 @@ UPDATE_STREAM_URL      = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3
 ENABLE_VERBOSE_LOGGING = False                           # 详细日志已关闭（保留配置，未使用）
 
 # -------------------------- 11. 连通性/预检配置 -----------------------------
-CONNECTIVITY_CONCURRENCY = 20                           # 连通性测试并发数
-CONNECTIVITY_TIMEOUT     = 3                                  # 连通性测试超时（秒）
+CONNECTIVITY_CONCURRENCY = 15                           # 连通性测试并发数
+CONNECTIVITY_TIMEOUT     =1.5                                  # 连通性测试超时（秒）
 
 # ============================================================================
 # ============================= 日志配置（北京时间） ===========================
@@ -530,17 +530,28 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
 # ============================================================================
 # ========================= GitHub M3U 解析 ==================================
 # ============================================================================
+# [修改点1] 增加 session 参数，允许外部传入共享 session
 @retry_async(max_retries=3, delay=2)
-async def download_github_m3u(url):
+async def download_github_m3u(url, session: Optional[aiohttp.ClientSession] = None):
+    """
+    下载 GitHub 源内容
+    如果 session 为 None，则创建新的 session；否则使用传入的 session
+    """
+    close_session = False
+    if session is None:
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        close_session = True
     try:
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as s:
-            async with s.get(url, headers={'User-Agent': 'Mozilla/5.0'}) as r:
-                if r.status == 200:
-                    t = await r.text()
-                    logger.info(f"下载成功 {url}")
-                    return t
+        async with session.get(url, headers={'User-Agent': 'Mozilla/5.0'}) as r:
+            if r.status == 200:
+                t = await r.text()
+                logger.info(f"下载成功 {url}")
+                return t
     except Exception as e:
         logger.debug(f"下载失败 {url}: {e}")
+    finally:
+        if close_session:
+            await session.close()
     return ""
 
 def parse_m3u_file(content):
@@ -887,17 +898,25 @@ async def main():
     # -------------------------------------------------------------------------
     all_entries = []
     
-    # 1.1 GitHub 源
+    # 1.1 GitHub 源（并发下载）
     if ENABLE_GITHUB_SOURCES:
-        logger.info("--- 正在获取 GitHub 源 ---")
-        for url in GITHUB_M3U_LINKS:
-            txt = await download_github_m3u(url)
-            if txt:
-                channels = parse_m3u_file(txt)
-                all_entries.extend(channels)
-        logger.info(f"GitHub源累计获取: {len(all_entries)} 条")
+        logger.info("--- 正在并发获取 GitHub 源 ---")
+        # 创建一个共享的 session，所有下载任务复用
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
+            # 创建并发任务列表
+            tasks = [download_github_m3u(url, session) for url in GITHUB_M3U_LINKS]
+            # 并发执行，return_exceptions=True 防止单个失败影响其他
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            for idx, result in enumerate(results):
+                if isinstance(result, Exception):
+                    logger.warning(f"下载 {GITHUB_M3U_LINKS[idx]} 异常: {result}")
+                    continue
+                if result and isinstance(result, str):
+                    channels = parse_m3u_file(result)
+                    all_entries.extend(channels)
+            logger.info(f"GitHub源累计获取: {len(all_entries)} 条")
 
-    # 1.2 网站爬取
+    # 1.2 网站爬取（保持不变）
     web_entries = []
     async with async_playwright() as p:
         browser = await p.chromium.launch(
