@@ -7,6 +7,7 @@ import sys
 import time
 import shutil
 import datetime
+import xml.etree.ElementTree as ET
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
@@ -38,7 +39,7 @@ DEFAULT_PROTOCOL      = "http://"                        # 默认协议（用于
 
 # -------------------------- 2. 爬取控制 ------------------------------------
 EXTRACT_MODE          = "酒店提取"                       # "酒店提取" 或 "组播提取"
-MAX_IPS               = 1                              # 最多处理多少个IP
+MAX_IPS               = 100                              # 最多处理多少个IP
 MAX_TOTAL_CHANNELS    = 0                                # 总频道上限（0=不限制）
 MAX_CHANNELS_PER_IP   = 0                                # 单个IP最多提取频道数
 DELAY_BETWEEN_IPS     = 0.1                              # 切换IP间隔（秒）
@@ -148,7 +149,7 @@ ENABLE_VERBOSE_LOGGING = False                           # 详细日志已关闭
 
 # -------------------------- 11. 连通性/预检配置 -----------------------------
 CONNECTIVITY_CONCURRENCY = 15                           # 连通性测试并发数
-CONNECTIVITY_TIMEOUT     =1.5                                  # 连通性测试超时（秒）
+CONNECTIVITY_TIMEOUT     = 1.5                           # 连通性测试超时（秒）
 
 # ============================================================================
 # ============================= 日志配置（北京时间） ===========================
@@ -253,6 +254,91 @@ def is_internal_ip(url: str) -> bool:
         return False
 
 # ============================================================================
+# ========================= EPG 映射构建 ======================================
+# ============================================================================
+async def download_epg_xml(epg_url: str) -> Optional[str]:
+    """下载 EPG XML 文件内容（支持 .gz 压缩）"""
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(epg_url, headers={'User-Agent': 'Mozilla/5.0'}) as resp:
+                if resp.status != 200:
+                    logger.error(f"下载 EPG 失败: HTTP {resp.status}")
+                    return None
+                content = await resp.read()
+                # 如果是 gzip 压缩，解压
+                if epg_url.endswith('.gz'):
+                    import gzip
+                    content = gzip.decompress(content)
+                return content.decode('utf-8', errors='ignore')
+    except Exception as e:
+        logger.error(f"下载 EPG 异常: {e}")
+        return None
+
+def parse_epg_mapping(xml_content: str) -> Dict[str, str]:
+    """
+    解析 EPG XML，提取 channel id 和 display-name 的映射。
+    返回 {display_name_normalized: channel_id}
+    同时保留原始 display-name（用于精确匹配）
+    """
+    mapping = {}
+    try:
+        root = ET.fromstring(xml_content)
+        for channel in root.findall('channel'):
+            channel_id = channel.get('id')
+            if not channel_id:
+                continue
+            # 获取所有 display-name 标签
+            for dn in channel.findall('display-name'):
+                name = dn.text
+                if name:
+                    # 归一化名称：去除空格，转小写，移除常见标点符号
+                    norm = re.sub(r'[^\w\u4e00-\u9fff]', '', name).lower()
+                    mapping[norm] = channel_id
+                    # 同时保留原始名称的归一化形式
+                    mapping[name.strip()] = channel_id
+        logger.info(f"EPG 映射构建完成，共 {len(mapping)} 个条目")
+    except Exception as e:
+        logger.error(f"解析 EPG XML 失败: {e}")
+    return mapping
+
+def get_epg_id(channel_name: str, epg_map: Dict[str, str]) -> str:
+    """
+    根据频道名从 EPG 映射中查找对应的 channel id。
+    匹配策略：
+    1. 精确匹配（原始名称）
+    2. 归一化匹配（去除特殊字符、转小写）
+    3. CCTV 特殊处理（如“CCTV-1综合” -> “CCTV1”）
+    """
+    if not epg_map:
+        return ""
+    
+    # 1. 直接匹配原始名称
+    if channel_name in epg_map:
+        return epg_map[channel_name]
+    
+    # 2. 归一化匹配
+    norm_name = re.sub(r'[^\w\u4e00-\u9fff]', '', channel_name).lower()
+    if norm_name in epg_map:
+        return epg_map[norm_name]
+    
+    # 3. CCTV 特殊处理
+    if channel_name.startswith("CCTV"):
+        # 提取数字部分，如“CCTV-1综合” -> “CCTV1”
+        num_match = re.search(r'CCTV[-]?(\d+[+]?)', channel_name, re.IGNORECASE)
+        if num_match:
+            cctv_id = f"CCTV{num_match.group(1)}"
+            if cctv_id in epg_map:
+                return epg_map[cctv_id]
+            # 有时 EPG 中使用 “CCTV5PLUS” 表示 CCTV5+
+            if num_match.group(1) == "5+":
+                if "CCTV5PLUS" in epg_map:
+                    return epg_map["CCTV5PLUS"]
+    
+    # 4. 卫视常见映射（可扩展）
+    # 例如“湖南卫视” -> “HunanTV”，但 EPG 中可能直接用中文名，已包含在归一化中
+    return ""
+
+# ============================================================================
 # ========================= 缓存管理 ==========================================
 # ============================================================================
 CACHE_EXPIRE_SECONDS = CACHE_EXPIRE_HOURS * 3600
@@ -268,13 +354,11 @@ def load_cache():
         for url, data in cache.items():
             if isinstance(data, dict) and "ok" in data and "timestamp" in data:
                 if now - data["timestamp"] < CACHE_EXPIRE_SECONDS:
-                    # 兼容旧版本：如果没有width/height字段，则设为0
                     if "width" not in data:
                         data["width"] = 0
                         data["height"] = 0
                     valid_cache[url] = data
             else:
-                # 兼容旧格式：如果只存了速度，转换为新格式
                 if isinstance(data, (int, float)):
                     valid_cache[url] = {
                         "ok": data > 0,
@@ -315,11 +399,9 @@ async def check_url_connectivity(url: str, timeout: int) -> bool:
             async with session.get(url, headers={'User-Agent': 'Mozilla/5.0'}, allow_redirects=True) as resp:
                 if resp.status != 200:
                     return False
-                # 尝试读取一点数据，确保不是空响应
                 try:
                     await resp.content.readexactly(1024)
                 except asyncio.IncompleteReadError as e:
-                    # 如果不足1024，但读到了部分，也算成功
                     return len(e.partial) > 0
                 except Exception:
                     return False
@@ -364,7 +446,6 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
         logger.error(f"未找到FFmpeg: {FFMPEG_PATH}")
         return {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0, "message": "FFmpeg未安装"}
 
-    # 构造请求头，模拟浏览器，提高对平台源的兼容性
     headers = (
         "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36\r\n"
         "Referer: https://www.miguvideo.com/\r\n"
@@ -394,17 +475,12 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
 
         output = stderr.decode('utf-8', errors='ignore')
 
-        # 提取帧率和帧数
         frame_matches = re.findall(r'frame=\s*(\d+)', output)
         fps_matches = re.findall(r'fps=\s*([\d.]+)', output)
         frames = int(frame_matches[-1]) if frame_matches else 0
         avg_fps = float(fps_matches[-1]) if fps_matches else 0.0
 
-        # ========== 改进的分辨率提取 ==========
         width, height = 0, 0
-
-        # 方法1：精确匹配视频流行（允许任意索引 #0:0, #0:1, ...）
-        # 匹配 "Stream #0:1(und): Video: h264 (High), yuv420p, 1920x1080 ..."
         video_matches = re.finditer(r'Stream #0:(\d+).*Video:.*? (\d+)x(\d+)', output, re.IGNORECASE)
         for match in video_matches:
             w = int(match.group(2))
@@ -412,14 +488,11 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
             if w > 0 and h > 0:
                 width, height = w, h
                 break
-
-        # 方法2：如果上面没找到，尝试更通用的 "Video: ... 1920x1080"
         if width == 0 or height == 0:
             generic_match = re.search(r'Video:.*? (\d+)x(\d+)', output, re.IGNORECASE)
             if generic_match:
                 width = int(generic_match.group(1))
                 height = int(generic_match.group(2))
-        # ======================================
 
         is_smooth = frames >= MIN_FRAMES and avg_fps >= MIN_AVG_FPS
 
@@ -442,34 +515,29 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
         return {}
     cache = load_cache() if ENABLE_CACHE else {}
     new_cache = {}
-    # 数据结构: (url, fps, width, height, is_new_test)
-    result_map = defaultdict(list)  # key: (group, name) -> list of tuple
+    result_map = defaultdict(list)
     total = sum(len(us) for us in channel_map.values())
     cached_ok = 0
-    cached_failed_skipped = 0  # 统计因缓存失败而跳过的链接数
-    pending = []  # 待测速条目 (group, name, url)
+    cached_failed_skipped = 0
+    pending = []
 
-    # 1. 检查缓存，跳过内网IP
     for (g, n), us in channel_map.items():
         for u in us:
             cache_item = cache.get(u)
             if cache_item and isinstance(cache_item, dict) and "ok" in cache_item:
                 if is_cache_valid(cache_item.get("timestamp", 0)):
                     if cache_item["ok"]:
-                        # 缓存有效且成功，直接使用
                         result_map[(g, n)].append((
                             u,
                             cache_item.get("fps", 0.0),
                             cache_item.get("width", 0),
                             cache_item.get("height", 0),
-                            False  # 标记：缓存命中
+                            False
                         ))
                         cached_ok += 1
                     else:
-                        # 缓存有效但失败，跳过该链接
                         cached_failed_skipped += 1
                     continue
-            # 如果缓存无效或没有缓存，则继续后续处理
             if SKIP_INTERNAL_IP and is_internal_ip(u):
                 continue
             pending.append((g, n, u))
@@ -484,7 +552,6 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
             final[k] = [u for u, _, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]
         return final
 
-    # 2. 并发测速（FFmpeg）
     sem = asyncio.Semaphore(FFMPEG_CONCURRENCY)
 
     async def test_one(item):
@@ -502,7 +569,6 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
         c += 1
         if res["ok"]:
             ok += 1
-            # 标记为【本次测速】(True)
             result_map[(g, n)].append((u, res["fps"], res["width"], res["height"], True))
         else:
             ng += 1
@@ -517,12 +583,10 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
             }
         lp = print_progress_bar(c, len(tasks), ok, ng, lp)
 
-    # 3. 更新缓存
     if ENABLE_CACHE and new_cache:
         cache.update(new_cache)
         save_cache(cache)
 
-    # 4. 排序并截取
     final = {}
     for k, vs in result_map.items():
         vs.sort(key=lambda x: (-x[2]*x[3], -x[1]))
@@ -534,13 +598,8 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
 # ============================================================================
 # ========================= GitHub M3U 解析 ==================================
 # ============================================================================
-# [修改点1] 增加 session 参数，允许外部传入共享 session
 @retry_async(max_retries=3, delay=2)
 async def download_github_m3u(url, session: Optional[aiohttp.ClientSession] = None):
-    """
-    下载 GitHub 源内容
-    如果 session 为 None，则创建新的 session；否则使用传入的 session
-    """
     close_session = False
     if session is None:
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
@@ -573,7 +632,7 @@ def parse_m3u_file(content):
                 if m:
                     n = m.group(1).strip()
         elif l.startswith("http"):
-            u = l.strip()  # 保留完整URL（含参数）
+            u = l.strip()
             if n and u:
                 nn = normalize_cctv(n)
                 gr = classify_channel(nn) or g
@@ -586,7 +645,6 @@ def parse_m3u_file(content):
 # ========================= 本地TXT解析 (iptv_channels.txt) ==================
 # ============================================================================
 def parse_iptv_txt_file(filepath: Path) -> List[Tuple[str, str, str]]:
-    """解析 iptv_channels.txt 文件，返回 (group, name, url) 列表"""
     if not filepath.exists():
         logger.info(f"文件不存在: {filepath}")
         return []
@@ -606,7 +664,6 @@ def parse_iptv_txt_file(filepath: Path) -> List[Tuple[str, str, str]]:
                     if len(parts) == 2:
                         name, url = parts[0].strip(), parts[1].strip()
                         if name and url:
-                            # 归一化频道名
                             nn = normalize_cctv(name)
                             gr = classify_channel(nn) or current_group
                             fn = nn if gr == "央视频道" else (clean_chinese_only(name) if ENABLE_CHINESE_CLEAN else name)
@@ -657,8 +714,8 @@ async def extract_one_ip(page, row, idx):
                 await row.click()
         else:
             await row.click()
-        await asyncio.sleep(DELAY_AFTER_CLICK)  # 使用配置的点击后等待时间
-        if not await wait_for_element(page, ".modal-dialog", MODAL_WAIT_TIMEOUT):  # 使用配置的模态框超时
+        await asyncio.sleep(DELAY_AFTER_CLICK)
+        if not await wait_for_element(page, ".modal-dialog", MODAL_WAIT_TIMEOUT):
             return []
         items = page.locator(".modal-dialog .item-content")
         total = await items.count()
@@ -689,7 +746,6 @@ async def extract_one_ip(page, row, idx):
 
 async def wait_data(page):
     logger.info("等待数据加载...")
-    # 先检查一次
     async def data_ready():
         return await page.evaluate('''()=>{
             for(let i of document.querySelectorAll('div.ios-list-item')){
@@ -700,7 +756,6 @@ async def wait_data(page):
     if await data_ready():
         logger.info("数据加载完成")
         return True
-    # 若未就绪，循环等待
     for _ in range(DATA_LOAD_TIMEOUT // DATA_CHECK_INTERVAL + 1):
         await asyncio.sleep(DATA_CHECK_INTERVAL)
         if await data_ready():
@@ -719,28 +774,23 @@ def deduplicate_urls_per_channel(channel_map: Dict[Tuple[str, str], List[str]]) 
       - 优先保留名称中包含 '+' 或 'plus' 的（如 CCTV-5+）
       - 否则保留名称较长的（更具体）
     """
-    # 构建 URL -> 频道列表的映射
     url_to_channels = defaultdict(list)
     for (group, name), urls in channel_map.items():
         for url in urls:
             url_to_channels[url].append((group, name))
 
-    # 决定每个 URL 应保留的频道
     url_to_chosen = {}
     for url, channels in url_to_channels.items():
         if len(channels) == 1:
             url_to_chosen[url] = channels[0]
         else:
-            # 规则：优先选择名称包含 '+' 或 'plus' 的
             plus_channels = [ch for ch in channels if '+' in ch[1].lower() or 'plus' in ch[1].lower()]
             if plus_channels:
-                chosen = plus_channels[0]  # 如果有多个，取第一个
+                chosen = plus_channels[0]
             else:
-                # 否则选择名称最长的（更具体）
                 chosen = max(channels, key=lambda ch: len(ch[1]))
             url_to_chosen[url] = chosen
 
-    # 重新构建去重后的频道映射
     new_map = defaultdict(list)
     for (group, name), urls in channel_map.items():
         for url in urls:
@@ -751,17 +801,22 @@ def deduplicate_urls_per_channel(channel_map: Dict[Tuple[str, str], List[str]]) 
 # ============================================================================
 # ========================= 结果导出 =========================================
 # ============================================================================
-def export_results_with_timestamp(channel_map):
-    # 使用北京时间（UTC+8）生成当前时间
+def export_results_with_timestamp(channel_map, epg_map: Dict[str, str] = None):
+    """
+    导出 M3U 和 TXT 文件。
+    如果提供了 epg_map，则为频道添加 tvg-id 属性。
+    """
     now = (datetime.datetime.utcnow() + datetime.timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
     gu = UPDATE_STREAM_URL
     g = defaultdict(list)
     for (gr, n), us in channel_map.items():
         for u in us:
             g[gr].append((n, u))
+    
+    # 写入 M3U 文件
     with open(OUTPUT_M3U_FILENAME, 'w', encoding='utf-8') as f:
         f.write("#EXTM3U\n")
-        if ENABLE_EPG:
+        if ENABLE_EPG and EPG_URL:
             f.write(f'#EXTVLCOPT:epg-url={EPG_URL}\n')
         if TIME_DISPLAY_AT_TOP:
             f.write(f'#EXTINF:-1 tvg-name="更新" group-title="更新时间",{now}\n{gu}\n\n')
@@ -770,77 +825,9 @@ def export_results_with_timestamp(channel_map):
                 continue
             chs = g[gro]
             if gro == "央视频道":
-                # ----- 修复后的央视频道处理：先按标准顺序，无法映射的保留原名称并排序后附加 -----
-                # 构建原始名称到URL列表的映射
                 name_to_urls = defaultdict(list)
                 for name, url in chs:
                     name_to_urls[name].append(url)
-
-                # 建立原始名称到标准名称的映射（尽可能匹配）
-                name_to_std = {}
-                for name in name_to_urls.keys():
-                    std = None
-                    # 先尝试完全匹配
-                    if name in CCTV_ORDER:
-                        std = name
-                    else:
-                        # 尝试按数字匹配（如CCTV-1匹配到CCTV-1综合）
-                        cctv_match = CCTV_PATTERN.search(name)
-                        if cctv_match:
-                            num = cctv_match.group(2)  # 数字或"5+"
-                            for std_candidate in CCTV_ORDER:
-                                if num in std_candidate:
-                                    std = std_candidate
-                                    break
-                    name_to_std[name] = std
-
-                # 构建标准名称到URL列表的映射（合并同一标准名称的所有URL）
-                std_to_urls = defaultdict(list)
-                remaining = []  # 存放无法映射的 (原始名称, url)
-                for name, urls in name_to_urls.items():
-                    std = name_to_std.get(name)
-                    if std:
-                        std_to_urls[std].extend(urls)
-                    else:
-                        for url in urls:
-                            remaining.append((name, url))
-
-                # 按CCTV_ORDER顺序输出
-                ordered_chs = []
-                for std_name in CCTV_ORDER:
-                    if std_name in std_to_urls:
-                        for url in std_to_urls[std_name]:
-                            ordered_chs.append((std_name, url))
-
-                # 剩余无法映射的按名称排序后附加
-                remaining.sort(key=lambda x: x[0])
-                ordered_chs.extend(remaining)
-                chs = ordered_chs
-                # ----- 修复结束 -----
-            else:
-                chs = sorted(chs, key=lambda x: x[0])
-            # 过滤空名称频道
-            chs = [(n, u) for n, u in chs if n.strip()]
-            for n, u in chs:
-                f.write(f'#EXTINF:-1 group-title="{gro}",{n}\n{u}\n')
-            f.write("\n")
-        if not TIME_DISPLAY_AT_TOP:
-            f.write(f'#EXTINF:-1 group-title="更新时间",{now}\n{gu}\n')
-    with open(OUTPUT_TXT_FILENAME, 'w', encoding='utf-8') as f:
-        if TIME_DISPLAY_AT_TOP:
-            f.write("更新时间,#genre#\n")
-            f.write(f"{now},{gu}\n\n")
-        for gro in GROUP_ORDER:
-            if gro not in g:
-                continue
-            f.write(f"{gro},#genre#\n")
-            chs = g[gro]
-            if gro == "央视频道":
-                # ----- 同样处理央视频道（复用上述逻辑） -----
-                name_to_urls = defaultdict(list)
-                for name, url in chs:
-                    name_to_urls[name].append(url)
-
                 name_to_std = {}
                 for name in name_to_urls.keys():
                     std = None
@@ -855,7 +842,6 @@ def export_results_with_timestamp(channel_map):
                                     std = std_candidate
                                     break
                     name_to_std[name] = std
-
                 std_to_urls = defaultdict(list)
                 remaining = []
                 for name, urls in name_to_urls.items():
@@ -865,17 +851,75 @@ def export_results_with_timestamp(channel_map):
                     else:
                         for url in urls:
                             remaining.append((name, url))
-
                 ordered_chs = []
                 for std_name in CCTV_ORDER:
                     if std_name in std_to_urls:
                         for url in std_to_urls[std_name]:
                             ordered_chs.append((std_name, url))
-
                 remaining.sort(key=lambda x: x[0])
                 ordered_chs.extend(remaining)
                 chs = ordered_chs
-                # ----- 结束 -----
+            else:
+                chs = sorted(chs, key=lambda x: x[0])
+            chs = [(n, u) for n, u in chs if n.strip()]
+            for n, u in chs:
+                tvg_id = ""
+                if epg_map:
+                    tvg_id = get_epg_id(n, epg_map)
+                if tvg_id:
+                    f.write(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-name="{n}" group-title="{gro}",{n}\n')
+                else:
+                    f.write(f'#EXTINF:-1 group-title="{gro}",{n}\n')
+                f.write(f'{u}\n')
+            f.write("\n")
+        if not TIME_DISPLAY_AT_TOP:
+            f.write(f'#EXTINF:-1 group-title="更新时间",{now}\n{gu}\n')
+    
+    # 写入 TXT 文件（不变）
+    with open(OUTPUT_TXT_FILENAME, 'w', encoding='utf-8') as f:
+        if TIME_DISPLAY_AT_TOP:
+            f.write("更新时间,#genre#\n")
+            f.write(f"{now},{gu}\n\n")
+        for gro in GROUP_ORDER:
+            if gro not in g:
+                continue
+            f.write(f"{gro},#genre#\n")
+            chs = g[gro]
+            if gro == "央视频道":
+                name_to_urls = defaultdict(list)
+                for name, url in chs:
+                    name_to_urls[name].append(url)
+                name_to_std = {}
+                for name in name_to_urls.keys():
+                    std = None
+                    if name in CCTV_ORDER:
+                        std = name
+                    else:
+                        cctv_match = CCTV_PATTERN.search(name)
+                        if cctv_match:
+                            num = cctv_match.group(2)
+                            for std_candidate in CCTV_ORDER:
+                                if num in std_candidate:
+                                    std = std_candidate
+                                    break
+                    name_to_std[name] = std
+                std_to_urls = defaultdict(list)
+                remaining = []
+                for name, urls in name_to_urls.items():
+                    std = name_to_std.get(name)
+                    if std:
+                        std_to_urls[std].extend(urls)
+                    else:
+                        for url in urls:
+                            remaining.append((name, url))
+                ordered_chs = []
+                for std_name in CCTV_ORDER:
+                    if std_name in std_to_urls:
+                        for url in std_to_urls[std_name]:
+                            ordered_chs.append((std_name, url))
+                remaining.sort(key=lambda x: x[0])
+                ordered_chs.extend(remaining)
+                chs = ordered_chs
             else:
                 chs = sorted(chs, key=lambda x: x[0])
             chs = [(n, u) for n, u in chs if n.strip()]
@@ -900,18 +944,27 @@ async def main():
     logger.info(f"✅ 当前运行模式：【{EXTRACT_MODE}】(优化版)")
 
     # -------------------------------------------------------------------------
+    # 0. 如果需要 EPG，先下载并解析映射表
+    # -------------------------------------------------------------------------
+    epg_map = {}
+    if ENABLE_EPG and EPG_URL:
+        logger.info("正在下载并解析 EPG 数据...")
+        xml_content = await download_epg_xml(EPG_URL)
+        if xml_content:
+            epg_map = parse_epg_mapping(xml_content)
+            logger.info(f"EPG 映射加载成功，共 {len(epg_map)} 个频道条目")
+        else:
+            logger.warning("EPG 下载失败，将不会为频道添加 tvg-id")
+
+    # -------------------------------------------------------------------------
     # 第一步：获取 GitHub 和 网页 的全部原始链接
     # -------------------------------------------------------------------------
     all_entries = []
     
-    # 1.1 GitHub 源（并发下载）
     if ENABLE_GITHUB_SOURCES:
         logger.info("--- 正在并发获取 GitHub 源 ---")
-        # 创建一个共享的 session，所有下载任务复用
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
-            # 创建并发任务列表
             tasks = [download_github_m3u(url, session) for url in GITHUB_M3U_LINKS]
-            # 并发执行，return_exceptions=True 防止单个失败影响其他
             results = await asyncio.gather(*tasks, return_exceptions=True)
             for idx, result in enumerate(results):
                 if isinstance(result, Exception):
@@ -922,7 +975,6 @@ async def main():
                     all_entries.extend(channels)
             logger.info(f"GitHub源累计获取: {len(all_entries)} 条")
 
-    # 1.2 网站爬取（保持不变）
     web_entries = []
     async with async_playwright() as p:
         browser = await p.chromium.launch(
@@ -1014,21 +1066,16 @@ async def main():
     # 第三步：合并去重 (URL级别去重)
     # -------------------------------------------------------------------------
     logger.info("--- 正在合并去重 ---")
-    # 先构建临时 Map
     temp_channel_map = defaultdict(list)
     for g, n, u in all_entries:
         temp_channel_map[(g, n)].append(u)
 
-    # 确保每个URL只属于一个频道
     if ENABLE_DEDUPLICATION:
         temp_channel_map = deduplicate_urls_per_channel(temp_channel_map)
 
-    # 提取所有唯一URL及其对应的 (group, name)
     url_to_gn = {}
     for (g, n), urls in temp_channel_map.items():
         for u in urls:
-            # 如果一个URL对应多个频道，这里会覆盖，保留最后一个映射关系
-            # 但由于上面做了 deduplicate_urls_per_channel，这里应该是一一对应的
             url_to_gn[u] = (g, n)
     
     unique_urls = list(url_to_gn.keys())
@@ -1088,9 +1135,9 @@ async def main():
     logger.info(f"FFmpeg 测速耗时: {ffmpeg_time:.2f}s")
 
     # -------------------------------------------------------------------------
-    # 导出结果
+    # 导出结果（传入 epg_map）
     # -------------------------------------------------------------------------
-    export_results_with_timestamp(final_channel_map)
+    export_results_with_timestamp(final_channel_map, epg_map)
     
     total_time = time.time() - overall_start_time
     logger.info("="*30)
