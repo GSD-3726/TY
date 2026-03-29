@@ -146,6 +146,9 @@ ENABLE_VERBOSE_LOGGING = False                           # 详细日志已关闭
 CONNECTIVITY_CONCURRENCY = 15                           # 连通性测试并发数
 CONNECTIVITY_TIMEOUT     =1.5                                  # 连通性测试超时（秒）
 
+# -------------------------- 12. EPG设置 ------------------------------------
+EPG_URL = "https://epg.zsdc.eu.org/t.xml.gz"           # EPG电子节目单地址
+
 # ============================================================================
 # ============================= 日志配置（北京时间） ===========================
 # ============================================================================
@@ -756,7 +759,10 @@ def export_results_with_timestamp(channel_map):
         for u in us:
             g[gr].append((n, u))
     with open(OUTPUT_M3U_FILENAME, 'w', encoding='utf-8') as f:
-        f.write("#EXTM3U\n")
+        # ========== 修改点：在这里插入 EPG 地址 ==========
+        f.write(f'#EXTM3U x-tvg-url="{EPG_URL}"\n')
+        # ==================================================
+        
         if TIME_DISPLAY_AT_TOP:
             f.write(f'#EXTINF:-1 tvg-name="更新" group-title="更新时间",{now}\n{gu}\n\n')
         for gro in GROUP_ORDER:
