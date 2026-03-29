@@ -38,7 +38,7 @@ DEFAULT_PROTOCOL      = "http://"                        # 默认协议（用于
 
 # -------------------------- 2. 爬取控制 ------------------------------------
 EXTRACT_MODE          = "酒店提取"                       # "酒店提取" 或 "组播提取"
-MAX_IPS               = 100                              # 最多处理多少个IP
+MAX_IPS               = 1                              # 最多处理多少个IP
 MAX_TOTAL_CHANNELS    = 0                                # 总频道上限（0=不限制）
 MAX_CHANNELS_PER_IP   = 0                                # 单个IP最多提取频道数
 DELAY_BETWEEN_IPS     = 0.1                              # 切换IP间隔（秒）
@@ -761,6 +761,8 @@ def export_results_with_timestamp(channel_map):
             g[gr].append((n, u))
     with open(OUTPUT_M3U_FILENAME, 'w', encoding='utf-8') as f:
         f.write("#EXTM3U\n")
+        if ENABLE_EPG:
+            f.write(f'#EXTVLCOPT:epg-url={EPG_URL}\n')
         if TIME_DISPLAY_AT_TOP:
             f.write(f'#EXTINF:-1 tvg-name="更新" group-title="更新时间",{now}\n{gu}\n\n')
         for gro in GROUP_ORDER:
