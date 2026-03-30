@@ -100,6 +100,7 @@ ENABLE_DEDUPLICATION   = True                            # 全局去重
 CCTV_USE_MAPPING       = True                            # CCTV映射中文名称
 ENABLE_MIGU_FILTER     = True                            # 过滤包含"migu"的链接
 SKIP_INTERNAL_IP       = True                            # 跳过内网IP
+ENABLE_SATELLITE_CLEAN = True                            # 【新增】卫视名称清洗（如“XX卫视移动”->“XX卫视”）
 
 # -------------------------- 8. 频道分类规则 --------------------------------
 CATEGORY_RULES = [
@@ -247,6 +248,41 @@ def is_internal_ip(url: str) -> bool:
         return bool(INTERNAL_IP_PATTERN.match(host))
     except:
         return False
+
+# ============================================================================
+# ======================== 【新增】卫视名称清洗函数 ============================
+# ============================================================================
+def clean_satellite_name(name: str) -> str:
+    """
+    清洗卫视名称，移除多余后缀（移动、高清、HD等）。
+    示例：
+        "安徽卫视移动" -> "安徽卫视"
+        "安徽卫视高清" -> "安徽卫视"
+        "安徽卫视HD" -> "安徽卫视"
+        "北京卫视（高清）" -> "北京卫视"
+        "湖南卫视 移动" -> "湖南卫视"
+    """
+    if not ENABLE_SATELLITE_CLEAN:
+        return name
+    # 匹配：以“卫视”结尾，后面可能跟着空格或直接跟（移动|高清|HD|超高清|4K|\(高清\)|\(HD\)）
+    # 使用正则捕获卫视部分，并替换为卫视部分
+    # 注意：有些名称可能包含多个后缀，如“安徽卫视移动高清”，一次替换后可能还有残留，所以循环处理
+    # 但为了简单，一次性匹配“卫视”后跟任意后缀组合（以非字母数字中文结尾）
+    # 更精确：匹配“卫视”后跟以下后缀之一（忽略大小写，允许括号和空格）
+    pattern = re.compile(
+        r'(.*?卫视)'                         # 捕获卫视部分，非贪婪
+        r'(?:\s*[（(]?)\s*'                 # 可选空格或括号
+        r'(移动|高清|HD|超高清|4K|标清|测试)'  # 后缀
+        r'(?:\s*[）)]?)\s*',                # 可选右括号
+        re.IGNORECASE
+    )
+    # 循环替换直到没有匹配
+    while True:
+        new_name = pattern.sub(r'\1', name)
+        if new_name == name:
+            break
+        name = new_name
+    return name
 
 # ============================================================================
 # ========================= 缓存管理 ==========================================
@@ -571,9 +607,11 @@ def parse_m3u_file(content):
         elif l.startswith("http"):
             u = l.strip()  # 保留完整URL（含参数）
             if n and u:
-                nn = normalize_cctv(n)
+                # 【修改点2】应用卫视名称清洗
+                n_cleaned = clean_satellite_name(n)
+                nn = normalize_cctv(n_cleaned)
                 gr = classify_channel(nn) or g
-                fn = nn if gr == "央视频道" else (clean_chinese_only(n) if ENABLE_CHINESE_CLEAN else n)
+                fn = nn if gr == "央视频道" else (clean_chinese_only(n_cleaned) if ENABLE_CHINESE_CLEAN else n_cleaned)
                 ch.append((gr, fn, u))
             g = n = u = ""
     return ch
@@ -602,10 +640,12 @@ def parse_iptv_txt_file(filepath: Path) -> List[Tuple[str, str, str]]:
                     if len(parts) == 2:
                         name, url = parts[0].strip(), parts[1].strip()
                         if name and url:
+                            # 【修改点3】应用卫视名称清洗
+                            name_cleaned = clean_satellite_name(name)
                             # 归一化频道名
-                            nn = normalize_cctv(name)
+                            nn = normalize_cctv(name_cleaned)
                             gr = classify_channel(nn) or current_group
-                            fn = nn if gr == "央视频道" else (clean_chinese_only(name) if ENABLE_CHINESE_CLEAN else name)
+                            fn = nn if gr == "央视频道" else (clean_chinese_only(name_cleaned) if ENABLE_CHINESE_CLEAN else name_cleaned)
                             channels.append((gr, fn, url))
         logger.info(f"从 {filepath} 解析到 {len(channels)} 个链接")
     except Exception as e:
@@ -671,11 +711,13 @@ async def extract_one_ip(page, row, idx):
                     continue
                 if not u.startswith(('http://', 'https://', 'rtsp://', 'rtmp://')):
                     u = DEFAULT_PROTOCOL + u
-                nn = normalize_cctv(n)
+                # 【修改点4】应用卫视名称清洗
+                n_cleaned = clean_satellite_name(n)
+                nn = normalize_cctv(n_cleaned)
                 g = classify_channel(nn)
                 if not g:
                     continue
-                fn = nn if g == "央视频道" else (clean_chinese_only(n) if ENABLE_CHINESE_CLEAN else n)
+                fn = nn if g == "央视频道" else (clean_chinese_only(n_cleaned) if ENABLE_CHINESE_CLEAN else n_cleaned)
                 e.append((g, fn, u))
             except:
                 continue
