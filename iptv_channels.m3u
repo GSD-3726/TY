@@ -17,8 +17,6 @@ http://123.14.92.33:9003/hls/3/index.m3u8
 http://39.165.39.49:85/tsfile/live/1004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-4国际
 http://123.14.92.33:9003/hls/4/index.m3u8
-#EXTINF:-1 group-title="央视频道",CCTV-4国际
-http://112.19.31.13:85/tsfile/live/0004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-5体育
 http://123.14.92.33:9003/hls/18/index.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-5体育
@@ -44,11 +42,7 @@ http://123.14.92.33:9003/hls/8/index.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-9纪录
 http://123.14.92.33:9003/hls/9/index.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-9纪录
-http://112.19.31.13:85/tsfile/live/0009_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="央视频道",CCTV-9纪录
 http://39.165.39.49:85/tsfile/live/1009_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="央视频道",CCTV-9纪录
-https://v4-e6b1c5baf4e240fe63adbf68dda23435.livehwc4.com/play.kankanlive.com/live/1698423397390920.m3u8?sub_m3u8=true&edge_slice=true&user_session_id=cde3462a5913f261896da3a4c30bd8de
 #EXTINF:-1 group-title="央视频道",CCTV-10科教
 http://39.165.39.49:85/tsfile/live/1010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-10科教
@@ -90,6 +84,8 @@ http://39.165.39.49:85/tsfile/live/1128_1.m3u8?key=txiptv&amp;playlive=1&amp;aut
 http://123.14.92.33:9003/hls/24/index.m3u8
 #EXTINF:-1 group-title="卫视频道",云南卫视
 http://39.164.164.132:9901/tsfile/live/1043_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
+#EXTINF:-1 group-title="卫视频道",云南卫视
+http://111.221.137.234:44330/tsfile/live/0118_2.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",云南卫视
 http://113.140.71.86:60001/hls/46/index.m3u8
 #EXTINF:-1 group-title="卫视频道",人间卫视
@@ -152,6 +148,8 @@ http://123.14.92.33:9003/hls/19/index.m3u8
 http://39.165.39.49:85/tsfile/live/1127_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",浙江卫视
 http://123.14.92.33:9003/hls/22/index.m3u8
+#EXTINF:-1 group-title="卫视频道",海峡卫视
+https://live1-fuyun.fjtv.net/haixiapd/hd/live.m3u8?_upt=47a1209b1775170426
 #EXTINF:-1 group-title="卫视频道",深圳卫视
 http://39.165.39.49:85/tsfile/live/1141_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",深圳卫视
@@ -168,6 +166,8 @@ http://39.165.39.49:85/tsfile/live/1140_1.m3u8?key=txiptv&amp;playlive=1&amp;aut
 http://123.14.92.33:9003/hls/20/index.m3u8
 #EXTINF:-1 group-title="卫视频道",湖南卫视
 http://36.136.38.87:9901/tsfile/live/0128_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
+#EXTINF:-1 group-title="卫视频道",湖南国际频道
+http://phonehwei.qing.mgtv.com/nn_live/nn_x64/dWlwPTEwNi4xNC4zOC41NSZ0ZXJtPTUmcWlkPSZyYXV0aF9lbmFibGU9b2ZmJmNkbmV4X2lkPWh3X3Bob25lJmNocz0mZGVmPTEmcz04NThhZDFiMTQ0YzNjZjkwZjJiMmJkYzUyYzI1YjE3NCZ1aWQ9JnV1aWQ9YjMyNDE0NjdlOGQ5N2ViOTc5ODBkMDlmNTFjMWIwZjUtNmEwZTI2Mzcmdj0yJmFzPTAmZXM9MTc3NTE3NDQyNg,,/HNGJMPP360.m3u8
 #EXTINF:-1 group-title="卫视频道",甘肃卫视
 http://39.164.164.132:9901/tsfile/live/1025_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",辽宁卫视
@@ -177,7 +177,7 @@ http://39.164.164.132:9901/tsfile/live/1044_1.m3u8?key=txiptv&amp;playlive=0&amp
 #EXTINF:-1 group-title="卫视频道",陕西卫视
 http://39.164.164.132:9901/tsfile/live/1039_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",陕西卫视
-http://stream.snrtv.com/sxbc-star-oDT126.m3u8
+http://stream.snrtv.com/sxbc-star-inuzLO.m3u8
 #EXTINF:-1 group-title="卫视频道",青海卫视
 http://39.164.164.132:9901/tsfile/live/1037_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",黑龙江卫视
@@ -187,32 +187,20 @@ http://39.164.164.132:9901/tsfile/live/1030_1.m3u8?key=txiptv&amp;playlive=0&amp
 #EXTINF:-1 group-title="卫视频道",黑龙江卫视
 http://36.136.38.87:9901/tsfile/live/0143_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 
-#EXTINF:-1 group-title="电影频道",国产动作电影
-https://live.ottiptv.cc/yy/1382736858
 #EXTINF:-1 group-title="电影频道",国产大片电影
 https://live.ottiptv.cc/yy/1354926655
-#EXTINF:-1 group-title="电影频道",国内经典动作电影
-https://live.ottiptv.cc/yy/1382851522
+#EXTINF:-1 group-title="电影频道",国外院线动作大片
+https://live.ottiptv.cc/yy/1382735570
 #EXTINF:-1 group-title="电影频道",怀旧剧场
 http://221.7.49.226:50085/tsfile/live/0017_8.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="电影频道",末日系列外国电影合集
 https://live.ottiptv.cc/yy/1354889019
-#EXTINF:-1 group-title="电影频道",爆笑电影王牌大贱谍
-https://live.ottiptv.cc/yy/1382735556
-#EXTINF:-1 group-title="电影频道",珍珠港电影
-https://live.ottiptv.cc/yy/1354936234
-#EXTINF:-1 group-title="电影频道",电影百团大战
-https://live.ottiptv.cc/yy/1382736871
 #EXTINF:-1 group-title="电影频道",电影黑豹
 https://live.ottiptv.cc/yy/1382736816
 #EXTINF:-1 group-title="电影频道",精彩动作电影
 https://live.ottiptv.cc/yy/1382736823
 #EXTINF:-1 group-title="电影频道",经典电影
 http://183.234.143.5:85/tsfile/live/1133_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="电影频道",超精彩系列动作电影
-https://live.ottiptv.cc/yy/1382745096
-#EXTINF:-1 group-title="电影频道",高分科幻动作片
-https://live.ottiptv.cc/yy/1382749948
 
 #EXTINF:-1 group-title="4K专区",测试
 https://cdn.jsdelivr.net/gh/feiyang666999/testvideo/hlg4kvideo/playlist.m3u8
@@ -234,5 +222,5 @@ http://221.7.49.226:50085/tsfile/live/0018_7.m3u8?key=txiptv&amp;playlive=1&amp;
 #EXTINF:-1 group-title="儿童频道",金鹰卡通移动
 http://39.165.39.49:85/tsfile/live/1156_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 
-#EXTINF:-1 group-title="更新时间",2026-04-02 18:15:05
+#EXTINF:-1 group-title="更新时间",2026-04-03 05:56:11
 https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
