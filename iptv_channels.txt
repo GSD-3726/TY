@@ -2,9 +2,7 @@
 CCTV-1综合,http://39.165.39.49:85/tsfile/live/1001_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-1综合,http://118.81.58.30:9003/hls/1/index.m3u8
 CCTV-1综合,http://36.136.38.87:9901/tsfile/live/0001_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-CCTV-2财经,http://39.165.39.49:85/tsfile/live/1002_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-2财经,http://123.14.92.33:9003/hls/2/index.m3u8
-CCTV-2财经,http://139.227.221.14:85/tsfile/live/0002_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-3综艺,http://123.14.92.33:9003/hls/3/index.m3u8
 CCTV-4国际,https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4_mbd.m3u8?auth_key=1775322900-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-e98e894daa94333b11121f081639813d&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c
 CCTV-4国际,http://123.14.92.33:9003/hls/4/index.m3u8
@@ -22,9 +20,9 @@ CCTV-9纪录,http://123.14.92.33:9003/hls/9/index.m3u8
 CCTV-10科教,http://39.165.39.49:85/tsfile/live/1010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-11戏曲,http://39.165.39.49:85/tsfile/live/1011_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-12社会与法,http://123.14.92.33:9003/hls/12/index.m3u8
+CCTV-13新闻,http://39.165.39.49:85/tsfile/live/1084_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-14少儿,http://39.165.39.49:85/tsfile/live/1085_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-14少儿,http://183.185.151.17:9003/hls/15/index.m3u8
-CCTV-14少儿,http://221.7.49.226:50085/tsfile/live/0014_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-14少儿,http://36.136.38.87:9901/tsfile/live/0014_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-15音乐,http://39.165.39.49:85/tsfile/live/1086_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-15音乐,http://39.164.164.132:9901/tsfile/live/1014_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
@@ -37,7 +35,7 @@ CCTV-17农业农村,http://39.165.39.49:85/tsfile/live/1088_1.m3u8?key=txiptv&am
 东方卫视,http://39.165.39.49:85/tsfile/live/1128_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 东方卫视,http://123.14.92.33:9003/hls/24/index.m3u8
 东方卫视,http://39.164.164.132:9901/tsfile/live/1016_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
-云南卫视,http://111.221.137.234:44330/tsfile/live/0118_2.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
+云南卫视,http://39.164.164.132:9901/tsfile/live/1043_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 人间卫视,http://61.216.67.119:1935/bltvhd/bltv1/chunklist_w1266569526.m3u
 内蒙古卫视,http://39.164.164.132:9901/tsfile/live/1035_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 北京卫视,http://123.14.92.33:9003/hls/23/index.m3u8
@@ -84,12 +82,14 @@ CCTV-17农业农村,http://39.165.39.49:85/tsfile/live/1088_1.m3u8?key=txiptv&am
 黑龙江卫视,http://36.136.38.87:9901/tsfile/live/0143_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 
 电影频道,#genre#
-国产动作电影,https://live.ottiptv.cc/yy/1382736858
+国产大片电影,https://live.ottiptv.cc/yy/1354926655
+国内经典动作电影,https://live.ottiptv.cc/yy/1382851522
 国外院线动作大片,https://live.ottiptv.cc/yy/1382735570
 怀旧剧场,http://221.7.49.226:50085/tsfile/live/0017_8.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-碟中谍系列电影,https://live.ottiptv.cc/yy/1382736836
+末日系列外国电影合集,https://live.ottiptv.cc/yy/1354889019
+爆笑电影王牌大贱谍,https://live.ottiptv.cc/yy/1382735556
+电影黑豹,https://live.ottiptv.cc/yy/1382736816
 精彩动作电影,https://live.ottiptv.cc/yy/1382736823
-经典电影,http://183.234.143.5:85/tsfile/live/1133_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 院线动作大片,https://live.ottiptv.cc/yy/1382736900
 
 4K专区,#genre#
@@ -99,11 +99,9 @@ CCTV-17农业农村,http://39.165.39.49:85/tsfile/live/1088_1.m3u8?key=txiptv&am
 儿童频道,#genre#
 优漫卡通移动,http://39.165.39.49:85/tsfile/live/1092_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 卡酷动画移动,http://39.165.39.49:85/tsfile/live/1158_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-嘉佳卡通,http://1.193.22.30:85/tsfile/live/1015_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 嘉佳卡通移动,http://39.165.39.49:85/tsfile/live/1157_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 炫动卡通移动,http://39.165.39.49:85/tsfile/live/1159_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-金鹰卡通,http://221.7.49.226:50085/tsfile/live/0018_7.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 金鹰卡通移动,http://39.165.39.49:85/tsfile/live/1156_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 
 更新时间,#genre#
-2026-04-04 14:56:23,https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
+2026-04-04 17:55:36,https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8

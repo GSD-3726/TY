@@ -6,11 +6,7 @@ http://118.81.58.30:9003/hls/1/index.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-1综合
 http://36.136.38.87:9901/tsfile/live/0001_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-2财经
-http://39.165.39.49:85/tsfile/live/1002_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="央视频道",CCTV-2财经
 http://123.14.92.33:9003/hls/2/index.m3u8
-#EXTINF:-1 group-title="央视频道",CCTV-2财经
-http://139.227.221.14:85/tsfile/live/0002_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-3综艺
 http://123.14.92.33:9003/hls/3/index.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-4国际
@@ -45,12 +41,12 @@ http://39.165.39.49:85/tsfile/live/1010_1.m3u8?key=txiptv&amp;playlive=1&amp;aut
 http://39.165.39.49:85/tsfile/live/1011_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-12社会与法
 http://123.14.92.33:9003/hls/12/index.m3u8
+#EXTINF:-1 group-title="央视频道",CCTV-13新闻
+http://39.165.39.49:85/tsfile/live/1084_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-14少儿
 http://39.165.39.49:85/tsfile/live/1085_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-14少儿
 http://183.185.151.17:9003/hls/15/index.m3u8
-#EXTINF:-1 group-title="央视频道",CCTV-14少儿
-http://221.7.49.226:50085/tsfile/live/0014_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-14少儿
 http://36.136.38.87:9901/tsfile/live/0014_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-15音乐
@@ -73,7 +69,7 @@ http://123.14.92.33:9003/hls/24/index.m3u8
 #EXTINF:-1 group-title="卫视频道",东方卫视
 http://39.164.164.132:9901/tsfile/live/1016_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",云南卫视
-http://111.221.137.234:44330/tsfile/live/0118_2.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
+http://39.164.164.132:9901/tsfile/live/1043_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",人间卫视
 http://61.216.67.119:1935/bltvhd/bltv1/chunklist_w1266569526.m3u
 #EXTINF:-1 group-title="卫视频道",内蒙古卫视
@@ -163,18 +159,22 @@ http://39.164.164.132:9901/tsfile/live/1030_1.m3u8?key=txiptv&amp;playlive=0&amp
 #EXTINF:-1 group-title="卫视频道",黑龙江卫视
 http://36.136.38.87:9901/tsfile/live/0143_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 
-#EXTINF:-1 group-title="电影频道",国产动作电影
-https://live.ottiptv.cc/yy/1382736858
+#EXTINF:-1 group-title="电影频道",国产大片电影
+https://live.ottiptv.cc/yy/1354926655
+#EXTINF:-1 group-title="电影频道",国内经典动作电影
+https://live.ottiptv.cc/yy/1382851522
 #EXTINF:-1 group-title="电影频道",国外院线动作大片
 https://live.ottiptv.cc/yy/1382735570
 #EXTINF:-1 group-title="电影频道",怀旧剧场
 http://221.7.49.226:50085/tsfile/live/0017_8.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="电影频道",碟中谍系列电影
-https://live.ottiptv.cc/yy/1382736836
+#EXTINF:-1 group-title="电影频道",末日系列外国电影合集
+https://live.ottiptv.cc/yy/1354889019
+#EXTINF:-1 group-title="电影频道",爆笑电影王牌大贱谍
+https://live.ottiptv.cc/yy/1382735556
+#EXTINF:-1 group-title="电影频道",电影黑豹
+https://live.ottiptv.cc/yy/1382736816
 #EXTINF:-1 group-title="电影频道",精彩动作电影
 https://live.ottiptv.cc/yy/1382736823
-#EXTINF:-1 group-title="电影频道",经典电影
-http://183.234.143.5:85/tsfile/live/1133_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="电影频道",院线动作大片
 https://live.ottiptv.cc/yy/1382736900
 
@@ -187,16 +187,12 @@ https://cdn.jsdelivr.net/gh/feiyang666999/testvideo/sdr4kvideo/playlist.m3u8
 http://39.165.39.49:85/tsfile/live/1092_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="儿童频道",卡酷动画移动
 http://39.165.39.49:85/tsfile/live/1158_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="儿童频道",嘉佳卡通
-http://1.193.22.30:85/tsfile/live/1015_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="儿童频道",嘉佳卡通移动
 http://39.165.39.49:85/tsfile/live/1157_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="儿童频道",炫动卡通移动
 http://39.165.39.49:85/tsfile/live/1159_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="儿童频道",金鹰卡通
-http://221.7.49.226:50085/tsfile/live/0018_7.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="儿童频道",金鹰卡通移动
 http://39.165.39.49:85/tsfile/live/1156_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 
-#EXTINF:-1 group-title="更新时间",2026-04-04 14:56:23
+#EXTINF:-1 group-title="更新时间",2026-04-04 17:55:36
 https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
