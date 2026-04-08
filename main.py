@@ -56,6 +56,7 @@ DATA_CHECK_INTERVAL    = 30                              # 数据加载检查间
 # -------------------------- 4. GitHub源订阅 --------------------------------
 ENABLE_GITHUB_SOURCES = True                            # 是否启用GitHub源
 GITHUB_M3U_LINKS = [
+    "https://gh-proxy.com/https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV_AutoUpdate.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/kakaxi-1/IPTV/main/ipv4.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/3377/IPTV/master/output/result.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/Guovin/iptv-database/master/result.txt",
@@ -63,14 +64,13 @@ GITHUB_M3U_LINKS = [
     "https://gh-proxy.com/https://raw.githubusercontent.com/asdjkl6/tv/tv/.m3u/整套直播源/测试/整套直播源/l.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/asdjkl6/tv/tv/.m3u/整套直播源/测试/整套直播源/kk.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/yuanzl77/IPTV/master/live.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/ipv6.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv6.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/others_output.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/zhaochunen/iptv/main/zubo_all.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV_AutoUpdate.m3u8",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/ipv6.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/YueChan/Live/main/APTV.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u8",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/others_output.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/zhaochunen/iptv/main/zubo_all.txt",    
     "https://gh-proxy.com/https://raw.githubusercontent.com/mursor1985/LIVE/refs/heads/main/yylunbo.m3u"
 ]
 
@@ -554,6 +554,48 @@ def parse_m3u_file(content):
     return ch
 
 # ============================================================================
+# ========================= 【新增】TXT格式解析 ===============================
+# ============================================================================
+def parse_txt_content(content: str, default_group: str = "未分类") -> List[Tuple[str, str, str]]:
+    """
+    解析 TXT 格式直播源
+    格式示例：
+        央视频道,#genre#
+        CCTV1,http://example.com/cctv1.m3u8
+        CCTV1,http://example.com/cctv1_backup.m3u8$仅供娱乐
+    """
+    channels = []
+    current_group = default_group
+    for line in content.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        # 分组标记：xxx,#genre#
+        if line.endswith('#genre#'):
+            current_group = line.split(',')[0].strip()
+            continue
+        # 频道行：name,url
+        if ',' in line and not line.startswith('#'):
+            parts = line.split(',', 1)
+            if len(parts) == 2:
+                name = parts[0].strip()
+                url_part = parts[1].strip()
+                # 处理 URL 中可能带 $ 注释的情况（如 $仅供娱乐）
+                if '$' in url_part:
+                    url = url_part.split('$')[0].strip()
+                else:
+                    url = url_part
+                if name and url:
+                    name_cleaned = clean_satellite_name(name)
+                    normalized = normalize_cctv(name_cleaned)
+                    group = classify_channel(normalized) or current_group
+                    final_name = normalized if group == "央视频道" else (
+                        clean_chinese_only(name_cleaned) if ENABLE_CHINESE_CLEAN else name_cleaned
+                    )
+                    channels.append((group, final_name, url))
+    return channels
+
+# ============================================================================
 # ========================= 本地TXT解析 (iptv_channels.txt) ==================
 # ============================================================================
 def parse_iptv_txt_file(filepath: Path) -> List[Tuple[str, str, str]]:
@@ -579,7 +621,7 @@ def parse_iptv_txt_file(filepath: Path) -> List[Tuple[str, str, str]]:
                             name_cleaned = clean_satellite_name(name)
                             nn = normalize_cctv(name_cleaned)
                             gr = classify_channel(nn) or current_group
-                            fn = nn if gr == "央视频道" else (clean_chinese_only(n_cleaned) if ENABLE_CHINESE_CLEAN else n_cleaned)
+                            fn = nn if gr == "央视频道" else (clean_chinese_only(name_cleaned) if ENABLE_CHINESE_CLEAN else name_cleaned)
                             channels.append((gr, fn, url))
         logger.info(f"从 {filepath} 解析到 {len(channels)} 个链接")
     except Exception as e:
@@ -854,8 +896,12 @@ async def main():
                     logger.warning(f"下载 {GITHUB_M3U_LINKS[idx]} 异常: {result}")
                     continue
                 if result and isinstance(result, str):
-                    channels = parse_m3u_file(result)
-                    # ========== 修改点1：输出每个链接获取数量 ==========
+                    content = result.strip()
+                    # 智能识别格式：以 #EXTM3U 开头或包含 #EXTINF 视为 M3U，否则视为 TXT
+                    if content.startswith('#EXTM3U') or '#EXTINF' in content:
+                        channels = parse_m3u_file(content)
+                    else:
+                        channels = parse_txt_content(content, default_group="GitHub源")
                     logger.info(f"✅ GitHub链接 {idx+1} 获取到 {len(channels)} 条频道")
                     all_entries.extend(channels)
             logger.info(f"GitHub源累计获取: {len(all_entries)} 条")
