@@ -58,17 +58,9 @@ ENABLE_GITHUB_SOURCES = True                            # 是否启用GitHub源
 GITHUB_M3U_LINKS = [
     "https://gh-proxy.com/https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV_AutoUpdate.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/kakaxi-1/IPTV/main/ipv4.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/httop_merged.m3u",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/httop.m3u",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/htldx_merged.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/3377/IPTV/master/output/result.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/Guovin/iptv-database/master/result.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/iptv-org/iptv/gh-pages/countries/cn.m3u8",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u8",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv6.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/merged_output.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/xzw832/cmys/main/S_CCTV.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/xzw832/cmys/main/S_weishi.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/asdjkl6/tv/tv/.m3u/整套直播源/测试/整套直播源/l.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/asdjkl6/tv/tv/.m3u/整套直播源/测试/整套直播源/kk.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/yuanzl77/IPTV/master/live.txt",
@@ -76,11 +68,8 @@ GITHUB_M3U_LINKS = [
     "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv6.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/YueChan/Live/main/APTV.m3u8",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/YanG-1989/m3u/main/Gather.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/others_output.txt",
-    "https://gh-proxy.com/https://github.com/lalifeier/IPTV/blob/main/txt/IPTV.txt",
-    "https://gh-proxy.com/https://github.com/Wirili/IPTV/blob/main/live.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/mursor1985/LIVE/refs/heads/main/yylunbo.m3u"
 ]
 
