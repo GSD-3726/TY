@@ -34,7 +34,7 @@ DEFAULT_PROTOCOL      = "http://"                        # 默认协议（用于
 
 # -------------------------- 2. 爬取控制 ------------------------------------
 EXTRACT_MODE          = "酒店提取"                       # "酒店提取" 或 "组播提取"
-MAX_IPS               = 100                              # 最多处理多少个IP
+MAX_IPS               = 1                               # 最多处理多少个IP
 MAX_TOTAL_CHANNELS    = 0                                # 总频道上限（0=不限制）
 MAX_CHANNELS_PER_IP   = 0                                # 单个IP最多提取频道数
 DELAY_BETWEEN_IPS     = 0.1                              # 切换IP间隔（秒）
@@ -59,16 +59,11 @@ GITHUB_M3U_LINKS = [
     "https://gh-proxy.com/https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV_AutoUpdate.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/kakaxi-1/IPTV/main/ipv4.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/3377/IPTV/master/output/result.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/Guovin/iptv-database/master/result.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/merged_output.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/asdjkl6/tv/tv/.m3u/整套直播源/测试/整套直播源/l.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/asdjkl6/tv/tv/.m3u/整套直播源/测试/整套直播源/kk.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/yuanzl77/IPTV/master/live.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/ipv6.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv6.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/YueChan/Live/main/APTV.m3u8",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/others_output.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/zhaochunen/iptv/main/zubo_all.txt",    
     "https://gh-proxy.com/https://raw.githubusercontent.com/mursor1985/LIVE/refs/heads/main/yylunbo.m3u"
@@ -95,14 +90,14 @@ ENABLE_MIGU_FILTER     = True                            # 过滤包含"migu"的
 SKIP_INTERNAL_IP       = True                            # 跳过内网IP
 ENABLE_SATELLITE_CLEAN = True                            # 【新增】卫视名称清洗（如“XX卫视移动”->“XX卫视”）
 
-# -------------------------- 8. 频道分类规则 --------------------------------
+# -------------------------- 8. 频道分类规则（已扩展关键词） ------------------
 CATEGORY_RULES = [
-    {"name": "4K专区",      "keywords": ["4k"]},
-    {"name": "央视频道",    "keywords": ["cctv", "cetv", "央视","中央"]},
-    {"name": "卫视频道",    "keywords": ["卫视", "凤凰", "tvb", "湖南", "浙江", "江苏", "东方"]},
-    {"name": "电影频道",    "keywords": ["电影", "影院", "chc", "动作", "剧场", "映画"]},
-    {"name": "轮播频道",    "keywords": ["轮播"]},
-    {"name": "儿童频道",    "keywords": ["少儿", "动画", "动漫","卡通"]},
+    {"name": "4K专区",      "keywords": ["4k", "4K", "超高清", "2160p"]},
+    {"name": "央视频道",    "keywords": ["cctv", "cetv", "央视", "中央", "CCTV", "CETV", "央视频道", "新闻", "综合", "财经", "综艺", "体育", "电影", "军事", "电视剧", "纪录", "科教", "戏曲", "社会与法", "少儿", "音乐", "奥林匹克", "农业农村"]},
+    {"name": "卫视频道",    "keywords": ["卫视", "凤凰", "tvb", "湖南", "浙江", "江苏", "东方", "北京", "上海", "天津", "重庆", "广东", "深圳", "黑龙江", "辽宁", "山东", "安徽", "福建", "江西", "河南", "湖北", "湖南", "海南", "四川", "贵州", "云南", "陕西", "甘肃", "青海", "台湾", "香港", "澳门"]},
+    {"name": "电影频道",    "keywords": ["电影", "影院", "chc", "动作", "剧场", "映画", "影视", "大片", "影视频道"]},
+    {"name": "轮播频道",    "keywords": ["轮播", "滚动", "循环"]},
+    {"name": "儿童频道",    "keywords": ["少儿", "动画", "动漫", "卡通", "亲子", "儿童", "宝贝"]},
 ]
 
 GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "4K专区", "儿童频道", "轮播频道"]
@@ -138,7 +133,7 @@ ENABLE_VERBOSE_LOGGING = False                           # 详细日志已关闭
 
 # -------------------------- 11. 连通性/预检配置 -----------------------------
 CONNECTIVITY_CONCURRENCY = 15                           # 连通性测试并发数
-CONNECTIVITY_TIMEOUT     =1.5                                  # 连通性测试超时（秒）
+CONNECTIVITY_TIMEOUT     = 1.5                          # 连通性测试超时（秒）
 
 # ============================================================================
 # ============================= 日志配置（北京时间） ===========================
@@ -891,9 +886,12 @@ async def main():
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
             tasks = [download_github_m3u(url, session) for url in GITHUB_M3U_LINKS]
             results = await asyncio.gather(*tasks, return_exceptions=True)
+            # 确保每个链接都输出日志（即使失败也输出0条）
             for idx, result in enumerate(results):
+                link_no = idx + 1
                 if isinstance(result, Exception):
                     logger.warning(f"下载 {GITHUB_M3U_LINKS[idx]} 异常: {result}")
+                    logger.info(f"✅ GitHub链接 {link_no} 获取到 0 条频道")
                     continue
                 if result and isinstance(result, str):
                     content = result.strip()
@@ -902,8 +900,11 @@ async def main():
                         channels = parse_m3u_file(content)
                     else:
                         channels = parse_txt_content(content, default_group="GitHub源")
-                    logger.info(f"✅ GitHub链接 {idx+1} 获取到 {len(channels)} 条频道")
+                    logger.info(f"✅ GitHub链接 {link_no} 获取到 {len(channels)} 条频道")
                     all_entries.extend(channels)
+                else:
+                    # result 为空字符串或 None
+                    logger.info(f"✅ GitHub链接 {link_no} 获取到 0 条频道")
             logger.info(f"GitHub源累计获取: {len(all_entries)} 条")
 
     web_entries = []
@@ -995,13 +996,28 @@ async def main():
     if ENABLE_DEDUPLICATION:
         temp_channel_map = deduplicate_urls_per_channel(temp_channel_map)
 
+    # ==================== 【新增】频道筛选：只保留白名单中的分组 ====================
+    # 白名单来自 GROUP_ORDER（央视频道、卫视频道、电影频道、4K专区、儿童频道、轮播频道）
+    allowed_groups = set(GROUP_ORDER)
+    original_count = sum(len(urls) for urls in temp_channel_map.values())
+    filtered_map = {}
+    for (group, name), urls in temp_channel_map.items():
+        if group in allowed_groups:
+            filtered_map[(group, name)] = urls
+        else:
+            logger.debug(f"过滤掉频道: {group} - {name} (共 {len(urls)} 条链接)")
+    temp_channel_map = filtered_map
+    filtered_count = sum(len(urls) for urls in temp_channel_map.values())
+    logger.info(f"频道筛选: 过滤前 {original_count} 条链接，过滤后 {filtered_count} 条链接，移除了 {original_count - filtered_count} 条不属于白名单的链接")
+    # ==========================================================================
+
     url_to_gn = {}
     for (g, n), urls in temp_channel_map.items():
         for u in urls:
             url_to_gn[u] = (g, n)
     
     unique_urls = list(url_to_gn.keys())
-    logger.info(f"✅ GitHub 源合并去重后共 {len(unique_urls)} 个唯一链接")
+    logger.info(f"✅ 合并去重并筛选后共 {len(unique_urls)} 个唯一链接")
 
     logger.info("--- 正在进行连通性测试 (前置筛选) ---")
     connectivity_start = time.time()
