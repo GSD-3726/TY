@@ -70,6 +70,7 @@ GITHUB_M3U_LINKS = [
     "https://gh-proxy.com/https://raw.githubusercontent.com/YueChan/Live/main/APTV.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/others_output.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/zhaochunen/iptv/main/zubo_all.txt",    
     "https://gh-proxy.com/https://raw.githubusercontent.com/mursor1985/LIVE/refs/heads/main/yylunbo.m3u"
 ]
 
