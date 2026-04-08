@@ -479,7 +479,7 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
         g, n, u = item
         async with sem:
             res = await test_stream_with_ffmpeg(u)
-            return g, n, u, res
+        return g, n, u, res
 
     tasks = [test_one(i) for i in pending]
     c, ok, ng, lp = 0, 0, 0, -100
@@ -589,7 +589,7 @@ def parse_iptv_txt_file(filepath: Path) -> List[Tuple[str, str, str]]:
                             name_cleaned = clean_satellite_name(name)
                             nn = normalize_cctv(name_cleaned)
                             gr = classify_channel(nn) or current_group
-                            fn = nn if gr == "央视频道" else (clean_chinese_only(name_cleaned) if ENABLE_CHINESE_CLEAN else name_cleaned)
+                            fn = nn if gr == "央视频道" else (clean_chinese_only(n_cleaned) if ENABLE_CHINESE_CLEAN else n_cleaned)
                             channels.append((gr, fn, url))
         logger.info(f"从 {filepath} 解析到 {len(channels)} 个链接")
     except Exception as e:
@@ -865,6 +865,8 @@ async def main():
                     continue
                 if result and isinstance(result, str):
                     channels = parse_m3u_file(result)
+                    # ========== 修改点1：输出每个链接获取数量 ==========
+                    logger.info(f"✅ GitHub链接 {idx+1} 获取到 {len(channels)} 条频道")
                     all_entries.extend(channels)
             logger.info(f"GitHub源累计获取: {len(all_entries)} 条")
 
@@ -963,7 +965,7 @@ async def main():
             url_to_gn[u] = (g, n)
     
     unique_urls = list(url_to_gn.keys())
-    logger.info(f"去重后唯一URL数: {len(unique_urls)}")
+    logger.info(f"✅ GitHub 源合并去重后共 {len(unique_urls)} 个唯一链接")
 
     logger.info("--- 正在进行连通性测试 (前置筛选) ---")
     connectivity_start = time.time()
