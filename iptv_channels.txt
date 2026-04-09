@@ -1,12 +1,45 @@
 央视频道,#genre#
+CCTV-3综艺,http://38.75.136.137:98/gslb/dsdqbv/cctv3hd.m3u8?auth=test20251009
+CCTV-5体育,http://38.75.136.137:98/gslb/dsdqbv/cctv5hd.m3u8?auth=test20251009
+CCTV-6电影,http://38.75.136.137:98/gslb/dsdqbv/cctv6hd.m3u8?auth=test20251009
+CCTV-6电影,http://218.17.33.178:53290/tsfile/live/1006_1.m3u8?key=txiptv
+CCTV-6电影,http://221.226.51.220:50081/newlive/live/hls/6/live.m3u8
+CCTV-7国防军事,http://1.24.39.180:9003/hls/7/index.m3u8
+CCTV-12社会与法,http://38.75.136.137:98/gslb/dsdqbv/cctv12hd.m3u8?auth=test20251009
+CCTV-14少儿,http://221.13.235.111:9901/tsfile/live/0014_1.m3u8?key=txiptv&playlive=1&authid=0
+CCTV-16奥林匹克,http://223.167.230.46:4022/udp/233.18.204.215:5140
+CCTV-16奥林匹克,http://74.91.26.218:82/live/cctv16hd.m3u8
 CCTV风云足球,http://38.75.136.137:98/gslb/dsdqpub/fyzq.m3u8?auth=testpub
 
 卫视频道,#genre#
+东方卫视,http://223.167.230.46:4022/udp/233.18.204.224:5140
+人间卫视,http://61.216.67.119:1935/bltvhd/bltv1/chunklist_w1266569526.m3u
+人间卫视,http://61.216.67.119:1935/bltvhd/bltv1/playlist.m3u8
+人间卫视,http://61.216.67.119:1935/bltvhd/bltv1/chunklist_w1266569526.m3u8
+内蒙古卫视,http://218.17.33.178:53290/tsfile/live/0109_1.m3u8?key=txiptv
+北京卫视,http://121.29.141.59:4022/udp/239.253.92.220:6229
+北京卫视,http://221.13.235.111:9901/tsfile/live/0122_1.m3u8?key=txiptv&playlive=1&authid=0
+厦门卫视,http://38.75.136.137:98/gslb/dsdqpub/xmws.m3u8?auth=testpub
+山东卫视,http://223.167.230.46:4022/udp/233.18.204.228:5140
+广东卫视,http://223.167.230.46:4022/udp/233.18.204.218:5140
+新疆卫视,http://218.17.33.178:53290/tsfile/live/0110_1.m3u8?key=txiptv
+江苏卫视,http://223.167.230.46:4022/udp/233.18.204.226:5140
+河北卫视,https://stream1.freetv.fun/50a5410e1d04d5d14187b7b663c633977b51e860cf4e7046b19159d791a1a0a1.m3u8
+河南卫视,http://221.13.235.111:9901/tsfile/live/0139_1.m3u8?key=txiptv&playlive=1&authid=0
+河南卫视澜露直播,http://39.165.39.49:19901/tsfile/live/1105_1.m3u8
+浙江卫视,http://223.167.230.46:4022/udp/233.18.204.229:5140
 海峡卫视,http://38.64.72.148:80/hls/modn/list/4009/chunklist0.m3u8
 海峡卫视,http://38.64.72.148:80/hls/modn/list/4009/playlist.m3u8
 
+电影频道,#genre#
+动作电影,http://38.75.136.137:98/gslb/dsdqpub/chcdz.m3u8?auth=testpub
+影迷电影,http://38.75.136.137:98/gslb/dsdqpub/chchd.m3u8?auth=testpub
+
+4K专区,#genre#
+超高清,http://121.29.141.59:4022/udp/239.253.92.219:6228
+
 儿童频道,#genre#
-公视少儿,http://74.91.26.218:82/live/ptsse.m3u8
+亲子国,http://37.27.111.214:8080/live/3/hls.m3u8
 
 更新时间,#genre#
-2026-04-09 19:00:36,https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
+2026-04-09 22:03:40,https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
