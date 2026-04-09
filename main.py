@@ -34,7 +34,7 @@ DEFAULT_PROTOCOL      = "http://"                        # 默认协议（用于
 
 # -------------------------- 2. 爬取控制 ------------------------------------
 EXTRACT_MODE          = "酒店提取"                       # "酒店提取" 或 "组播提取"
-MAX_IPS               = 0                               # 最多处理多少个IP
+MAX_IPS               = 100                               # 最多处理多少个IP
 MAX_TOTAL_CHANNELS    = 0                                # 总频道上限（0=不限制）
 MAX_CHANNELS_PER_IP   = 0                                # 单个IP最多提取频道数
 DELAY_BETWEEN_IPS     = 0.1                              # 切换IP间隔（秒）
@@ -133,7 +133,7 @@ ENABLE_VERBOSE_LOGGING = False                           # 详细日志已关闭
 
 # -------------------------- 11. 连通性/预检配置 -----------------------------
 CONNECTIVITY_CONCURRENCY = 500                           # 连通性测试并发数
-CONNECTIVITY_TIMEOUT     = 0.5                          # 连通性测试超时（秒）
+CONNECTIVITY_TIMEOUT     = 0.2                          # 连通性测试超时（秒）
 
 # ============================================================================
 # ============================= 日志配置（北京时间） ===========================
@@ -502,7 +502,7 @@ async def run_ffmpeg_test(channel_map: Dict[Tuple[str, str], List[str]]) -> Dict
     return final
 
 # ============================================================================
-# ========================= GitHub M3U 解析 ==================================
+# ========================= GitHub M3U 解析（修改后）===========================
 # ============================================================================
 @retry_async(max_retries=3, delay=2)
 async def download_github_m3u(url, session: Optional[aiohttp.ClientSession] = None):
@@ -524,58 +524,59 @@ async def download_github_m3u(url, session: Optional[aiohttp.ClientSession] = No
     return ""
 
 def parse_m3u_file(content):
+    """
+    解析 M3U 文件，完全依赖脚本内置分类，忽略源分组信息。
+    """
     ch = []
     g = n = u = ""
     for l in content.splitlines():
         l = l.strip()
         if l.startswith("#EXTINF"):
-            m = re.search(r'#EXTINF:-1.*?group-title="([^"]*)",(.+)', l)
-            if m:
-                g = m.group(1).strip()
-                n = m.group(2).strip()
-            else:
+            # 提取频道名，忽略源分组 group-title
+            m = re.search(r'#EXTINF:-1.*?group-title="[^"]*",(.+)', l)
+            if not m:
                 m = re.search(r'#EXTINF:-1.*?,(.+)', l)
-                if m:
-                    n = m.group(1).strip()
+            if m:
+                n = m.group(1).strip()
         elif l.startswith("http"):
             u = l.strip()
             if n and u:
                 n_cleaned = clean_satellite_name(n)
                 nn = normalize_cctv(n_cleaned)
-                gr = classify_channel(nn) or g
-                fn = nn if gr == "央视频道" else (clean_chinese_only(n_cleaned) if ENABLE_CHINESE_CLEAN else n_cleaned)
-                ch.append((gr, fn, u))
+                gr = classify_channel(nn)   # 仅依赖内置分类
+                if gr:   # 只保留能分类的频道
+                    fn = nn if gr == "央视频道" else (clean_chinese_only(n_cleaned) if ENABLE_CHINESE_CLEAN else n_cleaned)
+                    ch.append((gr, fn, u))
+            # 重置
             g = n = u = ""
     return ch
 
 # ============================================================================
-# ========================= 【新增】TXT格式解析 ===============================
+# ========================= TXT格式解析（修改后）===============================
 # ============================================================================
 def parse_txt_content(content: str, default_group: str = "未分类") -> List[Tuple[str, str, str]]:
     """
-    解析 TXT 格式直播源
+    解析 TXT 格式直播源，忽略源分组标记，完全依赖内置分类。
     格式示例：
         央视频道,#genre#
         CCTV1,http://example.com/cctv1.m3u8
         CCTV1,http://example.com/cctv1_backup.m3u8$仅供娱乐
     """
     channels = []
-    current_group = default_group
     for line in content.splitlines():
         line = line.strip()
-        if not line:
+        if not line or line.startswith('#'):
             continue
-        # 分组标记：xxx,#genre#
+        # 忽略分组标记行（如 央视频道,#genre#）
         if line.endswith('#genre#'):
-            current_group = line.split(',')[0].strip()
             continue
         # 频道行：name,url
-        if ',' in line and not line.startswith('#'):
+        if ',' in line:
             parts = line.split(',', 1)
             if len(parts) == 2:
                 name = parts[0].strip()
                 url_part = parts[1].strip()
-                # 处理 URL 中可能带 $ 注释的情况（如 $仅供娱乐）
+                # 处理 URL 中可能带 $ 注释的情况
                 if '$' in url_part:
                     url = url_part.split('$')[0].strip()
                 else:
@@ -583,11 +584,12 @@ def parse_txt_content(content: str, default_group: str = "未分类") -> List[Tu
                 if name and url:
                     name_cleaned = clean_satellite_name(name)
                     normalized = normalize_cctv(name_cleaned)
-                    group = classify_channel(normalized) or current_group
-                    final_name = normalized if group == "央视频道" else (
-                        clean_chinese_only(name_cleaned) if ENABLE_CHINESE_CLEAN else name_cleaned
-                    )
-                    channels.append((group, final_name, url))
+                    group = classify_channel(normalized)
+                    if group:   # 只保留能分类的频道
+                        final_name = normalized if group == "央视频道" else (
+                            clean_chinese_only(name_cleaned) if ENABLE_CHINESE_CLEAN else name_cleaned
+                        )
+                        channels.append((group, final_name, url))
     return channels
 
 # ============================================================================
@@ -886,7 +888,6 @@ async def main():
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
             tasks = [download_github_m3u(url, session) for url in GITHUB_M3U_LINKS]
             results = await asyncio.gather(*tasks, return_exceptions=True)
-            # 确保每个链接都输出日志（即使失败也输出0条）
             for idx, result in enumerate(results):
                 link_no = idx + 1
                 if isinstance(result, Exception):
@@ -895,7 +896,6 @@ async def main():
                     continue
                 if result and isinstance(result, str):
                     content = result.strip()
-                    # 智能识别格式：以 #EXTM3U 开头或包含 #EXTINF 视为 M3U，否则视为 TXT
                     if content.startswith('#EXTM3U') or '#EXTINF' in content:
                         channels = parse_m3u_file(content)
                     else:
@@ -903,7 +903,6 @@ async def main():
                     logger.info(f"✅ GitHub链接 {link_no} 获取到 {len(channels)} 条频道")
                     all_entries.extend(channels)
                 else:
-                    # result 为空字符串或 None
                     logger.info(f"✅ GitHub链接 {link_no} 获取到 0 条频道")
             logger.info(f"GitHub源累计获取: {len(all_entries)} 条")
 
@@ -996,8 +995,6 @@ async def main():
     if ENABLE_DEDUPLICATION:
         temp_channel_map = deduplicate_urls_per_channel(temp_channel_map)
 
-    # ==================== 【新增】频道筛选：只保留白名单中的分组 ====================
-    # 白名单来自 GROUP_ORDER（央视频道、卫视频道、电影频道、4K专区、儿童频道、轮播频道）
     allowed_groups = set(GROUP_ORDER)
     original_count = sum(len(urls) for urls in temp_channel_map.values())
     filtered_map = {}
@@ -1009,7 +1006,6 @@ async def main():
     temp_channel_map = filtered_map
     filtered_count = sum(len(urls) for urls in temp_channel_map.values())
     logger.info(f"频道筛选: 过滤前 {original_count} 条链接，过滤后 {filtered_count} 条链接，移除了 {original_count - filtered_count} 条不属于白名单的链接")
-    # ==========================================================================
 
     url_to_gn = {}
     for (g, n), urls in temp_channel_map.items():
