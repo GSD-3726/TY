@@ -132,8 +132,8 @@ UPDATE_STREAM_URL      = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3
 ENABLE_VERBOSE_LOGGING = False                           # 详细日志已关闭（保留配置，未使用）
 
 # -------------------------- 11. 连通性/预检配置 -----------------------------
-CONNECTIVITY_CONCURRENCY = 15                           # 连通性测试并发数
-CONNECTIVITY_TIMEOUT     = 1.5                          # 连通性测试超时（秒）
+CONNECTIVITY_CONCURRENCY = 20                           # 连通性测试并发数
+CONNECTIVITY_TIMEOUT     = 1                          # 连通性测试超时（秒）
 
 # ============================================================================
 # ============================= 日志配置（北京时间） ===========================
