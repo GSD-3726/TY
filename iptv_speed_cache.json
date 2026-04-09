@@ -85150,5 +85150,21 @@
     "width": 0,
     "height": 0,
     "timestamp": 1775706945.7162821
+  },
+  "http://221.13.235.111:9901/tsfile/live/0014_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": true,
+    "fps": 38.0,
+    "frames": 222,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1775714074.4757676
+  },
+  "http://125.42.148.129:9901/tsfile/live/1014_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1775714081.1072445
   }
 }
