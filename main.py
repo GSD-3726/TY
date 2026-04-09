@@ -61,11 +61,11 @@ GITHUB_M3U_LINKS = [
     "https://gh-proxy.com/https://raw.githubusercontent.com/3377/IPTV/master/output/result.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/asdjkl6/tv/tv/.m3u/整套直播源/测试/整套直播源/l.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/asdjkl6/tv/tv/.m3u/整套直播源/测试/整套直播源/kk.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/yuanzl77/IPTV/master/live.txt",
+   # "https://gh-proxy.com/https://raw.githubusercontent.com/yuanzl77/IPTV/master/live.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv6.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/others_output.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/zhaochunen/iptv/main/zubo_all.txt",    
+  #  "https://gh-proxy.com/https://raw.githubusercontent.com/zhaochunen/iptv/main/zubo_all.txt",    
     "https://gh-proxy.com/https://raw.githubusercontent.com/mursor1985/LIVE/refs/heads/main/yylunbo.m3u"
 ]
 
@@ -132,7 +132,7 @@ UPDATE_STREAM_URL      = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3
 ENABLE_VERBOSE_LOGGING = False                           # 详细日志已关闭（保留配置，未使用）
 
 # -------------------------- 11. 连通性/预检配置 -----------------------------
-CONNECTIVITY_CONCURRENCY = 1500                           # 连通性测试并发数
+CONNECTIVITY_CONCURRENCY = 15                           # 连通性测试并发数
 CONNECTIVITY_TIMEOUT     = 2                          # 连通性测试超时（秒）
 
 # ============================================================================
