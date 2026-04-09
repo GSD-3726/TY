@@ -138,7 +138,7 @@ UPDATE_STREAM_URL      = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3
 ENABLE_VERBOSE_LOGGING = False                           
 
 # -------------------------- 11. 连通性/预检配置 -----------------------------
-CONNECTIVITY_CONCURRENCY = 50                           
+CONNECTIVITY_CONCURRENCY = 200                           
 CONNECTIVITY_TIMEOUT     = 0.5                          
 
 # ============================================================================
