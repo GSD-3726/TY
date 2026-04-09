@@ -1,17 +1,12 @@
 央视频道,#genre#
-CCTV-3综艺,http://38.75.136.137:98/gslb/dsdqbv/cctv3hd.m3u8?auth=test20251009
-CCTV-5体育,http://38.75.136.137:98/gslb/dsdqbv/cctv5hd.m3u8?auth=test20251009
-CCTV-6电影,http://38.75.136.137:98/gslb/dsdqbv/cctv6hd.m3u8?auth=test20251009
-CCTV-12社会与法,http://38.75.136.137:98/gslb/dsdqbv/cctv12hd.m3u8?auth=test20251009
 CCTV风云足球,http://38.75.136.137:98/gslb/dsdqpub/fyzq.m3u8?auth=testpub
 
 卫视频道,#genre#
-厦门卫视,http://38.75.136.137:98/gslb/dsdqpub/xmws.m3u8?auth=testpub
 海峡卫视,http://38.64.72.148:80/hls/modn/list/4009/chunklist0.m3u8
 海峡卫视,http://38.64.72.148:80/hls/modn/list/4009/playlist.m3u8
 
-电影频道,#genre#
-影迷电影,http://38.75.136.137:98/gslb/dsdqpub/chchd.m3u8?auth=testpub
+儿童频道,#genre#
+公视少儿,http://74.91.26.218:82/live/ptsse.m3u8
 
 更新时间,#genre#
-2026-04-09 17:43:50,https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
+2026-04-09 19:00:36,https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
