@@ -92,7 +92,7 @@ ENABLE_SATELLITE_CLEAN = True                            # 【新增】卫视名
 
 # -------------------------- 8. 频道分类规则（已扩展关键词） ------------------
 CATEGORY_RULES = [
-    {"name": "4K专区",      "keywords": ["4k", "4K", "超高清", "2160p"]},
+   # {"name": "4K专区",      "keywords": ["4k", "4K", "超高清", "2160p"]},
     {"name": "央视频道",    "keywords": ["cctv", "cetv", "央视", "中央", "CCTV", "CETV", "央视频道"]},
     {"name": "卫视频道",    "keywords": ["卫视", "卫视高清"]},
     {"name": "电影频道",    "keywords": ["电影", "影院", "chc", "动作", "剧场", "映画", "影视", "大片", "影视频道"]},
@@ -132,7 +132,7 @@ UPDATE_STREAM_URL      = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3
 ENABLE_VERBOSE_LOGGING = False                           # 详细日志已关闭（保留配置，未使用）
 
 # -------------------------- 11. 连通性/预检配置 -----------------------------
-CONNECTIVITY_CONCURRENCY = 15                           # 连通性测试并发数
+CONNECTIVITY_CONCURRENCY = 20                           # 连通性测试并发数
 CONNECTIVITY_TIMEOUT     = 2                          # 连通性测试超时（秒）
 
 # ============================================================================
