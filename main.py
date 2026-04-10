@@ -56,18 +56,12 @@ DATA_CHECK_INTERVAL    = 30                              # 数据加载检查间
 # -------------------------- 4. GitHub源订阅 --------------------------------
 ENABLE_GITHUB_SOURCES = True                            # 是否启用GitHub源
 GITHUB_M3U_LINKS = [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV_AutoUpdate.m3u8",
     "https://gh-proxy.com/https://raw.githubusercontent.com/kakaxi-1/IPTV/main/ipv4.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/3377/IPTV/master/output/result.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/asdjkl6/tv/tv/.m3u/整套直播源/测试/整套直播源/l.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/asdjkl6/tv/tv/.m3u/整套直播源/测试/整套直播源/kk.txt",
-   # "https://gh-proxy.com/https://raw.githubusercontent.com/yuanzl77/IPTV/master/live.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv6.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/others_output.txt",
-  #  "https://gh-proxy.com/https://raw.githubusercontent.com/zhaochunen/iptv/main/zubo_all.txt",    
-    "https://gh-proxy.com/https://raw.githubusercontent.com/mursor1985/LIVE/refs/heads/main/yylunbo.m3u"
-]
+    "https://gh-proxy.com/https://raw.githubusercontent.com/zhaochunen/iptv/main/zubo_all.txt"   
+    ]
 
 # -------------------------- 5. FFmpeg测速设置 -------------------------------
 ENABLE_FFMPEG_TEST     = True                            # 是否启用FFmpeg测速
