@@ -67,7 +67,7 @@ GITHUB_M3U_LINKS = [
 ENABLE_FFMPEG_TEST     = True                            # 是否启用FFmpeg测速
 FFMPEG_PATH            = "ffmpeg"                        # FFmpeg 程序路径（如果不在PATH中需写完整）
 FFMPEG_TEST_DURATION   = 10                              # 每个链接测试时长（秒）
-FFMPEG_CONCURRENCY     = 6                               # 并发测速数量（GitHub Actions建议≤2）
+FFMPEG_CONCURRENCY     = 4                               # 并发测速数量（GitHub Actions建议≤2）
 MIN_AVG_FPS            = 24                              # 最低平均帧率
 MIN_FRAMES             = 210                             # 最低解码帧数（防止只有几秒数据）
 
@@ -126,7 +126,7 @@ UPDATE_STREAM_URL      = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3
 ENABLE_VERBOSE_LOGGING = False                           # 详细日志已关闭（保留配置，未使用）
 
 # -------------------------- 11. 连通性/预检配置 -----------------------------
-CONNECTIVITY_CONCURRENCY = 10                           # 连通性测试并发数
+CONNECTIVITY_CONCURRENCY = 30                           # 连通性测试并发数
 CONNECTIVITY_TIMEOUT     = 2                          # 连通性测试超时（秒）
 
 # ============================================================================
