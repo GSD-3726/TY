@@ -6,33 +6,25 @@ http://60.13.52.236:65500/newlive/live/hls/2/live.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-3综艺
 http://1.24.39.180:9003/hls/3/index.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-4国际
-http://1.197.204.20:85/tsfile/live/0004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="央视频道",CCTV-4国际
 http://221.226.51.220:50081/newlive/live/hls/4/live.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-5体育
 http://221.226.51.220:50081/newlive/live/hls/5/live.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-5体育
 http://113.235.151.48:777/hls/443969582/index.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-6电影
-http://154.37.212.176/ysp.php?pid=600108442&id=2013693901
-#EXTINF:-1 group-title="央视频道",CCTV-6电影
-http://43.156.8.127:5050/ysp?id=2013693901&pid=600108442&q=fhd
-#EXTINF:-1 group-title="央视频道",CCTV-6电影
-http://221.232.197.204:7777/tsfile/live/0006_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="央视频道",CCTV-6电影
 http://113.235.151.48:777/hls/284143533/index.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-7国防军事
 http://1.24.39.180:9003/hls/7/index.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-7国防军事
 http://113.235.151.48:777/hls/287281364/index.m3u8
+#EXTINF:-1 group-title="央视频道",CCTV-8电视剧
+http://116.77.33.98:44330/tsfile/live/0009_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-9纪录
 http://113.235.151.48:777/hls/334366488/index.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-10科教
 http://113.235.151.48:777/hls/355242285/index.m3u8
 #EXTINF:-1 group-title="央视频道",CCTV-11戏曲
 http://120.238.84.45:9901/tsfile/live/1029_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="央视频道",CCTV-13新闻
-http://1.197.204.20:85/tsfile/live/0013_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-13新闻
 http://120.238.84.45:9901/tsfile/live/1031_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-13新闻
@@ -72,10 +64,10 @@ http://154.37.212.176/ysp.php?pid=600002513&id=2029787903
 http://119.39.9.8:9901/tsfile/live/0118_1.m3u8
 #EXTINF:-1 group-title="卫视频道",广东卫视
 http://223.167.230.46:4022/udp/233.18.204.218:5140
+#EXTINF:-1 group-title="卫视频道",广西卫视
+http://154.37.212.176/ysp.php?pid=600002509&id=2024060703
 #EXTINF:-1 group-title="卫视频道",江苏卫视
 http://43.156.8.127:5050/ysp?id=2024171103&pid=600002521&q=fhd
-#EXTINF:-1 group-title="卫视频道",江苏卫视
-http://221.232.197.204:7777/tsfile/live/0127_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",江西卫视
 http://125.43.241.91:85/tsfile/live/1034_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",浙江卫视
@@ -95,6 +87,8 @@ http://38.64.72.148:80/hls/modn/list/4009/chunklist0.m3u8
 #EXTINF:-1 group-title="卫视频道",深圳卫视
 http://223.167.230.46:4022/udp/233.18.204.219:5140
 #EXTINF:-1 group-title="卫视频道",湖南卫视
+http://hlsal-ldvt.qing.mgtv.com/nn_live/nn_x64/Y2RuZXhfaWQ9YWxfaGxzX2xkdnQmZT02OTE0NjA0JnY9MSZpZD1ITldTWkdTVCZzPTcwN2RiYTc2YzJjNmJmMTQ4MmUyZGYzOWU2NWM3YWFi/HNWSZGST.m3u8
+#EXTINF:-1 group-title="卫视频道",湖南卫视
 http://hlsal-ldvt.qing.mgtv.com/nn_live/nn_x64/dWlwPTEyNy4wLjAuMSZ1aWQ9cWluZy1jbXMmbm5fdGltZXpvbmU9OCZjZG5leF9pZD1hbF9obHNfbGR2dCZ1dWlkPTliODY4NmU5ZTM2YzYwMmMmZT02OTE0NjA0JnY9MSZpZD1ITldTWkdTVCZzPTcwN2RiYTc2YzJjNmJmMTQ4MmUyZGYzOWU2NWM3YWFi/HNWSZGST.m3u8
 #EXTINF:-1 group-title="卫视频道",湖南卫视
 http://223.167.230.46:4022/udp/233.18.204.227:5140
@@ -109,6 +103,8 @@ http://36.32.174.67:60080/newlive/live/hls/48/live.m3u8
 #EXTINF:-1 group-title="卫视频道",贵州卫视
 http://1.24.39.180:9003/hls/32/index.m3u8
 #EXTINF:-1 group-title="卫视频道",辽宁卫视
+http://116.77.33.98:44330/tsfile/live/0121_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
+#EXTINF:-1 group-title="卫视频道",辽宁卫视
 http://113.235.151.48:777/hls/448726876/index.m3u8
 #EXTINF:-1 group-title="卫视频道",重庆卫视
 http://221.226.51.220:50081/newlive/live/hls/28/live.m3u8
@@ -119,8 +115,6 @@ http://60.13.52.236:65500/newlive/live/hls/38/live.m3u8
 #EXTINF:-1 group-title="卫视频道",黑龙江卫视
 http://221.226.51.220:50081/newlive/live/hls/31/live.m3u8
 
-#EXTINF:-1 group-title="电影频道",上虞文化影院
-http://l.cztvcloud.com/channels/lantian/SXshangyu2/720p.m3u8
 #EXTINF:-1 group-title="电影频道",上虞文化影院
 https://t.freetv.fun/live/shang-yu-wen-hua-ying-yuan.m3u8
 #EXTINF:-1 group-title="电影频道",动作电影
@@ -139,5 +133,5 @@ http://222.214.208.34:59901/tsfile/live/1022_1.m3u8?key=txiptv&amp;playlive=1&am
 #EXTINF:-1 group-title="儿童频道",金鹰卡通
 http://222.214.208.34:59901/tsfile/live/1013_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 
-#EXTINF:-1 group-title="更新时间",2026-04-16 18:31:38
+#EXTINF:-1 group-title="更新时间",2026-04-17 06:01:57
 https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
