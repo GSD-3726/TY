@@ -56,12 +56,11 @@ DATA_CHECK_INTERVAL    = 30                              # 数据加载检查间
 # -------------------------- 4. GitHub源订阅 --------------------------------
 ENABLE_GITHUB_SOURCES = True                            # 是否启用GitHub源
 GITHUB_M3U_LINKS = [
-     "https://gh-proxy.com/https://raw.githubusercontent.com/kakaxi-1/IPTV/main/ipv4.txt",
-     "https://gh-proxy.com/https://raw.githubusercontent.com/3377/IPTV/master/output/ipv4/result.txt",
-     "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt",
-     "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt"
-  # "https://gh-proxy.com/https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_cctv.m3u8"   
-    ]
+    "https://gh-proxy.com/https://raw.githubusercontent.com/kakaxi-1/IPTV/main/ipv4.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/3377/IPTV/master/output/ipv4/result.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_cctv.m3u8"
+]
 
 # -------------------------- 5. FFmpeg测速设置 -------------------------------
 ENABLE_FFMPEG_TEST     = True                            # 是否启用FFmpeg测速
