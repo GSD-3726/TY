@@ -739,7 +739,7 @@ def deduplicate_urls_per_channel(channel_map: Dict[Tuple[str, str], List[str]]) 
     return dict(new_map)
 
 # ============================================================================
-# ========================= 结果导出 =========================================
+# ========================= 结果导出（修复CCTV5/+串台问题）====================
 # ============================================================================
 def export_results_with_timestamp(channel_map):
     now = (datetime.datetime.utcnow() + datetime.timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
@@ -770,10 +770,15 @@ def export_results_with_timestamp(channel_map):
                         cctv_match = CCTV_PATTERN.search(name)
                         if cctv_match:
                             num = cctv_match.group(2)
+                            # ---------- 修复开始：精确频道号匹配，防止CCTV5匹配到CCTV5+ ----------
                             for std_candidate in CCTV_ORDER:
-                                if num in std_candidate:
-                                    std = std_candidate
-                                    break
+                                std_num_match = CCTV_PATTERN.search(std_candidate)
+                                if std_num_match:
+                                    std_num = std_num_match.group(2)
+                                    if num == std_num:      # 精确匹配频道号
+                                        std = std_candidate
+                                        break
+                            # ---------- 修复结束 ----------
                     name_to_std[name] = std
 
                 std_to_urls = defaultdict(list)
@@ -826,10 +831,15 @@ def export_results_with_timestamp(channel_map):
                         cctv_match = CCTV_PATTERN.search(name)
                         if cctv_match:
                             num = cctv_match.group(2)
+                            # ---------- 修复开始：精确频道号匹配，防止CCTV5匹配到CCTV5+ ----------
                             for std_candidate in CCTV_ORDER:
-                                if num in std_candidate:
-                                    std = std_candidate
-                                    break
+                                std_num_match = CCTV_PATTERN.search(std_candidate)
+                                if std_num_match:
+                                    std_num = std_num_match.group(2)
+                                    if num == std_num:      # 精确匹配频道号
+                                        std = std_candidate
+                                        break
+                            # ---------- 修复结束 ----------
                     name_to_std[name] = std
 
                 std_to_urls = defaultdict(list)
