@@ -1,1668 +1,4 @@
 {
-  "http://113.235.151.48:777/hls/465591451/index.m3u8": {
-    "ok": true,
-    "fps": 39.0,
-    "frames": 224,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776635507.6253912
-  },
-  "http://112.19.31.13:85/tsfile/live/1006_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635514.4155874
-  },
-  "http://218.59.23.23:85/tsfile/live/0002_20.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635514.4174414
-  },
-  "http://119.62.24.75:50085/tsfile/live/1002_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635514.4174495
-  },
-  "http://125.43.244.73:9901/tsfile/live/1013_1.m3u8?key=txiptv&playlive=1&authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635522.6346314
-  },
-  "http://39.152.103.17:8089/tsfile/live/1093_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": false,
-    "fps": 28.0,
-    "frames": 204,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776635523.6141095
-  },
-  "http://219.144.157.62:9901/tsfile/live/1020_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635529.422246
-  },
-  "http://39.152.103.17:8089/tsfile/live/1010_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635529.4238818
-  },
-  "http://122.96.61.11:9003/hls/10/index.m3u8": {
-    "ok": false,
-    "fps": 48.0,
-    "frames": 209,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635529.9806933
-  },
-  "http://61.173.159.249:9003/hls/14/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635537.6448965
-  },
-  "http://125.43.244.73:9901/tsfile/live/1039_1.m3u8?key=txiptv&playlive=1&authid=0": {
-    "ok": false,
-    "fps": 23.0,
-    "frames": 200,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635541.1956844
-  },
-  "http://218.1.208.13:7777/tsfile/live/1052_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635544.4287288
-  },
-  "http://119.62.24.75:50085/tsfile/live/0120_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635544.43283
-  },
-  "http://183.234.143.5:85/tsfile/live/1123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 47.0,
-    "frames": 225,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776635545.3707287
-  },
-  "https://live-play-hls.cctvnews.cctv.com/CCTVChannel/channel_cctv4_mbd.m3u8?auth_key=1776668400-1-b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c-27c0d9eb28037cc202c2f84a84022fa1&yid=b59134a2ead43d7f783f943c8f535e7bb80c5169575b2e8efcd5b3ddea21b41c": {
-    "ok": false,
-    "fps": 108.0,
-    "frames": 197,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635548.488416
-  },
-  "http://122.96.61.11:9003/hls/34/index.m3u8": {
-    "ok": true,
-    "fps": 86.0,
-    "frames": 222,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776635552.6986122
-  },
-  "http://218.1.208.13:7777/tsfile/live/1026_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635556.2007062
-  },
-  "http://171.116.254.184:9003/hls/11/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635559.4367588
-  },
-  "http://183.62.8.58:50085/tsfile/live/0132_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635560.3758752
-  },
-  "http://221.7.49.226:50085/tsfile/live/0017_11.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635567.7053266
-  },
-  "http://180.165.12.42:50001/tsfile/live/0001_21.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635571.2069504
-  },
-  "http://180.118.187.202:60001/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635574.4485204
-  },
-  "http://219.144.157.62:9901/tsfile/live/1009_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635575.3811111
-  },
-  "http://183.234.143.5:85/tsfile/live/1090_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 36.0,
-    "frames": 225,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776635576.0689378
-  },
-  "http://171.116.254.184:9003/hls/44/index.m3u8": {
-    "ok": true,
-    "fps": 24.0,
-    "frames": 224,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635582.8926861
-  },
-  "http://183.11.239.36:808/hls/157/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635589.4568982
-  },
-  "http://218.59.23.23:85/tsfile/live/0002_59.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635590.387859
-  },
-  "http://60.8.75.178:9002/hls/10/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635591.074593
-  },
-  "http://180.165.12.42:50001/tsfile/live/0001_26.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635597.8979526
-  },
-  "http://39.152.103.17:8089/tsfile/live/1036_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": true,
-    "fps": 28.0,
-    "frames": 217,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635601.408279
-  },
-  "http://124.165.251.82:85/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635604.4661283
-  },
-  "http://111.221.137.234:44330/tsfile/live/0130_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635605.3953831
-  },
-  "http://124.165.251.82:85/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635612.9046955
-  },
-  "http://180.165.12.42:50001/tsfile/live/0001_11.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635616.4146814
-  },
-  "http://183.234.143.5:85/tsfile/live/1033_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 12.0,
-    "frames": 128,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776635619.2428958
-  },
-  "http://61.173.159.249:9003/hls/22/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635619.4768834
-  },
-  "http://122.96.61.11:9003/hls/3/index.m3u8": {
-    "ok": true,
-    "fps": 70.0,
-    "frames": 222,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776635624.23426
-  },
-  "http://111.221.137.234:44330/tsfile/live/0126_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635627.9127927
-  },
-  "http://61.173.159.249:9003/hls/10/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635631.4251146
-  },
-  "http://39.164.164.132:9901/tsfile/live/1018_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635634.4869998
-  },
-  "http://218.1.208.13:7777/tsfile/live/0121_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635639.2399313
-  },
-  "http://218.1.208.13:7777/tsfile/live/1046_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635642.9216244
-  },
-  "http://cssbyd.imwork.net:8082/hls/25/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635646.432331
-  },
-  "http://218.1.208.13:7777/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635649.4935389
-  },
-  "http://cssbyd.imwork.net:8082/hls/29/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635654.2452009
-  },
-  "http://218.59.23.23:85/tsfile/live/0002_32.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635657.9333673
-  },
-  "http://36.136.38.87:9901/tsfile/live/1003_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635661.4390857
-  },
-  "http://183.234.143.5:85/tsfile/live/1055_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635664.5011115
-  },
-  "http://113.241.133.180:85/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 19.0,
-    "frames": 201,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635667.968816
-  },
-  "http://119.62.24.75:50085/tsfile/live/0132_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635672.9412637
-  },
-  "http://180.165.12.42:50001/tsfile/live/0001_29.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635676.4448295
-  },
-  "http://218.1.208.13:7777/tsfile/live/1029_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635679.5065162
-  },
-  "http://183.234.143.5:85/tsfile/live/1092_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635682.9756532
-  },
-  "http://180.165.12.42:50001/tsfile/live/0001_10.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635687.9472659
-  },
-  "http://219.144.157.62:9901/tsfile/live/1027_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635691.4501793
-  },
-  "http://39.152.103.17:8089/tsfile/live/1044_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635694.5163686
-  },
-  "http://180.165.12.42:50001/tsfile/live/0001_19.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635697.9819422
-  },
-  "http://119.62.24.75:50085/tsfile/live/0127_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635702.9564116
-  },
-  "http://39.152.103.17:8089/tsfile/live/1009_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635706.4592714
-  },
-  "http://123.130.84.106:8154/tsfile/live/0013_1.m3u8?key=txiptv&playlive=1&authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635709.5238316
-  },
-  "http://39.165.39.49:85/tsfile/live/1128_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 73.0,
-    "frames": 225,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635711.9575663
-  },
-  "http://111.221.137.234:44330/tsfile/live/0137_2.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635712.990517
-  },
-  "http://111.221.137.234:44330/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": true,
-    "fps": 62.0,
-    "frames": 224,
-    "width": 1280,
-    "height": 720,
-    "timestamp": 1776635715.0609357
-  },
-  "http://183.11.239.36:808/hls/34/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635717.9650965
-  },
-  "http://218.59.23.23:85/tsfile/live/0002_60.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635726.9647436
-  },
-  "http://27.185.1.27:8092/hls/12/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635727.9965353
-  },
-  "http://112.19.31.13:85/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635730.0688636
-  },
-  "http://171.116.254.184:9003/hls/24/index.m3u8": {
-    "ok": false,
-    "fps": 20.0,
-    "frames": 224,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635731.6384075
-  },
-  "http://125.43.244.73:9901/tsfile/live/1004_1.m3u8?key=txiptv&playlive=1&authid=0": {
-    "ok": false,
-    "fps": 34.0,
-    "frames": 207,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635738.680732
-  },
-  "http://39.164.164.132:9901/tsfile/live/1016_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": false,
-    "fps": 22.0,
-    "frames": 225,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635740.2709012
-  },
-  "http://171.38.144.4:9003/hls/10/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635743.0023203
-  },
-  "http://171.116.254.184:9003/hls/38/index.m3u8": {
-    "ok": true,
-    "fps": 84.0,
-    "frames": 224,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776635745.3324795
-  },
-  "http://180.165.12.42:50001/tsfile/live/0001_35.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635746.643481
-  },
-  "http://183.234.143.5:85/tsfile/live/1103_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635753.6874895
-  },
-  "http://39.152.103.17:8089/tsfile/live/1019_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": false,
-    "fps": 34.0,
-    "frames": 200,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776635754.6689162
-  },
-  "http://59.174.117.160:7777/tsfile/live/0107_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635758.0109627
-  },
-  "http://183.62.8.58:50085/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635760.338596
-  },
-  "http://221.7.49.226:50085/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 41.0,
-    "frames": 227,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635762.5264142
-  },
-  "http://122.96.61.11:9003/hls/39/index.m3u8": {
-    "ok": true,
-    "fps": 25.0,
-    "frames": 222,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635764.8649237
-  },
-  "http://27.185.1.27:8092/hls/18/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635773.0235023
-  },
-  "http://219.144.157.62:9901/tsfile/live/1016_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635775.3445785
-  },
-  "http://cssbyd.imwork.net:8082/hls/11/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635777.531431
-  },
-  "http://cssbyd.imwork.net:8082/hls/14/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635779.8736076
-  },
-  "http://39.164.164.132:9901/tsfile/live/1050_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": false,
-    "fps": 22.0,
-    "frames": 225,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635785.4286857
-  },
-  "http://113.241.133.180:85/tsfile/live/1004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 19.0,
-    "frames": 198,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635788.7638156
-  },
-  "http://112.99.195.122:65000/tsfile/live/0107_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635792.5388322
-  },
-  "http://39.164.164.132:9901/tsfile/live/1031_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": true,
-    "fps": 31.0,
-    "frames": 225,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635794.8598695
-  },
-  "http://112.19.31.13:85/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635794.880973
-  },
-  "http://36.136.38.87:9901/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635803.770218
-  },
-  "http://218.1.208.13:7777/tsfile/live/1041_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635807.5437496
-  },
-  "http://61.136.172.236:9901/tsfile/live/0107_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635809.8653388
-  },
-  "http://183.234.143.5:85/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635809.890923
-  },
-  "http://111.221.137.234:44330/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": true,
-    "fps": 87.0,
-    "frames": 224,
-    "width": 1280,
-    "height": 720,
-    "timestamp": 1776635812.196338
-  },
-  "http://39.152.103.17:8089/tsfile/live/1003_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": true,
-    "fps": 36.0,
-    "frames": 216,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635813.0338516
-  },
-  "http://112.99.195.122:65000/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635824.8711374
-  },
-  "http://218.59.23.23:85/tsfile/live/0002_54.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635824.8966744
-  },
-  "http://27.185.1.27:8092/hls/24/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635827.2049782
-  },
-  "http://119.62.24.75:50085/tsfile/live/0011_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635828.0427155
-  },
-  "http://63.141.230.178:82/gslb/zbdq5.m3u8?id=cctv16hd": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 120,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635829.5329025
-  },
-  "http://122.96.61.11:9003/hls/13/index.m3u8": {
-    "ok": true,
-    "fps": 42.0,
-    "frames": 222,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776635832.0107613
-  },
-  "http://39.152.103.17:8089/tsfile/live/1058_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": true,
-    "fps": 34.0,
-    "frames": 219,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635836.3296077
-  },
-  "http://221.7.49.226:50085/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 39.0,
-    "frames": 223,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635837.6907172
-  },
-  "http://61.136.172.236:9901/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635839.9029567
-  },
-  "http://119.62.24.75:50085/tsfile/live/0131_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635847.0165198
-  },
-  "http://61.136.172.236:9901/tsfile/live/0011_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635851.3346326
-  },
-  "http://27.185.1.27:8092/hls/41/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635852.6969533
-  },
-  "http://171.116.254.184:9003/hls/17/index.m3u8": {
-    "ok": true,
-    "fps": 45.0,
-    "frames": 225,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635854.3232977
-  },
-  "http://39.152.103.17:8089/tsfile/live/1068_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635854.9106355
-  },
-  "http://39.164.164.132:9901/tsfile/live/1009_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": false,
-    "fps": 37.0,
-    "frames": 209,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635859.3578362
-  },
-  "http://111.221.137.234:44330/tsfile/live/0136_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635867.7053216
-  },
-  "https://event.pull.hebtv.com/jishi/cp1.m3u8": {
-    "ok": false,
-    "fps": 17.0,
-    "frames": 150,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635869.113611
-  },
-  "http://125.43.244.73:9901/tsfile/live/1026_1.m3u8?key=txiptv&playlive=1&authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635869.9184875
-  },
-  "http://39.152.103.17:8089/tsfile/live/1073_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635874.3724406
-  },
-  "http://39.152.103.17:8089/tsfile/live/1015_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": false,
-    "fps": 35.0,
-    "frames": 207,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635876.5894842
-  },
-  "http://122.96.61.11:9003/hls/30/index.m3u8": {
-    "ok": true,
-    "fps": 55.0,
-    "frames": 220,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635880.621665
-  },
-  "http://219.144.157.62:9901/tsfile/live/1003_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635884.11893
-  },
-  "http://112.19.31.13:85/tsfile/live/0004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635884.9265754
-  },
-  "http://39.165.39.49:85/tsfile/live/1010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 82.0,
-    "frames": 225,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635889.179314
-  },
-  "http://171.38.144.4:9003/hls/20/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635891.5970187
-  },
-  "http://183.234.143.5:85/tsfile/live/1099_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 30.0,
-    "frames": 225,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776635894.483835
-  },
-  "http://218.1.208.13:7777/tsfile/live/1038_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635895.6284058
-  },
-  "http://171.116.254.184:9003/hls/26/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635904.1877809
-  },
-  "http://119.62.24.75:50085/tsfile/live/1000_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635906.6053455
-  },
-  "http://221.7.49.226:50085/tsfile/live/0016_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 19.0,
-    "frames": 223,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635908.4628408
-  },
-  "http://36.136.38.87:9901/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635910.6355858
-  },
-  "http://cssbyd.imwork.net:8082/hls/34/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635919.192928
-  },
-  "http://180.118.187.202:60001/tsfile/live/0011_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635921.612967
-  },
-  "http://60.8.75.178:9002/hls/43/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635923.4689229
-  },
-  "http://221.7.49.226:50085/tsfile/live/0017_3.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 19.0,
-    "frames": 219,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635924.6389694
-  },
-  "http://222.169.85.8:9901/tsfile/live/0007_1.m3u8": {
-    "ok": false,
-    "fps": 26.0,
-    "frames": 189,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635929.6665
-  },
-  "http://112.99.195.122:65000/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635936.6189704
-  },
-  "http://183.234.143.5:85/tsfile/live/1096_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635938.4753113
-  },
-  "http://180.165.12.42:50001/tsfile/live/0001_13.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635939.6442997
-  },
-  "http://124.165.251.82:85/tsfile/live/0125_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635944.674246
-  },
-  "http://39.165.39.49:85/tsfile/live/1003_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 59.0,
-    "frames": 225,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635950.5812511
-  },
-  "http://183.234.143.5:85/tsfile/live/1061_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635951.6267033
-  },
-  "http://171.116.254.184:9003/hls/18/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635953.483633
-  },
-  "http://61.136.172.236:9901/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635954.649747
-  },
-  "http://39.165.39.49:85/tsfile/live/1124_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 114.0,
-    "frames": 225,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635957.2869449
-  },
-  "http://219.144.157.62:9901/tsfile/live/1017_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635965.5921645
-  },
-  "http://61.173.159.249:9003/hls/26/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635966.6327574
-  },
-  "http://218.1.208.13:7777/tsfile/live/1039_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635969.657229
-  },
-  "http://27.185.1.27:8092/hls/10/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635972.2949507
-  },
-  "http://111.221.137.234:44330/tsfile/live/0012_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635980.5996242
-  },
-  "http://218.1.208.13:7777/tsfile/live/0131_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635981.6386473
-  },
-  "http://219.144.157.62:9901/tsfile/live/1029_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635984.662061
-  },
-  "http://180.165.12.42:50001/tsfile/live/0001_16.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635987.3009422
-  },
-  "http://171.116.254.184:9003/hls/50/index.m3u8": {
-    "ok": true,
-    "fps": 25.0,
-    "frames": 223,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635992.5642781
-  },
-  "http://183.11.239.36:808/hls/79/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635996.6439943
-  },
-  "http://36.136.38.87:9901/tsfile/live/0128_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776635997.1468031
-  },
-  "http://39.165.39.49:85/tsfile/live/1156_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 59.0,
-    "frames": 225,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776635998.2998273
-  },
-  "http://221.232.100.225:7777/tsfile/live/0017_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636002.0616896
-  },
-  "http://180.165.12.42:50001/tsfile/live/0001_25.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636002.305744
-  },
-  "http://183.234.143.5:85/tsfile/live/1118_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 30.0,
-    "frames": 225,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776636007.53772
-  },
-  "http://221.7.49.226:50085/tsfile/live/0132_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 37.0,
-    "frames": 199,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776636009.8620186
-  },
-  "http://39.165.39.49:85/tsfile/live/1157_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 86.0,
-    "frames": 225,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776636011.766801
-  },
-  "http://218.1.208.13:7777/tsfile/live/0140_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636013.305162
-  },
-  "http://39.165.39.49:85/tsfile/live/1088_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 74.0,
-    "frames": 225,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776636015.0867932
-  },
-  "http://39.152.103.17:8089/tsfile/live/1042_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636017.313963
-  },
-  "http://111.221.137.234:44330/tsfile/live/0128_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": true,
-    "fps": 108.0,
-    "frames": 222,
-    "width": 1280,
-    "height": 720,
-    "timestamp": 1776636021.4181757
-  },
-  "http://39.165.39.49:85/tsfile/live/1158_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 83.0,
-    "frames": 225,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776636026.025044
-  },
-  "http://218.59.23.23:85/tsfile/live/0002_68.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636026.7747786
-  },
-  "http://61.136.172.236:9901/tsfile/live/0139_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636028.313374
-  },
-  "http://112.99.195.122:65000/tsfile/live/0131_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636030.09259
-  },
-  "http://119.62.24.75:50085/tsfile/live/0017_4.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636041.032199
-  },
-  "http://39.152.103.17:8089/tsfile/live/1045_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636041.7843163
-  },
-  "http://61.173.159.249:9003/hls/25/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636043.3257716
-  },
-  "http://cssbyd.imwork.net:8082/hls/12/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636045.0986505
-  },
-  "http://39.165.39.49:85/tsfile/live/1159_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636047.1612566
-  },
-  "http://171.38.144.4:9003/hls/32/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636056.0388618
-  },
-  "http://171.38.144.4:9003/hls/17/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636058.3319757
-  },
-  "http://39.152.103.17:8089/tsfile/live/1095_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636060.1092737
-  },
-  "http://183.62.8.58:50085/tsfile/live/0003_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636062.1669264
-  },
-  "http://39.165.39.49:85/tsfile/live/1092_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 119.0,
-    "frames": 225,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776636063.748576
-  },
-  "http://27.185.1.27:8092/hls/43/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636071.0443664
-  },
-  "http://171.38.144.4:9003/hls/134/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636073.3375142
-  },
-  "http://39.152.103.17:8089/tsfile/live/1016_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636077.1754303
-  },
-  "http://111.221.137.234:44330/tsfile/live/0112_2.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636078.754906
-  },
-  "http://183.62.8.58:50085/tsfile/live/0019_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636082.2317553
-  },
-  "http://112.99.195.122:65000/tsfile/live/1036_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636086.0504396
-  },
-  "http://112.99.195.122:65000/tsfile/live/0121_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636088.343013
-  },
-  "http://112.99.195.122:65000/tsfile/live/1023_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636093.7606149
-  },
-  "http://221.7.49.226:50085/tsfile/live/0019_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 23.0,
-    "frames": 222,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776636094.5344226
-  },
-  "http://111.221.137.234:44330/tsfile/live/0141_2.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636101.0589447
-  },
-  "http://183.11.239.36:808/hls/92/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636103.3504188
-  },
-  "http://183.234.143.5:85/tsfile/live/0125_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 33.0,
-    "frames": 229,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776636105.1768255
-  },
-  "http://61.136.172.236:9901/tsfile/live/0132_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636108.7656074
-  },
-  "https://test.946985.filegear-sg.me/proxy/c1ef89d2aa5924f0": {
-    "ok": false,
-    "fps": 133.0,
-    "frames": 200,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776636112.5335429
-  },
-  "http://39.165.39.49:85/tsfile/live/1140_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 68.0,
-    "frames": 225,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776636114.2788181
-  },
-  "http://112.99.195.122:65000/tsfile/live/1024_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636116.0646482
-  },
-  "http://112.19.31.13:85/tsfile/live/0016_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636118.357352
-  },
-  "http://122.96.61.11:9003/hls/8/index.m3u8": {
-    "ok": true,
-    "fps": 75.0,
-    "frames": 221,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1776636120.8104465
-  },
-  "http://119.62.24.75:50085/tsfile/live/0135_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636127.5429976
-  },
-  "http://112.99.195.122:65000/tsfile/live/1020_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636129.285144
-  },
-  "http://39.152.103.17:8089/tsfile/live/1050_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636133.3661988
-  },
-  "http://60.8.75.178:9002/hls/11/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636135.8161428
-  },
-  "http://171.116.254.184:9003/hls/9/index.m3u8": {
-    "ok": true,
-    "fps": 47.0,
-    "frames": 224,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776636140.4306734
-  },
-  "http://cssbyd.imwork.net:8082/hls/24/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636142.5484607
-  },
-  "http://112.99.195.122:65000/tsfile/live/1025_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636144.2914546
-  },
-  "http://183.234.143.5:85/tsfile/live/1122_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636150.822813
-  },
-  "http://221.7.49.226:50085/tsfile/live/0125_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 38.0,
-    "frames": 211,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776636152.2886755
-  },
-  "http://27.185.1.27:8092/hls/28/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636155.4394212
-  },
-  "http://27.185.1.27:8092/hls/27/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636157.5564091
-  },
-  "http://cssbyd.imwork.net:8082/hls/18/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636165.833643
-  },
-  "http://60.8.75.178:9002/hls/8/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636167.2965078
-  },
-  "http://183.11.239.36:808/hls/78/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636170.4452107
-  },
-  "http://112.99.195.122:65000/tsfile/live/1021_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1776636172.5618455
-  },
-  "http://39.165.39.49:85/tsfile/live/1131_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 72.0,
-    "frames": 225,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1776636172.6022663
-  },
   "http://61.136.172.236:9901/tsfile/live/0128_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
     "ok": false,
     "fps": 0.0,
@@ -27222,5 +25558,1997 @@
     "width": 0,
     "height": 0,
     "timestamp": 1776855729.4327555
+  },
+  "http://218.59.23.23:85/tsfile/live/0002_32.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895395.082636
+  },
+  "http://218.59.23.23:85/tsfile/live/0002_54.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895395.0855944
+  },
+  "http://112.19.31.13:85/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895395.089345
+  },
+  "http://39.152.103.17:8089/tsfile/live/1009_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895395.089355
+  },
+  "http://39.165.39.49:85/tsfile/live/1088_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 71.0,
+    "frames": 225,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895400.6613305
+  },
+  "http://123.113.104.82:85/tsfile/live/0130_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 20.0,
+    "frames": 206,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895408.582183
+  },
+  "http://123.113.104.82:85/tsfile/live/0002_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 17.0,
+    "frames": 212,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895409.803949
+  },
+  "http://180.118.187.202:60001/tsfile/live/0011_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 28.0,
+    "frames": 201,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776895409.982168
+  },
+  "http://123.113.104.82:85/tsfile/live/0005_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895410.096282
+  },
+  "http://101.66.198.164:9901/tsfile/live/0125_1.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895414.5818427
+  },
+  "https://piccpndks.v.kcdnvip.com/audio/cctv15_2/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895414.6899898
+  },
+  "http://113.241.133.180:85/tsfile/live/0001_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 23.0,
+    "frames": 212,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895422.0925977
+  },
+  "http://123.113.104.82:85/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 36.0,
+    "frames": 206,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776895422.290874
+  },
+  "http://218.1.208.13:7777/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895424.9898193
+  },
+  "http://101.66.195.229:9901/tsfile/live/0011_1.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895428.509704
+  },
+  "http://61.173.159.249:9003/hls/25/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895429.588816
+  },
+  "http://39.165.39.49:85/tsfile/live/1128_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 68.0,
+    "frames": 225,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895434.4613678
+  },
+  "http://124.165.251.82:85/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895437.101965
+  },
+  "http://111.221.137.234:44330/tsfile/live/0128_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895439.9979298
+  },
+  "http://39.152.103.17:8089/tsfile/live/1095_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895444.5982583
+  },
+  "http://61.136.172.236:9901/tsfile/live/0121_1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895449.466694
+  },
+  "http://39.152.103.17:8089/tsfile/live/1068_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895452.110737
+  },
+  "http://113.241.133.180:85/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 31.0,
+    "frames": 215,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895454.7316804
+  },
+  "http://123.113.104.82:85/tsfile/live/0139_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895455.006664
+  },
+  "http://live.zohi.tv/video/s10001-fztv-4/index.m3u8": {
+    "ok": false,
+    "fps": 114.0,
+    "frames": 197,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895455.5902357
+  },
+  "http://112.99.195.122:65000/tsfile/live/0131_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895467.117184
+  },
+  "http://61.136.172.236:9901/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895469.7370174
+  },
+  "http://112.99.195.122:65000/tsfile/live/1021_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895470.0127592
+  },
+  "http://61.136.172.236:9901/tsfile/live/0107_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895470.5959864
+  },
+  "http://36.40.236.217:9999/tsfile/live/0003_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 43.0,
+    "frames": 198,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776895476.411263
+  },
+  "http://123.113.104.82:85/tsfile/live/0015_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 36.0,
+    "frames": 216,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895478.1675704
+  },
+  "http://39.152.103.17:8089/tsfile/live/1093_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": true,
+    "fps": 25.0,
+    "frames": 210,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776895478.4277
+  },
+  "http://cssbyd.imwork.net:8082/hls/31/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895485.6027575
+  },
+  "http://112.123.243.37:50085/tsfile/live/0009_1.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": false,
+    "fps": 29.0,
+    "frames": 208,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895486.5625534
+  },
+  "http://123.113.104.82:85/tsfile/live/0131_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895493.1763062
+  },
+  "http://218.1.208.13:7777/tsfile/live/1046_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895493.4339538
+  },
+  "http://112.123.243.37:50085/tsfile/live/0007_1.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895500.610034
+  },
+  "http://101.66.199.163:9901/tsfile/live/0001_1.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895501.5702915
+  },
+  "http://171.38.144.4:9003/hls/32/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895508.1825194
+  },
+  "http://218.1.208.13:7777/tsfile/live/1038_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895508.440576
+  },
+  "http://111.221.137.234:44330/tsfile/live/0137_2.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895515.6169047
+  },
+  "http://39.152.103.17:8089/tsfile/live/1003_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895516.5812933
+  },
+  "http://39.152.103.17:8089/tsfile/live/1019_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895523.189161
+  },
+  "http://39.164.164.132:9901/tsfile/live/1031_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895523.447968
+  },
+  "http://218.59.23.23:85/tsfile/live/0002_59.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895530.624188
+  },
+  "http://112.99.195.122:65000/tsfile/live/1023_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895531.5874684
+  },
+  "rtsp://115.153.254.81/PLTV/88888888/224/3221226846/61397282.smil": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895538.1945724
+  },
+  "http://218.1.208.13:7777/tsfile/live/0140_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895538.4588683
+  },
+  "http://cssbyd.imwork.net:8082/hls/24/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895545.6299787
+  },
+  "http://221.7.49.226:50085/tsfile/live/0019_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895546.597312
+  },
+  "http://123.113.104.82:85/tsfile/live/0011_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 17.0,
+    "frames": 213,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895552.79184
+  },
+  "http://39.152.103.17:8089/tsfile/live/1050_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895553.4662051
+  },
+  "http://123.113.104.82:85/tsfile/live/0012_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 36.0,
+    "frames": 209,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895553.7781074
+  },
+  "http://61.136.172.236:9901/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895561.6035988
+  },
+  "http://123.113.104.82:85/tsfile/live/0143_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 35.0,
+    "frames": 205,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895561.9597101
+  },
+  "http://112.123.243.37:50085/tsfile/live/0013_1.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895567.7993004
+  },
+  "http://112.99.195.122:65000/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895568.4734938
+  },
+  "http://39.152.103.17:8089/tsfile/live/1045_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895576.6123478
+  },
+  "http://123.113.104.82:85/tsfile/live/0132_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 36.0,
+    "frames": 216,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895576.7964134
+  },
+  "http://112.27.235.94:8000/hls/10/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895576.9672108
+  },
+  "http://39.165.39.49:85/tsfile/live/1092_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 98.0,
+    "frames": 225,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776895581.3808343
+  },
+  "http://39.152.103.17:8089/tsfile/live/1058_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895582.8073404
+  },
+  "http://221.7.49.226:50085/tsfile/live/0017_3.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 19.0,
+    "frames": 230,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895591.167528
+  },
+  "http://123.113.104.82:85/tsfile/live/0135_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 37.0,
+    "frames": 223,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895591.2371697
+  },
+  "http://125.43.244.73:9901/tsfile/live/1013_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895591.6224275
+  },
+  "http://39.165.39.49:85/tsfile/live/1124_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 119.0,
+    "frames": 225,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895596.096727
+  },
+  "rtsp://115.85.232.19/PLTV/88888910/224/3221225559/10000100000000060000000000107339_0.smil": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895596.3881626
+  },
+  "http://123.113.104.82:85/tsfile/live/0007_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 35.0,
+    "frames": 201,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895604.626633
+  },
+  "http://222.169.85.8:9901/tsfile/live/0006_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895606.1795325
+  },
+  "rtsp://180.95.143.19/PLTV/88888910/224/3221225550/10000100000000060000000000107330_0.smil": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895606.2424433
+  },
+  "http://27.185.1.27:8092/hls/28/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895611.1032047
+  },
+  "http://221.7.49.226:50085/tsfile/live/0132_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 37.0,
+    "frames": 190,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895613.9873507
+  },
+  "http://123.113.104.82:85/tsfile/live/0128_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 37.0,
+    "frames": 216,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895614.3444278
+  },
+  "http://39.164.164.132:9901/tsfile/live/1050_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895619.6336744
+  },
+  "http://218.59.23.23:85/tsfile/live/0002_20.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895626.1116462
+  },
+  "http://183.234.143.5:85/tsfile/live/1096_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895628.9954998
+  },
+  "http://49.87.154.246:85/tsfile/live/1013_1.m3u8?key=txiptv": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895629.3516185
+  },
+  "http://27.185.1.27:8092/hls/12/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895634.6398308
+  },
+  "http://36.136.38.87:9901/tsfile/live/1003_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895641.1189876
+  },
+  "http://125.43.244.73:9901/tsfile/live/1004_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895644.0037134
+  },
+  "http://61.173.159.249:9003/hls/10/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895644.3583598
+  },
+  "http://39.165.39.49:85/tsfile/live/1159_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 71.0,
+    "frames": 225,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776895646.184486
+  },
+  "rtsp://116.176.26.19/PLTV/88888910/224/3221225541/10000100000000060000000000107321_0.smil": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895649.6451666
+  },
+  "http://123.113.104.82:85/tsfile/live/0004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 36.0,
+    "frames": 200,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895652.2294097
+  },
+  "http://171.38.144.4:9003/hls/10/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895659.3653147
+  },
+  "http://183.234.143.5:85/tsfile/live/1061_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895661.1920207
+  },
+  "http://221.7.49.226:50085/tsfile/live/0017_11.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895664.6537702
+  },
+  "http://218.1.146.44:8885/tsfile/live/0004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895667.2348006
+  },
+  "http://ali-m-l.cztv.com/channels/lantian/channel01/1080p.m3u8": {
+    "ok": false,
+    "fps": 73.0,
+    "frames": 145,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895669.621464
+  },
+  "http://60.8.75.178:9002/hls/8/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895674.3722818
+  },
+  "http://183.234.143.5:85/tsfile/live/1123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895676.1987267
+  },
+  "http://39.152.103.17:8089/tsfile/live/1042_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895682.2436972
+  },
+  "http://60.8.75.178:9002/hls/10/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895684.6289237
+  },
+  "http://123.129.70.178:9901/tsfile/live/0143_1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895689.3808477
+  },
+  "http://112.99.195.122:65000/tsfile/live/0121_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895691.2046418
+  },
+  "http://39.152.103.17:8089/tsfile/live/1073_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895697.2506871
+  },
+  "http://119.62.24.75:50085/tsfile/live/1002_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895699.638577
+  },
+  "http://222.169.85.8:9901/tsfile/live/0007_1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895702.6579568
+  },
+  "http://49.87.154.246:85/tsfile/live/1006_1.m3u8?key=txiptv": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895704.3863888
+  },
+  "http://111.221.137.234:44330/tsfile/live/0141_2.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895706.211679
+  },
+  "http://123.113.104.82:85/tsfile/live/0003_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 40.0,
+    "frames": 221,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895707.5533912
+  },
+  "http://123.113.104.82:85/tsfile/live/0001_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 36.0,
+    "frames": 203,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895715.7268567
+  },
+  "http://171.38.144.4:9003/hls/134/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895717.6659486
+  },
+  "http://112.99.195.122:65000/tsfile/live/1020_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895719.39276
+  },
+  "http://123.130.84.106:8154/tsfile/live/0132_1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895721.1449094
+  },
+  "http://183.234.143.5:85/tsfile/live/1090_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895721.217505
+  },
+  "http://123.113.104.82:85/tsfile/live/0121_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 17.0,
+    "frames": 204,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895732.4515464
+  },
+  "http://36.136.38.87:9901/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895734.4002695
+  },
+  "http://183.11.239.36:808/hls/157/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895736.1547012
+  },
+  "http://183.62.8.58:50085/tsfile/live/0003_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895736.2263541
+  },
+  "http://61.173.159.249:9003/hls/26/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895747.4613135
+  },
+  "rtsp://115.85.232.19/PLTV/88888910/224/3221225562/10000100000000060000000000107342_0.smil": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895749.4058475
+  },
+  "http://123.113.104.82:85/tsfile/live/0107_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 18.0,
+    "frames": 217,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895750.500966
+  },
+  "http://61.136.172.236:9901/tsfile/live/0130_1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895751.1601288
+  },
+  "http://113.25.252.226:9901/tsfile/live/1015_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": true,
+    "fps": 32.0,
+    "frames": 215,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776895759.4354558
+  },
+  "http://112.19.31.13:85/tsfile/live/1006_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895762.472359
+  },
+  "http://219.144.157.62:9901/tsfile/live/1020_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895764.4128466
+  },
+  "http://49.87.154.246:85/tsfile/live/0130_1.m3u8?key=txiptv#rtsp://180.95.143.19/PLTV/88888910/224/3221225536/10000100000000060000000000107316_0.smil": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895766.170278
+  },
+  "http://123.113.104.82:85/tsfile/live/0013_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 36.0,
+    "frames": 202,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895767.5735323
+  },
+  "http://39.165.39.49:85/tsfile/live/1131_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 63.0,
+    "frames": 225,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895768.4293714
+  },
+  "http://112.19.31.13:85/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895779.4205852
+  },
+  "http://120.238.84.45:9901/tsfile/live/1064_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895781.179005
+  },
+  "http://180.118.187.202:60001/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895782.5837111
+  },
+  "http://221.7.49.226:50085/tsfile/live/0125_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895783.4380608
+  },
+  "http://39.165.39.49:85/tsfile/live/1157_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 73.0,
+    "frames": 225,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776895788.3809974
+  },
+  "http://39.152.103.17:8089/tsfile/live/1016_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895794.4274824
+  },
+  "http://119.62.24.75:50085/tsfile/live/0132_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895796.1890078
+  },
+  "http://27.185.1.27:8092/hls/24/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895797.5893004
+  },
+  "http://219.144.157.62:9901/tsfile/live/1017_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895803.3885486
+  },
+  "http://119.62.24.75:50085/tsfile/live/0017_4.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 42.0,
+    "frames": 225,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895804.9079509
+  },
+  "http://27.185.1.27:8092/hls/43/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895809.4342163
+  },
+  "http://171.38.144.4:9003/hls/17/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895811.1951554
+  },
+  "http://123.130.84.106:8154/tsfile/live/0123_1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895814.7962039
+  },
+  "http://111.221.137.234:44330/tsfile/live/0136_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895818.3984947
+  },
+  "http://61.136.172.236:9901/tsfile/live/0143_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895819.913634
+  },
+  "http://183.234.143.5:85/tsfile/live/1099_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895826.201918
+  },
+  "http://123.113.104.82:85/tsfile/live/0127_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 35.0,
+    "frames": 202,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895826.7097394
+  },
+  "http://123.113.104.82:85/tsfile/live/0138_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 19.0,
+    "frames": 224,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895828.771399
+  },
+  "http://119.62.24.75:50085/tsfile/live/0120_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 68.0,
+    "frames": 200,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895831.0581253
+  },
+  "http://112.99.195.122:65000/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895834.9200635
+  },
+  "http://61.136.172.236:9901/tsfile/live/0120_1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895841.7151043
+  },
+  "http://218.1.208.13:7777/tsfile/live/1039_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895843.777975
+  },
+  "http://219.144.157.62:9901/tsfile/live/1003_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895846.0673358
+  },
+  "http://61.173.159.249:9003/hls/14/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895849.9262965
+  },
+  "http://218.59.23.23:85/tsfile/live/0002_60.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895856.7227886
+  },
+  "http://218.1.208.13:7777/tsfile/live/1052_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895858.7837806
+  },
+  "http://219.144.157.62:9901/tsfile/live/1009_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895861.0730639
+  },
+  "http://cssbyd.imwork.net:8082/hls/25/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895864.9333768
+  },
+  "http://49.87.154.246:85/tsfile/live/1017_1.m3u8?key=txiptv": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895871.728784
+  },
+  "http://cssbyd.imwork.net:8082/hls/34/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895873.789067
+  },
+  "http://221.7.49.226:50085/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 19.0,
+    "frames": 220,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895874.8395674
+  },
+  "http://222.169.85.8:9901/tsfile/live/0135_1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895879.1931524
+  },
+  "http://27.185.1.27:8092/hls/27/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895879.9392378
+  },
+  "http://125.43.244.73:9901/tsfile/live/1039_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": true,
+    "fps": 27.0,
+    "frames": 210,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895882.0421453
+  },
+  "http://183.62.8.58:50085/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895889.844835
+  },
+  "http://183.234.143.5:85/tsfile/live/1122_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 37.0,
+    "frames": 195,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776895889.9093304
+  },
+  "http://112.99.195.122:65000/tsfile/live/0107_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895894.9464831
+  },
+  "http://218.59.23.23:85/tsfile/live/0002_68.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895897.0483382
+  },
+  "http://111.221.137.234:44330/tsfile/live/0130_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895904.852171
+  },
+  "http://218.1.208.13:7777/tsfile/live/0121_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895904.9144747
+  },
+  "http://39.152.103.17:8089/tsfile/live/1015_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895909.9555824
+  },
+  "http://111.221.137.234:44330/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895912.0563152
+  },
+  "http://123.113.104.82:85/tsfile/live/0014_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 35.0,
+    "frames": 205,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895918.3783631
+  },
+  "http://120.211.62.180:8000/hls/15/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895919.8575532
+  },
+  "http://171.38.144.4:9003/hls/20/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895919.919871
+  },
+  "http://183.234.143.5:85/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895927.0637074
+  },
+  "http://123.113.104.82:85/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 36.0,
+    "frames": 208,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895927.9785316
+  },
+  "http://39.152.103.17:8089/tsfile/live/1044_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895933.3942842
+  },
+  "http://221.7.49.226:50085/tsfile/live/0016_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 43.0,
+    "frames": 230,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895934.7760153
+  },
+  "http://119.62.24.75:50085/tsfile/live/0135_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895934.9281623
+  },
+  "http://221.232.100.225:7777/tsfile/live/0002_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895942.9855328
+  },
+  "http://219.144.157.62:9901/tsfile/live/1029_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895948.40004
+  },
+  "http://61.173.159.249:9003/hls/22/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895949.7822392
+  },
+  "http://39.165.39.49:85/tsfile/live/1156_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 50.0,
+    "frames": 225,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895949.9341455
+  },
+  "http://183.234.143.5:85/tsfile/live/0125_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895949.9351568
+  },
+  "http://123.113.104.82:85/tsfile/live/0008_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 33.0,
+    "frames": 205,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895957.1491148
+  },
+  "http://123.113.104.82:85/tsfile/live/0009_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 19.0,
+    "frames": 220,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895963.734561
+  },
+  "http://112.99.195.122:65000/tsfile/live/1036_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895964.7889738
+  },
+  "http://112.27.235.94:8000/hls/13/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895964.9406457
+  },
+  "http://39.165.39.49:85/tsfile/live/1158_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 67.0,
+    "frames": 225,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776895970.066262
+  },
+  "http://183.234.143.5:85/tsfile/live/1055_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895972.1566525
+  },
+  "http://219.144.157.62:9901/tsfile/live/1027_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895978.7426202
+  },
+  "http://61.136.172.236:9901/tsfile/live/0011_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895979.9456162
+  },
+  "http://111.221.137.234:44330/tsfile/live/0112_2.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895985.0732982
+  },
+  "http://123.113.104.82:85/tsfile/live/0120_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895987.1675699
+  },
+  "http://112.27.235.94:8000/hls/31/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895993.749624
+  },
+  "http://60.8.75.178:9002/hls/43/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776895994.9529197
+  },
+  "http://112.123.243.37:50085/tsfile/live/0015_1.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": true,
+    "fps": 25.0,
+    "frames": 217,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776895998.1131434
+  },
+  "http://119.62.24.75:50085/tsfile/live/0011_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896000.0813553
+  },
+  "http://cssbyd.imwork.net:8082/hls/29/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896008.7548926
+  },
+  "http://39.164.164.132:9901/tsfile/live/1018_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
+    "ok": false,
+    "fps": 33.0,
+    "frames": 209,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776896008.8095784
+  },
+  "http://183.234.143.5:85/tsfile/live/1033_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 28.0,
+    "frames": 229,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776896008.9242282
+  },
+  "http://123.113.104.82:85/tsfile/live/0126_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896009.9625065
+  },
+  "http://183.234.143.5:85/tsfile/live/1118_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 36.0,
+    "frames": 225,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776896017.3842673
+  },
+  "http://112.19.31.13:85/tsfile/live/0004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896023.7632496
+  },
+  "http://61.136.172.236:9901/tsfile/live/0139_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896023.8143299
+  },
+  "http://120.211.62.180:8000/hls/13/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896024.9704192
+  },
+  "http://119.62.24.75:50085/tsfile/live/0131_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 24.0,
+    "frames": 215,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776896028.2930422
+  },
+  "http://222.169.85.8:9901/tsfile/live/0005_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896030.453613
+  },
+  "http://60.8.75.178:9002/hls/11/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896038.7685535
+  },
+  "http://39.152.103.17:8089/tsfile/live/1036_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896038.8224518
+  },
+  "http://183.234.143.5:85/tsfile/live/1092_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 23.0,
+    "frames": 225,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776896042.2784948
+  },
+  "http://hmfs.f3322.net:3388/hls/25/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896043.3017023
+  },
+  "https://event.pull.hebtv.com/jishi/cp1.m3u8": {
+    "ok": false,
+    "fps": 45.0,
+    "frames": 198,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776896052.2765245
+  },
+  "http://27.185.1.27:8092/hls/41/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896053.7743444
+  },
+  "http://124.165.251.82:85/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896053.831277
+  },
+  "http://cssbyd.imwork.net:8082/hls/11/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896057.2840276
+  },
+  "http://119.62.24.75:50085/tsfile/live/1000_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 26.0,
+    "frames": 225,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776896064.74073
+  },
+  "http://69.30.246.194/live/cctv5p.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896067.2856898
+  },
+  "http://112.123.243.37:50085/tsfile/live/0006_1.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896068.7849555
+  },
+  "http://219.144.157.62:9901/tsfile/live/1016_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896072.2892785
+  },
+  "http://39.164.164.132:9901/tsfile/live/1009_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
+    "ok": false,
+    "fps": 39.0,
+    "frames": 208,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776896076.9285183
+  },
+  "http://112.19.31.13:85/tsfile/live/0016_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896079.7477345
+  },
+  "http://39.152.103.17:8089/tsfile/live/1010_1.m3u8?key=txiptv&amp;playlive=1&amp;down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896082.2932837
+  },
+  "http://113.235.151.48:777/hls/465591451/index.m3u8": {
+    "ok": true,
+    "fps": 63.0,
+    "frames": 224,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776896084.9409122
+  },
+  "rtsp://180.95.143.19/PLTV/88888910/224/3221225551/10000100000000060000000000107331_0.smil": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896087.2949405
+  },
+  "http://php.fjl626.cn/hebei.php?id=hbws": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896089.265212
+  },
+  "http://218.1.208.13:7777/tsfile/live/1026_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896091.9345057
+  },
+  "http://221.7.49.226:50085/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 19.0,
+    "frames": 220,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776896096.3639188
+  },
+  "http://61.136.172.236:9901/tsfile/live/0001_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896099.9472237
+  },
+  "http://cssbyd.imwork.net:8082/hls/18/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896104.2701676
+  },
+  "http://27.185.1.27:8092/hls/18/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896106.9406683
+  },
+  "http://119.62.24.75:50085/tsfile/live/0127_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 27.0,
+    "frames": 225,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776896107.4687376
+  },
+  "http://39.165.39.49:85/tsfile/live/1003_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 45.0,
+    "frames": 225,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776896114.1733649
+  },
+  "http://61.136.172.236:9901/tsfile/live/0014_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896114.9532862
+  },
+  "http://123.113.104.82:85/tsfile/live/0124_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 18.0,
+    "frames": 219,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776896118.4186997
+  },
+  "http://123.113.104.82:85/tsfile/live/0006_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896122.4793131
+  },
+  "http://218.1.208.13:7777/tsfile/live/1041_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896129.1787665
+  },
+  "http://113.241.133.180:85/tsfile/live/1004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896129.961892
+  },
+  "http://221.232.100.225:7777/tsfile/live/0004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896133.4276364
+  },
+  "http://39.164.164.132:9901/tsfile/live/1016_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896137.4868062
+  },
+  "http://112.99.195.122:65000/tsfile/live/1024_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896144.1849203
+  },
+  "http://59.174.117.160:7777/tsfile/live/0107_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896144.969112
+  },
+  "http://218.1.208.13:7777/tsfile/live/0131_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896148.4337337
+  },
+  "http://61.136.172.236:9901/tsfile/live/0132_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896152.4919748
+  },
+  "http://61.136.172.236:9901/tsfile/live/0122_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896159.1896439
+  },
+  "http://125.43.244.73:9901/tsfile/live/1026_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896159.9764013
+  },
+  "http://112.99.195.122:65000/tsfile/live/1025_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896163.4416096
+  },
+  "http://39.165.39.49:85/tsfile/live/1010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 67.0,
+    "frames": 225,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776896165.198334
+  },
+  "http://36.136.38.87:9901/tsfile/live/0128_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896167.4990191
+  },
+  "http://36.136.38.87:9901/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896174.9845595
+  },
+  "http://124.165.251.82:85/tsfile/live/0125_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896178.4489684
+  },
+  "http://123.113.104.82:85/tsfile/live/0119_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 71.0,
+    "frames": 214,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1776896179.7428298
+  },
+  "http://27.185.1.27:8092/hls/39/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896180.2048554
+  },
+  "http://221.232.100.225:7777/tsfile/live/0017_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896182.5074322
+  },
+  "http://39.165.39.49:85/tsfile/live/1140_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
+    "ok": true,
+    "fps": 67.0,
+    "frames": 225,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1776896186.173507
+  },
+  "http://cssbyd.imwork.net:8082/hls/14/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896193.454384
+  },
+  "http://111.221.137.234:44330/tsfile/live/0126_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896194.7491305
+  },
+  "http://111.221.137.234:44330/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1776896197.5140011
   }
 }
