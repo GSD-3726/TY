@@ -611,7 +611,7 @@ def parse_iptv_txt_file(filepath: Path) -> List[Tuple[str, str, str]]:
                             name_cleaned = clean_satellite_name(name)
                             nn = normalize_cctv(name_cleaned)
                             gr = classify_channel(nn) or current_group
-                            fn = nn if gr == "央视频道" else (clean_chinese_only(name_cleaned) if ENABLE_CHINESE_CLEAN else name_cleaned)
+                            fn = nn if gr == "央视频道" else (clean_chinese_only(name_cleaned) if ENABLE_CHINESE_CLEAN else n_cleaned)
                             channels.append((gr, fn, url))
         logger.info(f"从 {filepath} 解析到 {len(channels)} 个链接")
     except Exception as e:
@@ -873,10 +873,54 @@ def export_results_with_timestamp(channel_map):
     logger.info(f"导出完成：{len(channel_map)} 个频道")
 
 # ============================================================================
-# ========================= 主流程 (新逻辑) ===================================
+# ===================== 【新增】分源统计打印函数 ===============================
+# ============================================================================
+def print_source_statistics(stats):
+    """打印各来源统计信息：原始数、有效数、有效率、输出数"""
+    logger.info("="*60)
+    logger.info("📊 各数据源统计结果（有效率=连通有效数/原始获取数）")
+    logger.info("="*60)
+    
+    # 统计GitHub每个源
+    for i, gh in enumerate(stats["github"]):
+        raw = gh["raw"]
+        valid = gh["valid"]
+        output = gh["output"]
+        rate = (valid / raw * 100) if raw > 0 else 0.0
+        logger.info(f"GitHub源{i+1} | 原始获取:{raw:4d} | 有效:{valid:4d} | 有效率:{rate:6.1f}% | 最终输出:{output:4d}")
+    
+    # 统计网站爬取源
+    web = stats["web"]
+    raw = web["raw"]
+    valid = web["valid"]
+    output = web["output"]
+    rate = (valid / raw * 100) if raw > 0 else 0.0
+    logger.info(f"网站爬取源 | 原始获取:{raw:4d} | 有效:{valid:4d} | 有效率:{rate:6.1f}% | 最终输出:{output:4d}")
+    
+    # 统计本地TXT源
+    local = stats["local"]
+    raw = local["raw"]
+    valid = local["valid"]
+    output = local["output"]
+    rate = (valid / raw * 100) if raw > 0 else 0.0
+    logger.info(f"本地TXT源 | 原始获取:{raw:4d} | 有效:{valid:4d} | 有效率:{rate:6.1f}% | 最终输出:{output:4d}")
+    
+    logger.info("="*60)
+
+# ============================================================================
+# ========================= 主流程 (新逻辑+统计) ==============================
 # ============================================================================
 async def main():
     overall_start_time = time.time()
+    
+    # ===================== 【新增】初始化统计字典 =====================
+    stats = {
+        "github": [{"url": url, "raw": 0, "valid": 0, "output": 0} for url in GITHUB_M3U_LINKS],
+        "web": {"raw": 0, "valid": 0, "output": 0},
+        "local": {"raw": 0, "valid": 0, "output": 0}
+    }
+    # 存储带来源标记的条目: (group, name, url, source_type, source_idx)
+    all_entries_with_source = []
     
     if EXTRACT_MODE not in ["酒店提取", "组播提取"]:
         logger.error("配置错误！EXTRACT_MODE 只能填写：酒店提取 或 组播提取")
@@ -884,8 +928,7 @@ async def main():
 
     logger.info(f"✅ 当前运行模式：【{EXTRACT_MODE}】(优化版)")
 
-    all_entries = []
-    
+    # ===================== 处理GitHub源（带统计） =====================
     if ENABLE_GITHUB_SOURCES:
         logger.info("--- 正在并发获取 GitHub 源 ---")
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
@@ -903,12 +946,16 @@ async def main():
                         channels = parse_m3u_file(content)
                     else:
                         channels = parse_txt_content(content, default_group="GitHub源")
+                    # 【统计】记录GitHub源原始数量
+                    stats["github"][idx]["raw"] = len(channels)
                     logger.info(f"✅ GitHub链接 {link_no} 获取到 {len(channels)} 条频道")
-                    all_entries.extend(channels)
+                    # 添加来源标记
+                    all_entries_with_source.extend((g, n, u, "github", idx) for g, n, u in channels)
                 else:
                     logger.info(f"✅ GitHub链接 {link_no} 获取到 0 条频道")
-            logger.info(f"GitHub源累计获取: {len(all_entries)} 条")
+            logger.info(f"GitHub源累计获取: {sum(s['raw'] for s in stats['github'])} 条")
 
+    # ===================== 网站爬取（带统计） =====================
     web_entries = []
     async with async_playwright() as p:
         browser = await p.chromium.launch(
@@ -962,6 +1009,8 @@ async def main():
                         web_entries = web_entries[:MAX_TOTAL_CHANNELS]
                         break
                     await asyncio.sleep(DELAY_BETWEEN_IPS)
+                # 【统计】记录网站源原始数量
+                stats["web"]["raw"] = len(web_entries)
                 logger.info(f"网站爬取完成: {len(web_entries)} 条")
 
         except Exception as e:
@@ -971,33 +1020,43 @@ async def main():
             await ctx.close()
             await browser.close()
     
-    all_entries.extend(web_entries)
+    # 添加网站来源标记
+    all_entries_with_source.extend((g, n, u, "web", 0) for g, n, u in web_entries)
 
+    # ===================== 读取本地TXT（带统计） =====================
     logger.info("--- 正在读取本地 iptv_channels.txt ---")
     iptv_txt_path = OUTPUT_DIR / "iptv_channels.txt"
     txt_entries = parse_iptv_txt_file(iptv_txt_path)
-    all_entries.extend(txt_entries)
+    # 【统计】记录本地源原始数量
+    stats["local"]["raw"] = len(txt_entries)
+    all_entries_with_source.extend((g, n, u, "local", 0) for g, n, u in txt_entries)
     
-    logger.info(f"三源合并后总条目数: {len(all_entries)}")
+    logger.info(f"三源合并后总条目数: {len(all_entries_with_source)}")
 
+    # ===================== 过滤处理 =====================
     if ENABLE_MIGU_FILTER:
-        original_count = len(all_entries)
-        all_entries = [(g, n, u) for g, n, u in all_entries if 'migu' not in u.lower()]
-        logger.info(f"过滤Migu: 移除 {original_count - len(all_entries)} 条")
+        original_count = len(all_entries_with_source)
+        all_entries_with_source = [(g, n, u, t, i) for g, n, u, t, i in all_entries_with_source if 'migu' not in u.lower()]
+        logger.info(f"过滤Migu: 移除 {original_count - len(all_entries_with_source)} 条")
 
     if SKIP_INTERNAL_IP:
-        original_count = len(all_entries)
-        all_entries = [(g, n, u) for g, n, u in all_entries if not is_internal_ip(u)]
-        logger.info(f"过滤内网IP: 移除 {original_count - len(all_entries)} 条")
+        original_count = len(all_entries_with_source)
+        all_entries_with_source = [(g, n, u, t, i) for g, n, u, t, i in all_entries_with_source if not is_internal_ip(u)]
+        logger.info(f"过滤内网IP: 移除 {original_count - len(all_entries_with_source)} 条")
 
+    # ===================== 合并去重 =====================
     logger.info("--- 正在合并去重 ---")
     temp_channel_map = defaultdict(list)
-    for g, n, u in all_entries:
+    # 【关键】创建URL→来源映射表
+    url_source_map = {}
+    for g, n, u, source_type, source_idx in all_entries_with_source:
         temp_channel_map[(g, n)].append(u)
+        url_source_map[u] = (source_type, source_idx)
 
     if ENABLE_DEDUPLICATION:
         temp_channel_map = deduplicate_urls_per_channel(temp_channel_map)
 
+    # 频道白名单筛选
     allowed_groups = set(GROUP_ORDER)
     original_count = sum(len(urls) for urls in temp_channel_map.values())
     filtered_map = {}
@@ -1008,16 +1067,12 @@ async def main():
             logger.debug(f"过滤掉频道: {group} - {name} (共 {len(urls)} 条链接)")
     temp_channel_map = filtered_map
     filtered_count = sum(len(urls) for urls in temp_channel_map.values())
-    logger.info(f"频道筛选: 过滤前 {original_count} 条链接，过滤后 {filtered_count} 条链接，移除了 {original_count - filtered_count} 条不属于白名单的链接")
+    logger.info(f"频道筛选: 过滤前 {original_count} 条链接，过滤后 {filtered_count} 条链接")
 
-    url_to_gn = {}
-    for (g, n), urls in temp_channel_map.items():
-        for u in urls:
-            url_to_gn[u] = (g, n)
-    
-    unique_urls = list(url_to_gn.keys())
+    unique_urls = list(url_source_map.keys())
     logger.info(f"✅ 合并去重并筛选后共 {len(unique_urls)} 个唯一链接")
 
+    # ===================== 连通性测试（统计有效数） =====================
     logger.info("--- 正在进行连通性测试 (前置筛选) ---")
     connectivity_start = time.time()
     
@@ -1038,6 +1093,14 @@ async def main():
         if is_ok:
             ok += 1
             connected_urls.append(url)
+            # 【统计】更新各源连通有效数
+            source_type, source_idx = url_source_map[url]
+            if source_type == "github":
+                stats["github"][source_idx]["valid"] += 1
+            elif source_type == "web":
+                stats["web"]["valid"] += 1
+            elif source_type == "local":
+                stats["local"]["valid"] += 1
         else:
             ng += 1
         lp = print_progress_bar(c, len(tasks), ok, ng, lp)
@@ -1045,11 +1108,14 @@ async def main():
     connectivity_time = time.time() - connectivity_start
     logger.info(f"连通性测试耗时: {connectivity_time:.2f}s")
 
+    # 构建测速用频道映射
     channel_map_for_test = defaultdict(list)
     for url in connected_urls:
-        g, n = url_to_gn[url]
-        channel_map_for_test[(g, n)].append(url)
+        g, n = next((k for k, urls in temp_channel_map.items() if url in urls), None)
+        if g and n:
+            channel_map_for_test[(g, n)].append(url)
 
+    # ===================== FFmpeg测速 =====================
     logger.info("--- 正在进行 FFmpeg 测速 ---")
     ffmpeg_start = time.time()
     
@@ -1062,8 +1128,23 @@ async def main():
     ffmpeg_time = time.time() - ffmpeg_start
     logger.info(f"FFmpeg 测速耗时: {ffmpeg_time:.2f}s")
 
+    # ===================== 【统计】更新最终输出数 =====================
+    for urls in final_channel_map.values():
+        for url in urls:
+            source_type, source_idx = url_source_map[url]
+            if source_type == "github":
+                stats["github"][source_idx]["output"] += 1
+            elif source_type == "web":
+                stats["web"]["output"] += 1
+            elif source_type == "local":
+                stats["local"]["output"] += 1
+
+    # ===================== 导出结果 + 打印统计 =====================
     export_results_with_timestamp(final_channel_map)
+    # 【新增】打印分源统计
+    print_source_statistics(stats)
     
+    # 耗时统计
     total_time = time.time() - overall_start_time
     logger.info("="*30)
     logger.info(f"⏱️  阶段耗时统计:")
