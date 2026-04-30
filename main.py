@@ -67,14 +67,14 @@ GITHUB_M3U_LINKS = [
 ENABLE_FFMPEG_TEST     = True                            # 是否启用FFmpeg测速
 FFMPEG_PATH            = "ffmpeg"                        # FFmpeg 程序路径（如果不在PATH中需写完整）
 # 【优化1】延长测试时间，检测长期稳定性
-FFMPEG_TEST_DURATION   = 30                              # 每个链接测试时长（秒）- 从10秒增加到30秒
+FFMPEG_TEST_DURATION   = 10                              # 每个链接测试时长（秒）- 从10秒增加到30秒
 # 【优化2】降低最低帧率要求，更符合实际播放
-MIN_AVG_FPS            = 20                              # 最低平均帧率 - 从24降低到20
+MIN_AVG_FPS            = 10                             # 最低平均帧率 - 从24降低到20
 # 【优化3】增加最低帧数要求
-MIN_FRAMES             = 500                             # 最低解码帧数 - 从210增加到500
+MIN_FRAMES             = 50                             # 最低解码帧数 - 从210增加到500
 FFMPEG_CONCURRENCY     = 4                               # 并发测速数量（GitHub Actions建议≤2）
 # 【新增】最大丢包率容忍
-MAX_PACKET_LOSS        = 5.0                             # 最大允许丢包率百分比
+MAX_PACKET_LOSS        = 50                             # 最大允许丢包率百分比
 # 【新增】最小关键帧间隔要求
 MIN_KEY_FRAME_INTERVAL = 2.0                             # 最小关键帧间隔秒数
 
