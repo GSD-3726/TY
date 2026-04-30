@@ -92,7 +92,7 @@ ENABLE_MIGU_FILTER     = True                            # 过滤包含"migu"的
 SKIP_INTERNAL_IP       = True                            # 跳过内网IP
 ENABLE_SATELLITE_CLEAN = True                            # 卫星名称清洗
 # 【新增】运营商过滤
-ENABLE_ISP_FILTER      = True                            # 启用运营商过滤
+ENABLE_ISP_FILTER      = False                            # 启用运营商过滤
 USER_ISP               = "电信"                           # 用户网络运营商（电信/联通/移动/其他）
 
 # -------------------------- 8. 频道分类规则（已扩展关键词） ------------------
