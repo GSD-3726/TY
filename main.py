@@ -82,7 +82,7 @@ MIN_KEY_FRAME_INTERVAL = 2.0                             # 最小关键帧间隔
 ENABLE_CACHE           = True                            # 启用测速缓存
 CACHE_FILE             = OUTPUT_DIR / "iptv_speed_cache.json"
 # 【优化4】缩短缓存过期时间，更及时更新
-CACHE_EXPIRE_HOURS     = 6                               # 缓存过期小时 - 从72小时缩短到6小时
+CACHE_EXPIRE_HOURS     = 72                               # 缓存过期小时 - 从72小时缩短到6小时
 
 # -------------------------- 7. 数据处理 ------------------------------------
 ENABLE_CHINESE_CLEAN   = True                            # 清理非中文字符
