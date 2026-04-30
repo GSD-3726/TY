@@ -1,3 +1,6 @@
 #EXTM3U
-#EXTINF:-1 group-title="更新时间",2026-04-30 08:59:00
+#EXTINF:-1 group-title="卫视频道",江苏卫视
+http://221.226.51.220:50081/newlive/live/hls/18/live.m3u8#rtsp://180.95.143.19/PLTV/88888910/224/3221225569/10000100000000060000000000107349_0.smil
+
+#EXTINF:-1 group-title="更新时间",2026-04-30 09:17:22
 https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
