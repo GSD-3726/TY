@@ -19,58 +19,58 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 # ============================================================================
 # ======================== 【中文配置区】=====================================
 # ============================================================================
-TARGET_URL            = "https://iptv.809899.xyz"
-HEADLESS              = True
-BROWSER_TYPE          = "chromium"
-OUTPUT_DIR            = Path(__file__).parent
-OUTPUT_M3U_FILENAME   = OUTPUT_DIR / "iptv_channels.m3u"
-OUTPUT_TXT_FILENAME   = OUTPUT_DIR / "iptv_channels.txt"
-MAX_LINKS_PER_CHANNEL = 10        # 单个频道目标源数量
-DEFAULT_PROTOCOL      = "http://"
+TARGET_URL            = "https://iptv.809899.xyz"  # 目标IPTV源爬取网站地址
+HEADLESS              = True                       # 浏览器无头模式(True=后台运行不显示界面,False=显示浏览器窗口)
+BROWSER_TYPE          = "chromium"                 # 使用的浏览器类型(chromium/firefox/webkit)
+OUTPUT_DIR            = Path(__file__).parent      # 输出文件保存目录(默认脚本所在目录)
+OUTPUT_M3U_FILENAME   = OUTPUT_DIR / "iptv_channels.m3u"  # 输出M3U格式播放列表文件名
+OUTPUT_TXT_FILENAME   = OUTPUT_DIR / "iptv_channels.txt"  # 输出TXT格式播放列表文件名
+MAX_LINKS_PER_CHANNEL = 10                         # 单个频道最多保留多少个可用直播源
+DEFAULT_PROTOCOL      = "http://"                  # 无协议前缀时默认补充的协议
 
-EXTRACT_MODE          = "酒店提取"
-MAX_IPS               = 100
-MAX_TOTAL_CHANNELS    = 0
-MAX_CHANNELS_PER_IP   = 0
-DELAY_BETWEEN_IPS     = 0.1
-DELAY_AFTER_CLICK     = 0.3
-MODAL_WAIT_TIMEOUT    = 1
+EXTRACT_MODE          = "酒店提取"                 # 提取模式,可选:"酒店提取"/"组播提取"/"引擎搜索"
+MAX_IPS               = 100                        # 最多处理多少个IP地址(酒店/组播模式)
+MAX_TOTAL_CHANNELS    = 0                          # 总最大频道数限制(0=不限制)
+MAX_CHANNELS_PER_IP   = 0                          # 每个IP最多提取多少个频道(0=不限制)
+DELAY_BETWEEN_IPS     = 0.1                        # 处理不同IP之间的延迟(秒)
+DELAY_AFTER_CLICK     = 0.3                        # 点击按钮后等待页面响应的时间(秒)
+MODAL_WAIT_TIMEOUT    = 1                          # 等待弹窗出现的超时时间(秒)
 
-PAGE_LOAD_TIMEOUT      = 120
-DATA_LOAD_TIMEOUT      = 60
-AFTER_START_WAIT       = 30
-IP_ADDR_TIMEOUT        = 0.1
-CHANNEL_NAME_TIMEOUT   = 0.1
-CHANNEL_URL_TIMEOUT    = 0.1
-SCROLL_TIMEOUT         = 0.1
-CLICK_TIMEOUT          = 0.1
-WAIT_FOR_ELEMENT_TIMEOUT = 30
-DATA_CHECK_INTERVAL    = 30
+PAGE_LOAD_TIMEOUT      = 120                       # 页面加载超时时间(秒)
+DATA_LOAD_TIMEOUT      = 60                        # 等待频道数据加载的超时时间(秒)
+AFTER_START_WAIT       = 30                        # 点击开始按钮后初始等待时间(秒)
+IP_ADDR_TIMEOUT        = 0.1                       # 读取IP地址超时时间(秒)
+CHANNEL_NAME_TIMEOUT   = 0.1                       # 读取频道名称超时时间(秒)
+CHANNEL_URL_TIMEOUT    = 0.1                       # 读取频道地址超时时间(秒)
+SCROLL_TIMEOUT         = 0.1                       # 页面滚动超时时间(秒)
+CLICK_TIMEOUT          = 0.1                       # 点击元素超时时间(秒)
+WAIT_FOR_ELEMENT_TIMEOUT = 30                      # 等待页面元素出现的超时时间(秒)
+DATA_CHECK_INTERVAL    = 30                        # 检查数据是否加载完成的间隔时间(秒)
 
-ENABLE_GITHUB_SOURCES = True
-GITHUB_M3U_LINKS = [
+ENABLE_GITHUB_SOURCES = True                       # 是否启用GitHub公共源补充
+GITHUB_M3U_LINKS = [                                # GitHub上的公共M3U/TXT源地址列表
     "https://gh-proxy.com/https://github.com/kimwang1978/collect-txt/blob/main/bbxx.txt"
 ]
 
-ENABLE_FFMPEG_TEST     = True
-FFMPEG_PATH            = "ffmpeg"
-FFMPEG_TEST_DURATION   = 10
-FFMPEG_CONCURRENCY     = 8
-MIN_AVG_FPS            = 24
-MIN_FRAMES             = 210
+ENABLE_FFMPEG_TEST     = True                      # 是否启用FFmpeg流媒体质量测速
+FFMPEG_PATH            = "ffmpeg"                  # FFmpeg可执行文件路径(默认系统PATH中查找)
+FFMPEG_TEST_DURATION   = 10                        # 每个直播流测速时长(秒)
+FFMPEG_CONCURRENCY     = 8                         # 同时进行测速的最大并发数
+MIN_AVG_FPS            = 24                        # 最低平均帧率要求(低于此值判定为不可用)
+MIN_FRAMES             = 210                       # 最低总帧数要求(低于此值判定为不可用)
 
-ENABLE_CACHE           = True
-CACHE_FILE             = OUTPUT_DIR / "iptv_speed_cache.json"
-CACHE_EXPIRE_HOURS     = 72
+ENABLE_CACHE           = True                      # 是否启用测速结果缓存
+CACHE_FILE             = OUTPUT_DIR / "iptv_speed_cache.json"  # 缓存文件保存路径
+CACHE_EXPIRE_HOURS     = 72                        # 缓存过期时间(小时)
 
-ENABLE_CHINESE_CLEAN   = True
-ENABLE_DEDUPLICATION   = True
-CCTV_USE_MAPPING       = True
-ENABLE_MIGU_FILTER     = True
-SKIP_INTERNAL_IP       = True
-ENABLE_SATELLITE_CLEAN = True
+ENABLE_CHINESE_CLEAN   = True                      # 是否清理频道名称中的非中文字符
+ENABLE_DEDUPLICATION   = True                      # 是否启用直播源去重(同一个URL只保留在一个频道)
+CCTV_USE_MAPPING       = True                      # 是否使用标准CCTV频道名称映射
+ENABLE_MIGU_FILTER     = True                      # 是否过滤咪咕源(部分地区无法访问)
+SKIP_INTERNAL_IP       = True                      # 是否跳过内网IP地址(192.168.x.x/10.x.x.x等)
+ENABLE_SATELLITE_CLEAN = True                      # 是否清理卫视频道名称中的后缀(如"高清"/"移动"/"测试")
 
-CATEGORY_RULES = [
+CATEGORY_RULES = [                                  # 频道自动分类规则(按优先级顺序匹配)
     {"name": "4K专区",      "keywords": ["4k", "4K", "超高清", "2160p"]},
     {"name": "央视频道",    "keywords": ["cctv", "cetv", "央视", "中央", "CCTV", "CETV", "央视频道"]},
     {"name": "卫视频道",    "keywords": ["卫视", "卫视高清"]},
@@ -79,9 +79,9 @@ CATEGORY_RULES = [
     {"name": "儿童频道",    "keywords": ["少儿", "动画", "动漫", "卡通", "亲子", "儿童", "宝贝"]},
 ]
 
-GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "4K专区", "儿童频道", "轮播频道"]
+GROUP_ORDER = ["央视频道", "卫视频道", "电影频道", "4K专区", "儿童频道", "轮播频道"]  # 输出时的分组顺序
 
-CCTV_NAME_MAPPING = {
+CCTV_NAME_MAPPING = {                               # CCTV频道数字到标准名称的映射
     "1": "综合", "2": "财经", "3": "综艺", "4": "国际", "5": "体育",
     "5+": "体育赛事", "6": "电影", "7": "国防军事", "8": "电视剧",
     "9": "纪录", "10": "科教", "11": "戏曲", "12": "社会与法",
@@ -89,7 +89,7 @@ CCTV_NAME_MAPPING = {
     "17": "农业农村",
 }
 
-CCTV_ORDER = [
+CCTV_ORDER = [                                      # 央视频道输出时的排序
     "CCTV-1综合", "CCTV-2财经", "CCTV-3综艺", "CCTV-4国际",
     "CCTV-5体育", "CCTV-5+体育赛事", "CCTV-6电影", "CCTV-7国防军事",
     "CCTV-8电视剧", "CCTV-9纪录", "CCTV-10科教", "CCTV-11戏曲",
@@ -97,23 +97,24 @@ CCTV_ORDER = [
     "CCTV-16奥林匹克", "CCTV-17农业农村", "CETV1", "CETV2", "CETV4", "CETV5"
 ]
 
-PAGE_CONFIG = {
+PAGE_CONFIG = {                                     # 页面元素文本匹配规则(适配不同网站布局)
     "engine_search": ["引索搜索", "引擎搜索", "关键词搜索"],
     "hotel":        ["酒店提取"],
     "multicast":    ["组播提取"],
     "start_button": ["开始播放", "开始搜索", "开始提取"],
 }
 
-TIME_DISPLAY_AT_TOP    = False
-UPDATE_STREAM_URL      = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8"
-ENABLE_VERBOSE_LOGGING = False
+TIME_DISPLAY_AT_TOP    = False                      # 更新时间显示在文件顶部(True=顶部,False=底部)
+UPDATE_STREAM_URL      = "https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8"  # 更新时间对应的占位流地址
+ENABLE_VERBOSE_LOGGING = False                      # 是否启用详细日志输出
 
-CONNECTIVITY_CONCURRENCY = 20
-CONNECTIVITY_TIMEOUT     = 1
+CONNECTIVITY_CONCURRENCY = 20                       # 基础连通性测试的最大并发数
+CONNECTIVITY_TIMEOUT     = 1                        # 基础连通性测试超时时间(秒)
 
 # ============================================================================
 # ============================= 日志配置 ===========================
 # ============================================================================
+
 log_level = logging.INFO
 
 class BeijingFormatter(logging.Formatter):
