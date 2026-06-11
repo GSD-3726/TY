@@ -223,7 +223,51 @@ def clean_satellite_name(name: str) -> str:
     return name
 
 # ============================================================================
-# ========================= 缓存管理 ==========================================
+# ========================= 进度条管理 =======================================
+# ============================================================================
+class ProgressBar:
+    """带并发安全的进度条管理器"""
+    def __init__(self, total: int, title: str = "测速进度"):
+        self.total = total
+        self.title = title
+        self.current = 0
+        self.success = 0
+        self.failed = 0
+        self.last_percent = -1
+        self.lock = asyncio.Lock()
+
+    async def update(self, success: bool = False):
+        """原子更新进度条"""
+        async with self.lock:
+            self.current += 1
+            if success:
+                self.success += 1
+            else:
+                self.failed += 1
+            self._print()
+
+    def _print(self):
+        """打印进度条（内部调用）"""
+        if self.total == 0:
+            return
+        percent_int = int((self.current / self.total) * 100)
+        # 每5%打印一次，或完成时打印
+        if not ((percent_int % 5 == 0 and percent_int > self.last_percent) or self.current == self.total):
+            return
+        self.last_percent = percent_int
+        
+        bar_length = 30
+        filled_length = int(bar_length * self.current // self.total)
+        bar = '█' * filled_length + '░' * (bar_length - filled_length)
+        
+        logger.info(
+            f"[{self.title}] {percent_int:3d}% |{bar}| "
+            f"({self.current}/{self.total}) | 成功:{self.success} | 失败:{self.failed}"
+        )
+        sys.stdout.flush()
+
+# ============================================================================
+# ========================= 缓存管理 =========================================
 # ============================================================================
 CACHE_EXPIRE_SECONDS = CACHE_EXPIRE_HOURS * 3600
 
@@ -289,7 +333,7 @@ async def check_url_connectivity(url: str, timeout: int) -> bool:
         return False
 
 # ============================================================================
-# ========================= 重试 & 进度条 =====================================
+# ========================= 重试装饰器 =====================================
 # ============================================================================
 def retry_async(max_retries=2, delay=1.0, exceptions=(Exception,)):
     def decorator(func):
@@ -305,19 +349,6 @@ def retry_async(max_retries=2, delay=1.0, exceptions=(Exception,)):
             return None
         return wrapper
     return decorator
-
-def print_progress_bar(current: int, total: int, success: int, failed: int, last_percent: int) -> int:
-    if total == 0:
-        return 0
-    percent_int = int((current / total) * 100)
-    if not ((percent_int % 5 == 0 and percent_int > last_percent) or current == total or current == 0):
-        return last_percent
-    if percent_int == last_percent and current != total:
-        return last_percent
-    bar = '█' * int(20 * current / total) + '░' * (20 - int(20 * current / total))
-    logger.info(f"[{percent_int:3d}%] {bar} ({current}/{total}) | 成功:{success} | 失败:{failed}")
-    sys.stdout.flush()
-    return percent_int
 
 # ============================================================================
 # ========================= FFmpeg 核心测速 ==================================
@@ -399,13 +430,14 @@ async def test_stream_with_ffmpeg(url: str, duration: int = 10) -> Dict[str, Any
         return {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0, "bitrate": 0, "message": f"异常: {str(e)[:50]}"}
 
 # ============================================================================
-# ================== 【核心新函数】智能测速：达标即停 ==========================
+# ================== 【核心新函数】智能测速：达标即停 + 进度条 =================
 # ============================================================================
 async def smart_test_channel_urls(
     channel_key: Tuple[str, str],
     url_list: List[str],
     cache: dict,
-    sem: asyncio.Semaphore
+    sem: asyncio.Semaphore,
+    progress: Optional[ProgressBar] = None
 ) -> Tuple[List[str], List[str], dict]:
     """
     智能测速单个频道：
@@ -431,6 +463,7 @@ async def smart_test_channel_urls(
             if is_cache_valid(cache_item.get("timestamp", 0)):
                 if cache_item["ok"]:
                     qualified.append(url)
+                # 缓存命中不更新进度条（只有实际测速才更新）
                 continue
 
         # 并发测速
@@ -448,6 +481,10 @@ async def smart_test_channel_urls(
 
         if res["ok"]:
             qualified.append(url)
+        
+        # 更新进度条
+        if progress:
+            await progress.update(success=res["ok"])
 
     return qualified[:MAX_LINKS_PER_CHANNEL], remaining_urls, new_cache
 
@@ -653,7 +690,7 @@ def deduplicate_urls_per_channel(channel_map):
     return dict(new_map)
 
 # ============================================================================
-# ========================= 导出结果 ==========================================
+# ========================= 导出结果 =========================================
 # ============================================================================
 def export_results_with_timestamp(channel_map):
     now = (datetime.datetime.utcnow() + datetime.timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
@@ -735,10 +772,23 @@ async def main():
     logger.info("="*50)
     tasks = []
     channel_keys = list(final_channel_map.keys())
+    
+    # 计算需要实际测速的URL总数（排除缓存命中）
+    total_urls_to_test = 0
+    for key in channel_keys:
+        urls = final_channel_map[key]
+        for url in urls:
+            cache_item = cache.get(url)
+            if not (cache_item and isinstance(cache_item, dict) and "ok" in cache_item and is_cache_valid(cache_item.get("timestamp", 0))):
+                total_urls_to_test += 1
+    
+    # 创建本地源测速进度条
+    local_progress = ProgressBar(total_urls_to_test, title="本地源测速")
+    logger.info(f"需测速URL总数: {total_urls_to_test}")
 
     for key in channel_keys:
         urls = final_channel_map[key]
-        tasks.append(smart_test_channel_urls(key, urls, cache, sem))
+        tasks.append(smart_test_channel_urls(key, urls, cache, sem, local_progress))
 
     results = await asyncio.gather(*tasks)
     for i, (qualified, remaining, new_cache) in enumerate(results):
@@ -823,6 +873,25 @@ async def main():
     logger.info("="*50)
     tasks = []
     keys_to_supplement = []
+    
+    # 计算需要补充测速的URL总数
+    total_supplement_urls = 0
+    for key, qs in all_qualified.items():
+        need = MAX_LINKS_PER_CHANNEL - len(qs)
+        if need <= 0:
+            continue
+        urls = supplementary_map.get(key, [])
+        if not urls:
+            continue
+        # 只计算需要实际测速的数量
+        for url in urls:
+            cache_item = cache.get(url)
+            if not (cache_item and isinstance(cache_item, dict) and "ok" in cache_item and is_cache_valid(cache_item.get("timestamp", 0))):
+                total_supplement_urls += 1
+    
+    # 创建补充源测速进度条
+    supplement_progress = ProgressBar(total_supplement_urls, title="补充源测速")
+    logger.info(f"需补充测速URL总数: {total_supplement_urls}")
 
     for key, qs in all_qualified.items():
         need = MAX_LINKS_PER_CHANNEL - len(qs)
@@ -832,7 +901,7 @@ async def main():
         if not urls:
             continue
         keys_to_supplement.append(key)
-        tasks.append(smart_test_channel_urls(key, urls, cache, sem))
+        tasks.append(smart_test_channel_urls(key, urls, cache, sem, supplement_progress))
 
     if tasks:
         supple_results = await asyncio.gather(*tasks)
