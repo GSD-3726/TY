@@ -332,6 +332,21 @@ async def check_url_connectivity(url: str, timeout: int) -> bool:
     except Exception:
         return False
 
+async def filter_online_urls(
+    url_list: List[str],
+    timeout: float = CONNECTIVITY_TIMEOUT,
+    concurrency: int = CONNECTIVITY_CONCURRENCY
+) -> List[str]:
+    """快速筛选可达的URL（仅 http/https 协议）"""
+    sem = asyncio.Semaphore(concurrency)
+    async def test_one(url: str) -> bool:
+        async with sem:
+            return await check_url_connectivity(url, timeout)
+    
+    tasks = [test_one(url) for url in url_list]
+    results = await asyncio.gather(*tasks)
+    return [url for url, ok in zip(url_list, results) if ok]
+
 # ============================================================================
 # ========================= 重试装饰器 =====================================
 # ============================================================================
@@ -865,7 +880,23 @@ async def main():
         supplementary_map[(g, n)].append(u)
 
     supplementary_map = deduplicate_urls_per_channel(supplementary_map)
-    logger.info(f"✅ 补充源获取完成：{len(supplementary_map)} 个频道可用")
+    logger.info(f"✅ 补充源获取完成（去重后）：{len(supplementary_map)} 个频道可用")
+
+    # ===================== 步骤3.5：快速连通性筛选 ==========================
+    logger.info("="*50)
+    logger.info("📌 步骤3.5：快速连通性筛选（剔除无效链接）")
+    logger.info("="*50)
+    filtered_map = defaultdict(list)
+    total_before = 0
+    total_after = 0
+    for (g, n), urls in supplementary_map.items():
+        total_before += len(urls)
+        if urls:
+            online_urls = await filter_online_urls(urls, timeout=CONNECTIVITY_TIMEOUT, concurrency=CONNECTIVITY_CONCURRENCY)
+            filtered_map[(g, n)] = online_urls
+            total_after += len(online_urls)
+    logger.info(f"连通性筛选完成：{total_before} → {total_after} 个有效链接（剔除 {total_before - total_after} 个）")
+    supplementary_map = filtered_map
 
     # ===================== 步骤4：补充测速（只测未达标的频道）=================
     logger.info("="*50)
