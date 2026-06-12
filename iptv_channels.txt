@@ -63,7 +63,6 @@ CCTV-15音乐,http://183.185.149.251:9003/hls/16/index.m3u8
 CCTV-15音乐,http://112.30.73.119:9901/tsfile/live/0015_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-17农业农村,http://119.62.24.75:50085/tsfile/live/0017_4.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 CCTV-17农业农村,http://221.232.196.145:7777/tsfile/live/0112_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-中央气象,http://36.158.75.249:8088/tsfile/live/1037_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 
 卫视频道,#genre#
 东南卫视,http://106.46.116.203:808/hls/53/index.m3u8
@@ -97,6 +96,7 @@ CCTV-17农业农村,http://221.232.196.145:7777/tsfile/live/0112_1.m3u8?key=txip
 山西卫视,http://207.56.13.146:81/cdnlive/sxws.m3u8
 山西卫视,http://103.72.172.253:8041/hls/496247945/index.m3u8
 山西卫视,http://182.140.125.47:808/hls/50/index.m3u8
+广东卫视,https://live.264788.xyz/channel/guangdongweishi4k?streamid=0508c0316aedc9152adcf323fa95c2c0&livekey=01WgOR41rriMmMkzNsd0UoaxJRwetZdxIvtVk
 广东卫视,http://120.202.73.48:8888/tsfile/live/0125_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 广西卫视,http://119.62.24.75:50085/tsfile/live/0130_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 康巴卫视,http://182.140.125.47:808/hls/35/index.m3u8
@@ -116,6 +116,7 @@ CCTV-17农业农村,http://221.232.196.145:7777/tsfile/live/0112_1.m3u8?key=txip
 湖北卫视,http://119.62.24.75:50085/tsfile/live/0132_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 湖北卫视,http://120.202.73.48:8888/tsfile/live/0132_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 湖北卫视,http://106.46.116.203:808/hls/47/index.m3u8
+湖南卫视,https://shcm-stream-cf1.stream.264788.xyz/cms001/ch00000090990000001710/index.m3u8?streamid=1d2cff60e497ead8198445a199d19583&streamkey=02BjlnRKVk4w1OvRhs9gjYN8D7sy318Y48hqzq9Dk6yaqnigFWeJpjR6zUrHGZh3m4FBMHRSBFfR1q7iX54dkvL5GLj3orlv5RnPKfGfcJZlpHhbv0636oNhmE2&token=1775753606-591a13b36d4b0115-0-df68fe8117601a06ca674b46729f8b88
 湖南卫视,http://221.226.51.220:50081/newlive/live/hls/29/live.m3u8
 甘肃卫视,http://119.62.24.75:50085/tsfile/live/0107_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 西藏卫视,http://182.140.125.47:808/hls/54/index.m3u8
@@ -137,6 +138,7 @@ CCTV-17农业农村,http://221.232.196.145:7777/tsfile/live/0112_1.m3u8?key=txip
 韩国电影,http://154.50.18.45:85/tsfile/live/1000_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 
 儿童频道,#genre#
+优漫卡通,https://live.264788.xyz/channel/youmankatong?streamid=33925d2dac220a3337be0f8302f6f290&livekey=01WgOR41rriMmMkzNsd0UoaxJRwetZdxIvtVk
 优漫卡通,http://106.46.116.203:808/hls/66/index.m3u8
 优漫卡通移动,http://39.165.39.49:85/tsfile/live/1092_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 卡酷动画移动,http://39.165.39.49:85/tsfile/live/1158_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
@@ -144,4 +146,4 @@ CCTV-17农业农村,http://221.232.196.145:7777/tsfile/live/0112_1.m3u8?key=txip
 炫动卡通,http://106.46.116.203:808/hls/63/index.m3u8
 
 更新时间,#genre#
-2026-06-11 12:10:21,https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
+2026-06-12 08:11:40,https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
