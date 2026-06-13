@@ -84,7 +84,7 @@ ENABLE_MIGU_FILTER     = True                            # 过滤包含"migu"的
 SKIP_INTERNAL_IP       = True                            # 跳过内网IP
 ENABLE_SATELLITE_CLEAN = True                            # 卫视名称清洗
 
-# -------------------------- 8. 频道分类规则 --------------------------------
+# -------------------------- 8. 频道分类规则（已扩展关键词） ------------------
 CATEGORY_RULES = [
     {"name": "4K专区",      "keywords": ["4k", "4K", "超高清", "2160p"]},
     {"name": "央视频道",    "keywords": ["cctv", "cetv", "央视", "中央", "CCTV", "CETV", "央视频道"]},
@@ -906,7 +906,7 @@ def print_source_statistics(stats):
 # ============================================================================
 async def main():
     overall_start_time = time.time()
-    inc_update = ENABLE_INCREMENTAL_UPDATE  # 【修复】使用局部变量避免全局变量赋值冲突
+    inc_update = ENABLE_INCREMENTAL_UPDATE          # 使用局部变量，避免 UnboundLocalError
 
     stats = {
         "github": [{"url": url, "raw": 0, "valid": 0, "output": 0} for url in GITHUB_M3U_LINKS],
@@ -932,52 +932,64 @@ async def main():
         logger.info("--- 启用增量更新，解析现有输出文件 ---")
         existing_channels, url_count = parse_existing_m3u(OUTPUT_M3U_FILENAME)
         if existing_channels:
-            all_old_urls_list = []
-            for urls in existing_channels.values():
-                all_old_urls_list.extend(urls)
-            unique_old_urls = list(set(all_old_urls_list))
-            logger.info(f"旧文件中共 {len(unique_old_urls)} 个唯一链接，开始连通性测试...")
+            # 检查旧文件是否包含所有预定义分组
+            existing_groups = {g for (g, _) in existing_channels.keys()}
+            required_groups = set(GROUP_ORDER)            # 所有分类都必须存在
+            missing_groups = required_groups - existing_groups
+            if missing_groups:
+                logger.warning(f"旧输出文件缺少必要分组: {missing_groups}，回退到全量更新")
+                inc_update = False
+                old_valid_map.clear()
+                required_map.clear()
+                old_all_urls.clear()
+            else:
+                # 原有连通性测试逻辑
+                all_old_urls_list = []
+                for urls in existing_channels.values():
+                    all_old_urls_list.extend(urls)
+                unique_old_urls = list(set(all_old_urls_list))
+                logger.info(f"旧文件中共 {len(unique_old_urls)} 个唯一链接，开始连通性测试...")
 
-            sem_old = asyncio.Semaphore(CONNECTIVITY_CONCURRENCY)
-            async def check_old(url):
-                async with sem_old:
-                    ok = await check_url_connectivity(url, CONNECTIVITY_TIMEOUT)
-                    return url, ok
-            tasks_old = [check_old(u) for u in unique_old_urls]
-            old_connected = set()
-            c, ok, ng, lp = 0, 0, 0, -100
-            print_progress_bar(0, len(tasks_old), ok, ng, lp)
-            for coro in asyncio.as_completed(tasks_old):
-                url, is_ok = await coro
-                c += 1
-                if is_ok:
-                    ok += 1
-                    old_connected.add(url)
-                else:
-                    ng += 1
-                lp = print_progress_bar(c, len(tasks_old), ok, ng, lp)
-            logger.info(f"旧链接连通性测试完成，有效: {len(old_connected)}")
+                sem_old = asyncio.Semaphore(CONNECTIVITY_CONCURRENCY)
+                async def check_old(url):
+                    async with sem_old:
+                        ok = await check_url_connectivity(url, CONNECTIVITY_TIMEOUT)
+                        return url, ok
+                tasks_old = [check_old(u) for u in unique_old_urls]
+                old_connected = set()
+                c, ok, ng, lp = 0, 0, 0, -100
+                print_progress_bar(0, len(tasks_old), ok, ng, lp)
+                for coro in asyncio.as_completed(tasks_old):
+                    url, is_ok = await coro
+                    c += 1
+                    if is_ok:
+                        ok += 1
+                        old_connected.add(url)
+                    else:
+                        ng += 1
+                    lp = print_progress_bar(c, len(tasks_old), ok, ng, lp)
+                logger.info(f"旧链接连通性测试完成，有效: {len(old_connected)}")
 
-            for (g, n), urls in existing_channels.items():
-                valid_urls = []
-                for u in urls:
-                    if u in old_connected:
-                        is_quality = url_count[u] >= QUALITY_THRESHOLD
-                        valid_urls.append((u, is_quality))
-                        url_quality[u] = is_quality
-                        old_all_urls.add(u)
-                if valid_urls:
-                    valid_urls.sort(key=lambda x: (not x[1]))
-                    old_valid_map[(g, n)] = valid_urls
-                    needed = MAX_LINKS_PER_CHANNEL - len(valid_urls)
-                    if needed < 0:
-                        needed = 0
-                    required_map[(g, n)] = needed
-                    if needed > 0:
-                        logger.debug(f"频道 {g}-{n} 已有 {len(valid_urls)} 个旧链接，还需 {needed} 个新链接")
-                else:
-                    required_map[(g, n)] = MAX_LINKS_PER_CHANNEL
-            logger.info(f"增量分析完成：{len(old_valid_map)} 个频道有旧有效链接，总复用 {sum(len(v) for v in old_valid_map.values())} 条")
+                for (g, n), urls in existing_channels.items():
+                    valid_urls = []
+                    for u in urls:
+                        if u in old_connected:
+                            is_quality = url_count[u] >= QUALITY_THRESHOLD
+                            valid_urls.append((u, is_quality))
+                            url_quality[u] = is_quality
+                            old_all_urls.add(u)
+                    if valid_urls:
+                        valid_urls.sort(key=lambda x: (not x[1]))
+                        old_valid_map[(g, n)] = valid_urls
+                        needed = MAX_LINKS_PER_CHANNEL - len(valid_urls)
+                        if needed < 0:
+                            needed = 0
+                        required_map[(g, n)] = needed
+                        if needed > 0:
+                            logger.debug(f"频道 {g}-{n} 已有 {len(valid_urls)} 个旧链接，还需 {needed} 个新链接")
+                    else:
+                        required_map[(g, n)] = MAX_LINKS_PER_CHANNEL
+                logger.info(f"增量分析完成：{len(old_valid_map)} 个频道有旧有效链接，总复用 {sum(len(v) for v in old_valid_map.values())} 条")
         else:
             logger.info("现有输出文件无有效频道，退回全量模式")
             inc_update = False
