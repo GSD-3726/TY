@@ -51,7 +51,7 @@ CHANNEL_URL_TIMEOUT    = 0.1                             # 读取频道链接超
 SCROLL_TIMEOUT         = 0.1                             # 滚动到元素视野的超时（秒）
 CLICK_TIMEOUT          = 0.1                             # 点击元素的超时（秒）
 WAIT_FOR_ELEMENT_TIMEOUT = 15                             # wait_for_element默认超时（秒）→缩短
-DATA_CHECK_INTERVAL    = 3                               # 数据加载检查间隔（秒）→缩短
+DATA_CHECK_INTERVAL    = 30                              # 数据加载检查间隔（秒）→缩短
 
 # -------------------------- 4. GitHub源订阅 --------------------------------
 ENABLE_GITHUB_SOURCES = True                            # 是否启用GitHub源
