@@ -66,10 +66,10 @@ GITHUB_M3U_LINKS = [
 # -------------------------- 5. FFmpeg测速设置 -------------------------------
 ENABLE_FFMPEG_TEST     = True                            # 是否启用FFmpeg测速
 FFMPEG_PATH            = "ffmpeg"                        # FFmpeg 程序路径
-FFMPEG_TEST_DURATION   = 10                              # 每个链接测试时长（秒）
+FFMPEG_TEST_DURATION   = 20                              # 每个链接测试时长（秒）
 FFMPEG_CONCURRENCY     = 6                               # 并发测速数量
 MIN_AVG_FPS            = 24                              # 最低平均帧率
-MIN_FRAMES             = 210                             # 最低解码帧数
+MIN_FRAMES             = 420                             # 最低解码帧数
 
 # -------------------------- 6. 缓存设置 ------------------------------------
 ENABLE_CACHE           = True                            # 启用测速缓存
