@@ -52,6 +52,8 @@ http://204.12.221.218:8181/3m1080p/jlws.m3u8
 http://204.12.221.218:8181/3m1080p/scws.m3u8
 #EXTINF:-1 group-title="卫视频道",天津卫视
 http://204.12.221.218:8181/3m1080p/tjws.m3u8
+#EXTINF:-1 group-title="卫视频道",天津卫视
+http://60.13.52.236:65500/newlive/live/hls/28/live.m3u8
 #EXTINF:-1 group-title="卫视频道",安徽卫视
 http://204.12.221.218:8181/3m1080p/ahws.m3u8
 #EXTINF:-1 group-title="卫视频道",安徽卫视
@@ -92,6 +94,8 @@ http://221.226.51.220:50081/newlive/live/hls/27/live.m3u8
 http://204.12.221.218:8181/3m1080p/lyws.m3u8
 #EXTINF:-1 group-title="卫视频道",海南卫视
 http://207.56.13.146:81/cdnlive/lyws.m3u8
+#EXTINF:-1 group-title="卫视频道",深圳卫视
+http://204.12.221.218:8181/3m1080p/szws.m3u8
 #EXTINF:-1 group-title="卫视频道",湖北卫视
 http://204.12.221.218:8181/3m1080p/hbws.m3u8
 #EXTINF:-1 group-title="卫视频道",湖北卫视
@@ -140,5 +144,5 @@ http://204.12.221.218:8181/3m1080p/hnjykt.m3u8
 #EXTINF:-1 group-title="儿童频道",韩国少儿
 http://ebsonairios.ebs.co.kr/ebsutablet500k/tablet500k/playlist.m3u8
 
-#EXTINF:-1 group-title="更新时间",2026-06-13 16:10:47
+#EXTINF:-1 group-title="更新时间",2026-06-13 16:49:41
 https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
