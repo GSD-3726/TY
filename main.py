@@ -34,7 +34,7 @@ DEFAULT_PROTOCOL      = "http://"                        # 默认协议（用于
 
 # -------------------------- 2. 爬取控制 ------------------------------------
 EXTRACT_MODE          = "组播提取"                       # "酒店提取" 或 "组播提取"
-ENABLE_WEB_SCRAPING   = True                            # 是否启用网站爬取
+ENABLE_WEB_SCRAPING   = False                            # 是否启用网站爬取
 MAX_IPS               = 5                               # 最多处理多少个IP
 MAX_TOTAL_CHANNELS    = 0                                # 总频道上限（0=不限制）
 MAX_CHANNELS_PER_IP   = 0                                # 单个IP最多提取频道数
