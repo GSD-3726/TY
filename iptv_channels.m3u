@@ -2,9 +2,9 @@
 #EXTINF:-1 group-title="央视频道",CCTV-1综合
 http://219.144.190.2:9901/tsfile/live/0001_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-2财经
-http://219.144.190.2:9901/tsfile/live/0002_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
-#EXTINF:-1 group-title="央视频道",CCTV-2财经
 http://210.76.37.54:9003/hls/12/index.m3u8
+#EXTINF:-1 group-title="央视频道",CCTV-2财经
+http://219.144.190.2:9901/tsfile/live/0002_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-2财经
 http://123.159.165.148:85/tsfile/live/1014_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-2财经
@@ -93,8 +93,6 @@ http://123.154.45.72:85/tsfile/live/1042_1.m3u8?key=txiptv&amp;playlive=1&amp;au
 #EXTINF:-1 group-title="卫视频道",东南卫视
 http://123.159.165.148:85/tsfile/live/1042_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",东南卫视
-http://171.88.121.45:85/tsfile/live/0137_2.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="卫视频道",东南卫视
 http://219.144.190.2:9901/tsfile/live/0137_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",东方卫视
 http://219.144.190.2:9901/tsfile/live/0107_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0
@@ -119,7 +117,7 @@ http://123.159.165.148:85/tsfile/live/1035_1.m3u8?key=txiptv&amp;playlive=1&amp;
 #EXTINF:-1 group-title="卫视频道",四川卫视
 http://123.113.103.91:85/tsfile/live/0123_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",天津卫视
-http://171.88.121.45:85/tsfile/live/0135_2.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
+http://221.232.196.26:7777/tsfile/live/0135_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",宁夏卫视
 http://210.76.37.54:9003/hls/59/index.m3u8
 #EXTINF:-1 group-title="卫视频道",宁夏卫视
@@ -131,8 +129,6 @@ http://221.232.197.185:7777/tsfile/live/0131_1.m3u8?key=txiptv&amp;playlive=1&am
 #EXTINF:-1 group-title="卫视频道",山东卫视
 http://101.66.194.141:85/tsfile/live/0131_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",山西卫视
-http://171.88.121.45:85/tsfile/live/0118_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="卫视频道",山西卫视
 http://101.66.195.40:85/tsfile/live/0118_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",山西卫视
 http://210.76.37.54:9003/hls/46/index.m3u8
@@ -141,13 +137,11 @@ http://123.154.45.72:85/tsfile/live/1034_1.m3u8?key=txiptv&amp;playlive=1&amp;au
 #EXTINF:-1 group-title="卫视频道",广东卫视
 http://210.76.37.54:9003/hls/38/index.m3u8
 #EXTINF:-1 group-title="卫视频道",广西卫视
-http://171.88.121.45:85/tsfile/live/0113_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="卫视频道",广西卫视
 http://210.76.37.54:9003/hls/47/index.m3u8
 #EXTINF:-1 group-title="卫视频道",广西卫视
-http://101.66.195.174:85/tsfile/live/0113_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="卫视频道",广西卫视
 http://101.66.195.40:85/tsfile/live/0113_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
+#EXTINF:-1 group-title="卫视频道",广西卫视
+http://101.66.195.174:85/tsfile/live/0113_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",广西卫视
 http://101.66.194.141:85/tsfile/live/0113_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",江苏卫视
@@ -161,8 +155,6 @@ http://221.232.197.185:7777/tsfile/live/0138_1.m3u8?key=txiptv&amp;playlive=1&am
 #EXTINF:-1 group-title="卫视频道",河北卫视
 http://210.76.37.54:9003/hls/65/index.m3u8
 #EXTINF:-1 group-title="卫视频道",河南卫视
-http://171.88.121.45:85/tsfile/live/0139_2.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="卫视频道",河南卫视
 http://210.76.37.54:9003/hls/42/index.m3u8
 #EXTINF:-1 group-title="卫视频道",河南卫视
 http://123.159.165.148:85/tsfile/live/1043_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
@@ -172,14 +164,10 @@ http://118.193.115.2:9901/tsfile/live/0139_1.m3u8?key=txiptv&amp;playlive=1&amp;
 http://210.76.37.54:9003/hls/61/index.m3u8
 #EXTINF:-1 group-title="卫视频道",深圳卫视
 http://210.76.37.54:9003/hls/54/index.m3u8
-#EXTINF:-1 group-title="卫视频道",深圳卫视
-http://171.88.121.45:85/tsfile/live/0126_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="卫视频道",湖北卫视
-http://171.88.121.45:85/tsfile/live/0132_2.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
-#EXTINF:-1 group-title="卫视频道",湖北卫视
-http://210.76.37.54:9003/hls/63/index.m3u8
 #EXTINF:-1 group-title="卫视频道",湖北卫视
 http://123.154.45.72:85/tsfile/live/1044_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
+#EXTINF:-1 group-title="卫视频道",湖北卫视
+http://210.76.37.54:9003/hls/63/index.m3u8
 #EXTINF:-1 group-title="卫视频道",湖南卫视
 http://123.154.45.72:85/tsfile/live/1031_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",湖南卫视
@@ -196,8 +184,6 @@ http://123.159.165.148:85/tsfile/live/1037_1.m3u8?key=txiptv&amp;playlive=1&amp;
 http://123.154.45.72:85/tsfile/live/1037_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",贵州卫视
 http://210.76.37.54:9003/hls/57/index.m3u8
-#EXTINF:-1 group-title="卫视频道",辽宁卫视
-http://171.88.121.45:85/tsfile/live/0121_2.m3u8?key=txiptv&amp;playlive=1&amp;authid=0
 #EXTINF:-1 group-title="卫视频道",辽宁卫视
 http://210.76.37.54:9003/hls/37/index.m3u8
 #EXTINF:-1 group-title="卫视频道",重庆卫视
@@ -247,5 +233,5 @@ http://210.76.37.54:9003/hls/33/index.m3u8
 #EXTINF:-1 group-title="儿童频道",黑龙江少儿
 http://210.76.37.54:9003/hls/7/index.m3u8
 
-#EXTINF:-1 group-title="更新时间",2026-06-17 22:15:06
+#EXTINF:-1 group-title="更新时间",2026-06-18 07:46:11
 https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
