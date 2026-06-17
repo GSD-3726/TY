@@ -33,9 +33,9 @@ MAX_LINKS_PER_CHANNEL = 10                               # 每个频道最多保
 DEFAULT_PROTOCOL      = "http://"                        # 默认协议（用于补全链接）
 
 # -------------------------- 2. 爬取控制 ------------------------------------
-EXTRACT_MODE          = "酒店提取"                       # "酒店提取" 或 "组播提取"
+EXTRACT_MODE          = "组播提取"                       # "酒店提取" 或 "组播提取"
 ENABLE_WEB_SCRAPING   = True                            # 是否启用网站爬取
-MAX_IPS               = 100                               # 最多处理多少个IP
+MAX_IPS               = 5                               # 最多处理多少个IP
 MAX_TOTAL_CHANNELS    = 0                                # 总频道上限（0=不限制）
 MAX_CHANNELS_PER_IP   = 0                                # 单个IP最多提取频道数
 DELAY_BETWEEN_IPS     = 0.1                              # 切换IP间隔（秒）
