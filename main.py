@@ -29,7 +29,7 @@ BROWSER_TYPE          = "chromium"                      # 浏览器内核
 OUTPUT_DIR            = Path(__file__).parent           # 输出目录（当前脚本目录）
 OUTPUT_M3U_FILENAME   = OUTPUT_DIR / "iptv_channels.m3u" # M3U输出文件
 OUTPUT_TXT_FILENAME   = OUTPUT_DIR / "iptv_channels.txt" # TXT输出文件
-MAX_LINKS_PER_CHANNEL = 10                               # 每个频道最多保留几条链接
+MAX_LINKS_PER_CHANNEL = 8                               # 每个频道最多保留几条链接
 DEFAULT_PROTOCOL      = "http://"                        # 默认协议（用于补全链接）
 
 # -------------------------- 2. 爬取控制 ------------------------------------
@@ -129,7 +129,7 @@ CONNECTIVITY_CONCURRENCY = 15
 CONNECTIVITY_TIMEOUT     = 2
 
 # -------------------------- 12. 增量更新配置 --------------------------------
-ENABLE_INCREMENTAL_UPDATE = True
+ENABLE_INCREMENTAL_UPDATE = False
 QUALITY_THRESHOLD         = 4
 REQUIRED_CHANNELS_FILE    = OUTPUT_DIR / "频道.txt"      # 定义必须包含的频道列表
 
