@@ -129,7 +129,7 @@ CONNECTIVITY_CONCURRENCY = 15
 CONNECTIVITY_TIMEOUT     = 2
 
 # -------------------------- 12. 增量更新配置 --------------------------------
-ENABLE_INCREMENTAL_UPDATE = False
+ENABLE_INCREMENTAL_UPDATE = True
 QUALITY_THRESHOLD         = 4
 REQUIRED_CHANNELS_FILE    = OUTPUT_DIR / "频道.txt"      # 定义必须包含的频道列表
 
