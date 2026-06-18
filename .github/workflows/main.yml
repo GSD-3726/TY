@@ -41,7 +41,7 @@ jobs:
               echo "无文件更改，无需提交"
               exit 0
           fi
-          git commit -m "chore: 自动更新直播源"
+          git commit -m "chore: 自动更新"
           git pull --rebase origin main
           git push origin main
         env:
