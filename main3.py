@@ -137,7 +137,7 @@ QUALITY_THRESHOLD = 4
 REQUIRED_CHANNELS_FILE = OUTPUT_DIR / "频道.txt"
 
 # -------------------------- 13. 早停优化配置 --------------------------------
-EARLY_TERMINATE_SECONDS = 8                    # 启动缓冲期，前12秒不做早停判断
+EARLY_TERMINATE_SECONDS = 8                    # 启动缓冲期，前8秒不做早停判断
 EARLY_TERMINATE_MIN_FPS = 10                    # 最低帧率阈值
 EARLY_TERMINATE_MIN_FRAMES = 50                 # 最少解码帧数才触发判断
 
@@ -457,8 +457,6 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
         stderr_data = b""
         early_terminated = False
         last_fps = None
-        # 行缓冲区，用于拼接不完整的行
-        line_buffer = ""
         try:
             while True:
                 try:
@@ -466,16 +464,6 @@ async def test_stream_with_ffmpeg(url: str) -> Dict[str, Any]:
                     if not chunk:
                         break
                     stderr_data += chunk
-                    # 解码并按行分割
-                    text = stderr_data.decode('utf-8', errors='ignore')
-                    lines = text.split('\n')
-                    # 保留最后一行可能不完整，重新编码回字节
-                    if len(lines) > 1:
-                        # 处理完整的行，但这里我们只需要匹配 fps/frame，可以不用行缓冲
-                        # 但为准确性，我们拼接 line_buffer
-                        pass
-                    # 简单方法：直接从整个文本中匹配最新数据，因为chunk是追加的
-                    # 但为了截断风险，我们每次使用完整的 stderr_data 解码后的文本
                     full_output = stderr_data.decode('utf-8', errors='ignore')
                     elapsed = time.time() - start_time
                     if elapsed >= EARLY_TERMINATE_SECONDS:
@@ -692,12 +680,12 @@ async def _process_ffmpeg_batch(pending, sem, connectivity_sem, result_map, comp
         g, n, u = item
         async with lock:
             if completed_counts.get((g, n), 0) >= (required_map.get((g, n), MAX_LINKS_PER_CHANNEL) if required_map else MAX_LINKS_PER_CHANNEL):
-                return g, n, u, {"ok": False, "message": "频道已达标，跳过", "skipped": True}
+                return g, n, u, {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0, "drop": 0, "speed": 0.0, "quality_score": 0.0, "message": "频道已达标，跳过", "skipped": True}
         # 连通性预检（受信号量控制）
         async with connectivity_sem:
             if u.startswith(('http://', 'https://')):
                 if not await check_url_connectivity(u, CONNECTIVITY_TIMEOUT):
-                    return g, n, u, {"ok": False, "message": "连通性预检失败", "skipped": False}
+                    return g, n, u, {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0, "drop": 0, "speed": 0.0, "quality_score": 0.0, "message": "连通性预检失败", "skipped": False}
         # 正式测速
         async with sem:
             try:
@@ -729,10 +717,10 @@ async def _process_ffmpeg_batch(pending, sem, connectivity_sem, result_map, comp
             async with lock:
                 result_map[(g, n)].append((
                     u,
-                    res["fps"],
-                    res["width"],
-                    res["height"],
-                    res["quality_score"]
+                    res.get("fps", 0.0),
+                    res.get("width", 0),
+                    res.get("height", 0),
+                    res.get("quality_score", 0.0)
                 ))
                 completed_counts[(g, n)] = completed_counts.get((g, n), 0) + 1
         else:
@@ -741,8 +729,8 @@ async def _process_ffmpeg_batch(pending, sem, connectivity_sem, result_map, comp
                 early_stopped += 1
         if ENABLE_CACHE:
             new_cache[u] = {
-                "ok": res["ok"],
-                "fps": res["fps"],
+                "ok": res.get("ok", False),
+                "fps": res.get("fps", 0.0),
                 "frames": res.get("frames", 0),
                 "drop": res.get("drop", 0),
                 "speed": res.get("speed", 0.0),
@@ -834,7 +822,7 @@ def parse_m3u_file(content):
                     gr = current_group
                 if not gr:
                     gr = "未分类"
-                final_name = clean_final_name(gr, nn)  # 央视频道保持原样，其他按开关清洗
+                final_name = clean_final_name(gr, nn)
                 channels.append((gr, final_name, url))
                 name = ""
                 current_group = "未分类"
@@ -1057,7 +1045,6 @@ def _sort_cctv_channels(chs):
         if name in CCTV_ORDER:
             std = name
         else:
-            # 尝试匹配CCTV或CETV
             cctv_match = re.search(r'(cctv|cetv)[-\s]?(\d+)', name, re.IGNORECASE)
             if cctv_match:
                 prefix = cctv_match.group(1).upper()
