@@ -58,6 +58,7 @@ DATA_CHECK_INTERVAL    = 30                              # 数据加载检查间
 ENABLE_GITHUB_SOURCES = True                            # 是否启用GitHub源
 GITHUB_M3U_LINKS = [
     "https://gh-proxy.com/https://raw.githubusercontent.com/mzky/checklist/refs/heads/master/itvlist.m3u",
+    "https://gh-proxy.com/ https://github.com/vbskycn/iptv/blob/master/tv/iptv4.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/ajqubbs/zhiboyuan/main/%E9%A6%99%E9%9B%A8%E7%9B%B4%E6%92%AD.txt",
    # "https://gh-proxy.com/https://raw.githubusercontent.com/fafa002/yf2025/refs/heads/main/yiyifafa.txt",
     "https://gh-proxy.com/https://raw.githubusercontent.com/vinkerq/iptv-api/refs/heads/master/iptv.txt"
