@@ -1,776 +1,4 @@
 {
-  "http://183.190.223.196:888/tsfile/live/0010_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 32.0,
-    "frames": 331,
-    "drop": 0,
-    "speed": 1.43,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 58.2,
-    "timestamp": 1781824071.8702474
-  },
-  "http://123.159.165.148:85/tsfile/live/1022_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 36.0,
-    "frames": 350,
-    "drop": 0,
-    "speed": 1.52,
-    "width": 0,
-    "height": 1,
-    "degraded": false,
-    "quality_score": 61.2,
-    "timestamp": 1781824088.207327
-  },
-  "http://123.154.45.72:85/tsfile/live/1022_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 28.0,
-    "frames": 350,
-    "drop": 0,
-    "speed": 1.2,
-    "width": 0,
-    "height": 1,
-    "degraded": false,
-    "quality_score": 52.4,
-    "timestamp": 1781824116.4214768
-  },
-  "http://183.190.223.196:888/tsfile/live/0011_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 39.0,
-    "frames": 328,
-    "drop": 0,
-    "speed": 1.8,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 67.7,
-    "timestamp": 1781824250.3624737
-  },
-  "http://101.66.195.174:85/tsfile/live/0011_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 42.0,
-    "frames": 350,
-    "drop": 0,
-    "speed": 1.78,
-    "width": 0,
-    "height": 1,
-    "degraded": false,
-    "quality_score": 68.2,
-    "timestamp": 1781824298.7593844
-  },
-  "http://101.66.199.249:85/tsfile/live/0011_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 39.0,
-    "frames": 350,
-    "drop": 0,
-    "speed": 1.66,
-    "width": 0,
-    "height": 1,
-    "degraded": false,
-    "quality_score": 64.9,
-    "timestamp": 1781824298.8987541
-  },
-  "http://123.154.45.72:85/tsfile/live/1023_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 82.0,
-    "frames": 350,
-    "drop": 0,
-    "speed": 3.49,
-    "width": 0,
-    "height": 1,
-    "degraded": false,
-    "quality_score": 114.39999999999999,
-    "timestamp": 1781824304.6591477
-  },
-  "http://123.159.167.0:85/tsfile/live/1023_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 88.0,
-    "frames": 350,
-    "drop": 0,
-    "speed": 3.75,
-    "width": 0,
-    "height": 1,
-    "degraded": false,
-    "quality_score": 121.4,
-    "timestamp": 1781824304.70721
-  },
-  "http://118.193.115.2:9901/tsfile/live/0006_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 38.0,
-    "frames": 325,
-    "drop": 0,
-    "speed": 1.73,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 66.0,
-    "timestamp": 1781824391.5463717
-  },
-  "http://221.232.199.116:7777/tsfile/live/0008_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 31.0,
-    "frames": 344,
-    "drop": 0,
-    "speed": 1.33,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 55.9,
-    "timestamp": 1781824431.8433518
-  },
-  "http://221.232.196.26:7777/tsfile/live/0008_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 28.0,
-    "frames": 344,
-    "drop": 0,
-    "speed": 1.24,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 53.2,
-    "timestamp": 1781824432.6170173
-  },
-  "http://123.159.167.0:85/tsfile/live/1020_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 31.0,
-    "frames": 329,
-    "drop": 0,
-    "speed": 1.43,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 57.9,
-    "timestamp": 1781824482.918447
-  },
-  "http://183.190.223.196:888/tsfile/live/0004_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 41.0,
-    "frames": 326,
-    "drop": 0,
-    "speed": 1.87,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 69.69999999999999,
-    "timestamp": 1781824598.0895393
-  },
-  "http://183.190.223.196:888/tsfile/live/0109_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 40.0,
-    "frames": 325,
-    "drop": 0,
-    "speed": 1.87,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 69.4,
-    "timestamp": 1781824678.34682
-  },
-  "http://123.159.165.148:85/tsfile/live/1032_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 37.0,
-    "frames": 347,
-    "drop": 0,
-    "speed": 1.61,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 63.300000000000004,
-    "timestamp": 1781824708.0200214
-  },
-  "http://183.190.223.196:888/tsfile/live/0125_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 32.0,
-    "frames": 344,
-    "drop": 0,
-    "speed": 1.39,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 57.4,
-    "timestamp": 1781824794.199238
-  },
-  "http://219.144.190.2:9901/tsfile/live/0125_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": true,
-    "fps": 37.0,
-    "frames": 350,
-    "drop": 0,
-    "speed": 1.59,
-    "width": 0,
-    "height": 1,
-    "degraded": false,
-    "quality_score": 62.9,
-    "timestamp": 1781824844.609654
-  },
-  "http://101.66.199.35:85/tsfile/live/0116_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 68.0,
-    "frames": 349,
-    "drop": 0,
-    "speed": 2.9,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 98.4,
-    "timestamp": 1781824933.700398
-  },
-  "http://101.66.195.174:85/tsfile/live/0116_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 45.0,
-    "frames": 349,
-    "drop": 0,
-    "speed": 1.93,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 72.1,
-    "timestamp": 1781824936.2916515
-  },
-  "http://101.66.194.141:85/tsfile/live/0116_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 38.0,
-    "frames": 349,
-    "drop": 0,
-    "speed": 1.61,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 63.6,
-    "timestamp": 1781824937.9264126
-  },
-  "http://219.144.190.2:9901/tsfile/live/0116_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": true,
-    "fps": 38.0,
-    "frames": 341,
-    "drop": 0,
-    "speed": 1.68,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 65.0,
-    "timestamp": 1781824951.6637084
-  },
-  "http://183.190.223.196:888/tsfile/live/0116_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 28.0,
-    "frames": 328,
-    "drop": 0,
-    "speed": 1.27,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 53.800000000000004,
-    "timestamp": 1781824973.2310286
-  },
-  "http://123.159.165.148:85/tsfile/live/1038_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 36.0,
-    "frames": 347,
-    "drop": 0,
-    "speed": 1.57,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 62.2,
-    "timestamp": 1781825011.0390835
-  },
-  "http://101.66.195.174:85/tsfile/live/0131_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 34.0,
-    "frames": 347,
-    "drop": 0,
-    "speed": 1.48,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 59.8,
-    "timestamp": 1781825014.4029467
-  },
-  "http://101.66.195.40:85/tsfile/live/0121_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 29.0,
-    "frames": 331,
-    "drop": 0,
-    "speed": 1.33,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 55.3,
-    "timestamp": 1781825241.6384778
-  },
-  "http://101.66.195.174:85/tsfile/live/0121_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 29.0,
-    "frames": 331,
-    "drop": 0,
-    "speed": 1.32,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 55.1,
-    "timestamp": 1781825241.6902657
-  },
-  "http://183.190.223.196:888/tsfile/live/0138_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 29.0,
-    "frames": 340,
-    "drop": 0,
-    "speed": 1.28,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 54.3,
-    "timestamp": 1781825280.9725509
-  },
-  "http://219.144.190.2:9901/tsfile/live/0118_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": true,
-    "fps": 45.0,
-    "frames": 325,
-    "drop": 0,
-    "speed": 2.09,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 75.30000000000001,
-    "timestamp": 1781825480.6762543
-  },
-  "http://123.159.167.0:85/tsfile/live/1035_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 33.0,
-    "frames": 347,
-    "drop": 0,
-    "speed": 1.44,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 58.7,
-    "timestamp": 1781825523.912933
-  },
-  "http://123.159.165.148:85/tsfile/live/1040_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 33.0,
-    "frames": 347,
-    "drop": 0,
-    "speed": 1.41,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 58.1,
-    "timestamp": 1781825584.3252337
-  },
-  "http://183.190.223.196:888/tsfile/live/0122_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 29.0,
-    "frames": 332,
-    "drop": 0,
-    "speed": 1.29,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 54.5,
-    "timestamp": 1781825669.0704818
-  },
-  "http://219.144.190.2:9901/tsfile/live/0124_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": true,
-    "fps": 54.0,
-    "frames": 325,
-    "drop": 0,
-    "speed": 2.48,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 85.8,
-    "timestamp": 1781825671.1184769
-  },
-  "http://123.159.167.0:85/tsfile/live/1052_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 31.0,
-    "frames": 340,
-    "drop": 0,
-    "speed": 1.36,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 56.5,
-    "timestamp": 1781825688.0819488
-  },
-  "http://219.144.190.2:9901/tsfile/live/1016_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": true,
-    "fps": 40.0,
-    "frames": 325,
-    "drop": 0,
-    "speed": 1.84,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 68.80000000000001,
-    "timestamp": 1781825773.7650273
-  },
-  "http://183.188.70.96:85/tsfile/live/1065_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 29.0,
-    "frames": 330,
-    "drop": 0,
-    "speed": 1.31,
-    "width": 0,
-    "height": 1,
-    "degraded": true,
-    "quality_score": 54.900000000000006,
-    "timestamp": 1781825775.4807115
-  },
-  "http://221.232.196.26:7777/tsfile/live/0002_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 26.0,
-    "frames": 458,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1781874130.5507085,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://221.232.197.185:7777/tsfile/live/0002_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 26.0,
-    "frames": 458,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1781874131.0191667,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://221.232.197.185:7777/tsfile/live/0007_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 36.0,
-    "frames": 451,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781874304.186405,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://221.232.199.116:7777/tsfile/live/0007_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 47.0,
-    "frames": 450,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781874312.9420943,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://101.66.195.174:85/tsfile/live/0007_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 37.0,
-    "frames": 475,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1781874344.897745,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://101.66.199.35:85/tsfile/live/0019_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 39.0,
-    "frames": 472,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1781874424.205456,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://219.144.190.2:9901/tsfile/live/0128_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": true,
-    "fps": 26.0,
-    "frames": 466,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1781874445.98015,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://221.232.197.185:7777/tsfile/live/0009_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 24.0,
-    "frames": 463,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1781874519.3126175,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://219.144.190.2:9901/tsfile/live/0009_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": true,
-    "fps": 27.0,
-    "frames": 450,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1781874540.1784587,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://183.190.223.196:888/tsfile/live/0013_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 36.0,
-    "frames": 469,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781874670.934362,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://171.43.64.216:85/tsfile/live/0013_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 41.0,
-    "frames": 461,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1781874685.517115,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://221.232.199.116:7777/tsfile/live/0013_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 24.0,
-    "frames": 473,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1781874692.8927941,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://123.154.45.72:85/tsfile/live/1025_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 24.0,
-    "frames": 475,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1781874732.6789095,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://183.190.222.69:888/tsfile/live/0015_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 26.0,
-    "frames": 461,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781874752.6598334,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://183.190.223.196:888/tsfile/live/0015_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 30.0,
-    "frames": 459,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781874760.1977973,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://101.66.199.35:85/tsfile/live/0015_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 24.0,
-    "frames": 474,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781874778.7022767,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://219.144.190.2:9901/tsfile/live/0139_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": true,
-    "fps": 33.0,
-    "frames": 466,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1781875096.872702,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://183.190.222.69:888/tsfile/live/0136_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 37.0,
-    "frames": 472,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781875143.534587,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://118.193.115.2:9901/tsfile/live/0136_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 30.0,
-    "frames": 460,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781875147.78535,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://183.188.70.96:85/tsfile/live/1043_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 35.0,
-    "frames": 472,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781875148.45756,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://101.66.199.249:85/tsfile/live/0118_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 33.0,
-    "frames": 475,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781875165.0669055,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://101.66.195.174:85/tsfile/live/0118_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 44.0,
-    "frames": 475,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781875172.1707828,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://183.190.223.196:888/tsfile/live/0113_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 41.0,
-    "frames": 450,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781875186.412987,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://183.190.223.28:888/tsfile/live/0113_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 35.0,
-    "frames": 450,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781875187.161676,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://101.66.199.35:85/tsfile/live/0113_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 46.0,
-    "frames": 475,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781875198.532752,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://101.66.199.249:85/tsfile/live/0119_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 39.0,
-    "frames": 474,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781875213.9640706,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://123.113.103.91:85/tsfile/live/0119_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 31.0,
-    "frames": 468,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781875215.5753586,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://183.190.223.28:888/tsfile/live/0119_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 37.0,
-    "frames": 471,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781875218.679886,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://101.66.199.249:85/tsfile/live/1000_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 45.0,
-    "frames": 474,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781875230.7806327,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://101.66.195.174:85/tsfile/live/1000_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 40.0,
-    "frames": 474,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781875232.084762,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://101.66.195.40:85/tsfile/live/1000_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 29.0,
-    "frames": 474,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781875236.7775562,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://183.190.222.69:888/tsfile/live/0109_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": true,
-    "fps": 26.0,
-    "frames": 450,
-    "width": 720,
-    "height": 576,
-    "timestamp": 1781875287.858678,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
   "http://101.66.195.174:85/tsfile/live/0015_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
     "ok": true,
     "fps": 45.0,
@@ -48596,5 +47824,4301 @@
     "degraded": false,
     "quality_score": 0.0,
     "timestamp": 1782127414.0847113
+  },
+  "https://t.freetv.fun/live/cctv-1hd-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139927.5846393
+  },
+  "https://t.freetv.fun/live/cctv-4kchao-gao-qing-1.m3u8": {
+    "ok": false,
+    "fps": 143.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782139929.0477893
+  },
+  "https://t.freetv.fun/live/cctv-1hd.m3u8": {
+    "ok": false,
+    "fps": 123.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782139929.3548298
+  },
+  "https://t.freetv.fun/live/cctv-1hd-5.m3u8": {
+    "ok": false,
+    "fps": 177.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782139930.324948
+  },
+  "https://t.freetv.fun/live/cctv-1hd-2.m3u8": {
+    "ok": false,
+    "fps": 124.0,
+    "frames": 416,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782139930.7435677
+  },
+  "https://t.freetv.fun/live/cctv-4kchao-gao-qing-2.m3u8": {
+    "ok": false,
+    "fps": 132.0,
+    "frames": 388,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782139931.2764192
+  },
+  "https://t.freetv.fun/live/cctv-4kchao-gao-qing-3.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139935.9434898
+  },
+  "https://t.freetv.fun/live/cctv-4kchao-gao-qing-5.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139936.0514734
+  },
+  "https://t.freetv.fun/live/cctv-4kchao-gao-qing-8.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139937.0494804
+  },
+  "https://t.freetv.fun/live/cctv1hd-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139941.5506468
+  },
+  "https://t.freetv.fun/live/cctv1hd-2.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139942.277024
+  },
+  "https://t.freetv.fun/live/cctv1zong-he.m3u8": {
+    "ok": true,
+    "fps": 43.0,
+    "frames": 476,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782139945.6353087
+  },
+  "https://t.freetv.fun/live/cctv1hd-4.m3u8": {
+    "ok": false,
+    "fps": 173.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782139945.8533537
+  },
+  "https://t.freetv.fun/live/cctv1hd-3.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139946.9407666
+  },
+  "https://t.freetv.fun/live/cctv1hd-5.m3u8": {
+    "ok": false,
+    "fps": 118.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782139948.4112444
+  },
+  "https://t.freetv.fun/live/cctv1-2.m3u8": {
+    "ok": false,
+    "fps": 114.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782139949.5889583
+  },
+  "https://t.freetv.fun/live/cctv-1.m3u8": {
+    "ok": false,
+    "fps": 100.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782139952.7440941
+  },
+  "https://t.freetv.fun/live/cctv-4kchao-gao-qing-4.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139954.388975
+  },
+  "https://t.freetv.fun/live/cctv-4kchao-gao-qing-7.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139955.766213
+  },
+  "https://t.freetv.fun/live/cctv1-4.m3u8": {
+    "ok": true,
+    "fps": 268.0,
+    "frames": 570,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782139959.3483536
+  },
+  "https://t.freetv.fun/live/cctv1-zong-he-3.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139960.9509552
+  },
+  "https://t.freetv.fun/live/cctv1-12.m3u8": {
+    "ok": false,
+    "fps": 220.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782139963.9452262
+  },
+  "https://t.freetv.fun/live/cctv-1-1.m3u8": {
+    "ok": false,
+    "fps": 231.0,
+    "frames": 400,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782139966.2315361
+  },
+  "https://t.freetv.fun/live/cctv1-7.m3u8": {
+    "ok": false,
+    "fps": 23.0,
+    "frames": 425,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782139969.9611907
+  },
+  "https://t.freetv.fun/live/cctv-1-2.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139970.5194247
+  },
+  "https://t.freetv.fun/live/cctv-1-3.m3u8": {
+    "ok": false,
+    "fps": 218.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782139972.1611533
+  },
+  "https://t.freetv.fun/live/cctv1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139973.4223502
+  },
+  "https://t.freetv.fun/live/cctv-1-4.m3u8": {
+    "ok": false,
+    "fps": 185.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782139973.8287013
+  },
+  "https://t.freetv.fun/live/cctv-1-5.m3u8": {
+    "ok": false,
+    "fps": 253.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782139974.7848432
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-2.m3u8": {
+    "ok": false,
+    "fps": 211.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782139975.775079
+  },
+  "https://t.freetv.fun/live/cctv1-3.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139977.7682798
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-3.m3u8": {
+    "ok": false,
+    "fps": 107.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782139977.9383829
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-5.m3u8": {
+    "ok": true,
+    "fps": 206.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782139978.2580466
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi.m3u8": {
+    "ok": true,
+    "fps": 179.0,
+    "frames": 423,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782139978.7334273
+  },
+  "https://t.freetv.fun/live/cctv1-8.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139979.3973138
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-4.m3u8": {
+    "ok": true,
+    "fps": 158.0,
+    "frames": 445,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782139981.36679
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-1.m3u8": {
+    "ok": false,
+    "fps": 175.0,
+    "frames": 350,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782139981.5657039
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-6.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139983.7611845
+  },
+  "https://t.freetv.fun/live/cctv1-10.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139984.3574595
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-9.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139985.0484247
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-13.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782139990.4030104
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-15.m3u8": {
+    "ok": true,
+    "fps": 38.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140002.9077206
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-14.m3u8": {
+    "ok": true,
+    "fps": 38.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140002.9111736
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-7.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140003.7412198
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-8.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140004.4076455
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-18.m3u8": {
+    "ok": false,
+    "fps": 231.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140005.7294579
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-12.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140006.5927918
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-22.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140011.7806482
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-20.m3u8": {
+    "ok": false,
+    "fps": 50.0,
+    "frames": 416,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140014.312951
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-21.m3u8": {
+    "ok": false,
+    "fps": 51.0,
+    "frames": 416,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140014.3287518
+  },
+  "https://t.freetv.fun/live/shan-dong-wei-shi-23.m3u8": {
+    "ok": true,
+    "fps": 161.0,
+    "frames": 458,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140014.9724038
+  },
+  "https://t.freetv.fun/live/jin-ying-qia-tong-1.m3u8": {
+    "ok": true,
+    "fps": 197.0,
+    "frames": 475,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140019.4433675
+  },
+  "https://t.freetv.fun/live/jin-ying-qia-tong-2.m3u8": {
+    "ok": true,
+    "fps": 92.0,
+    "frames": 475,
+    "width": 640,
+    "height": 360,
+    "timestamp": 1782140022.3633819
+  },
+  "https://t.freetv.fun/live/jin-ying-qia-tong-16.m3u8": {
+    "ok": false,
+    "fps": 180.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140022.7428858
+  },
+  "https://t.freetv.fun/live/jin-ying-qia-tong-18.m3u8": {
+    "ok": false,
+    "fps": 226.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140025.33796
+  },
+  "https://t.freetv.fun/live/jin-ying-qia-tong-7.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140028.76396
+  },
+  "https://t.freetv.fun/live/jin-ying-qia-tong-11.m3u8": {
+    "ok": false,
+    "fps": 229.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140031.652586
+  },
+  "https://t.freetv.fun/live/jin-ying-qia-tong-5.m3u8": {
+    "ok": true,
+    "fps": 69.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140033.8244433
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-1.m3u8": {
+    "ok": false,
+    "fps": 186.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140034.2028227
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-6.m3u8": {
+    "ok": false,
+    "fps": 249.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140036.4334846
+  },
+  "https://t.freetv.fun/live/jin-ying-qia-tong.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140040.010432
+  },
+  "https://t.freetv.fun/live/jin-ying-qia-tong-4.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140040.0115442
+  },
+  "https://t.freetv.fun/live/jin-ying-qia-tong-9.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140040.021061
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-2.m3u8": {
+    "ok": true,
+    "fps": 63.0,
+    "frames": 434,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140042.8774853
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-19.m3u8": {
+    "ok": false,
+    "fps": 219.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140042.9482782
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-20.m3u8": {
+    "ok": false,
+    "fps": 217.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140045.8839998
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-7.m3u8": {
+    "ok": true,
+    "fps": 77.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140046.1972382
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140048.4776354
+  },
+  "https://t.freetv.fun/live/jin-ying-qia-tong-8.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140050.3646164
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-15.m3u8": {
+    "ok": false,
+    "fps": 106.0,
+    "frames": 337,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140052.567395
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-4.m3u8": {
+    "ok": true,
+    "fps": 84.0,
+    "frames": 448,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140056.5253887
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-8.m3u8": {
+    "ok": false,
+    "fps": 114.0,
+    "frames": 397,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140056.7310224
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-5.m3u8": {
+    "ok": true,
+    "fps": 102.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140056.9919362
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-14.m3u8": {
+    "ok": false,
+    "fps": 146.0,
+    "frames": 397,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140060.2978842
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-10.m3u8": {
+    "ok": false,
+    "fps": 124.0,
+    "frames": 337,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140061.0125127
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-9.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140065.0381534
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-11.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140065.0481057
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-12.m3u8": {
+    "ok": true,
+    "fps": 113.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140065.1749344
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-3.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140073.5002337
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-25.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140079.2579808
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-26.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140080.2046592
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-18.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140085.3464017
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-21.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140086.0749683
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-27.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140086.6223564
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-29.m3u8": {
+    "ok": false,
+    "fps": 227.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140087.9338615
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-22.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140090.0801456
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-23.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140090.092038
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-24.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140090.192416
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-31.m3u8": {
+    "ok": false,
+    "fps": 209.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140090.9741662
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-30.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140092.2675538
+  },
+  "https://t.freetv.fun/live/cctv6-5.m3u8": {
+    "ok": true,
+    "fps": 374.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140093.1108596
+  },
+  "https://t.freetv.fun/live/bei-jing-wei-shi-28.m3u8": {
+    "ok": true,
+    "fps": 108.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140094.7009192
+  },
+  "https://t.freetv.fun/live/cctv6-4.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140095.6360946
+  },
+  "https://t.freetv.fun/live/cctv6dian-ying-1.m3u8": {
+    "ok": false,
+    "fps": 263.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140098.2410305
+  },
+  "https://t.freetv.fun/live/cctv-6.m3u8": {
+    "ok": false,
+    "fps": 235.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140100.3258524
+  },
+  "https://t.freetv.fun/live/cctv6-33.m3u8": {
+    "ok": true,
+    "fps": 72.0,
+    "frames": 449,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140101.5185056
+  },
+  "https://t.freetv.fun/live/cctv-6-1.m3u8": {
+    "ok": true,
+    "fps": 310.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140102.3328788
+  },
+  "https://t.freetv.fun/live/cctv-6hd.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140103.5431342
+  },
+  "https://t.freetv.fun/live/cctv6.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140115.0889854
+  },
+  "https://t.freetv.fun/live/cctv6-6.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140115.9839604
+  },
+  "https://t.freetv.fun/live/cctv6-3.m3u8": {
+    "ok": true,
+    "fps": 25.0,
+    "frames": 465,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140116.2082298
+  },
+  "https://t.freetv.fun/live/cctv-6hd-1.m3u8": {
+    "ok": false,
+    "fps": 233.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140117.5464277
+  },
+  "https://t.freetv.fun/live/cctv6-2.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140118.122026
+  },
+  "https://t.freetv.fun/live/cctv-6hd-2.m3u8": {
+    "ok": true,
+    "fps": 175.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140119.4681375
+  },
+  "https://t.freetv.fun/live/cctv-6hd-3.m3u8": {
+    "ok": true,
+    "fps": 283.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140119.7716718
+  },
+  "https://t.freetv.fun/live/cctv6hd.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140120.3150165
+  },
+  "https://t.freetv.fun/live/cctv6hd-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140120.8865318
+  },
+  "https://t.freetv.fun/live/cctv-6-3.m3u8": {
+    "ok": false,
+    "fps": 213.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140121.032883
+  },
+  "https://t.freetv.fun/live/cctv-6-4.m3u8": {
+    "ok": false,
+    "fps": 247.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140122.4011655
+  },
+  "https://t.freetv.fun/live/cctv-6-5.m3u8": {
+    "ok": false,
+    "fps": 256.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140122.9183207
+  },
+  "https://t.freetv.fun/live/cctv6-dian-ying-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140126.5271878
+  },
+  "https://t.freetv.fun/live/cctv6-dian-ying-2.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140128.5523846
+  },
+  "http://183.62.8.58:50085/tsfile/live/faacts/0006_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140145.8959298
+  },
+  "http://183.10.180.143:202/tsfile/live/1026_1.m3u8?key=txiptv&playlive=1&down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140146.041515
+  },
+  "http://124.228.160.176:9901/tsfile/live/0006_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140147.4182186
+  },
+  "http://120.198.84.146:9901/tsfile/live/1028_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140147.9284577
+  },
+  "https://t.freetv.fun/live/cctv8hd-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140149.2869859
+  },
+  "https://t.freetv.fun/live/cctv-8.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140151.1590278
+  },
+  "http://122.224.58.42:85/tsfile/live/0006_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140151.5364351
+  },
+  "https://t.freetv.fun/live/cctv8hd.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140152.6246977
+  },
+  "http://120.238.94.82:9901/tsfile/live/1032_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140153.585054
+  },
+  "https://t.freetv.fun/live/cctv-8-1.m3u8": {
+    "ok": false,
+    "fps": 153.0,
+    "frames": 249,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140154.0512085
+  },
+  "https://t.freetv.fun/live/cctv-8-2.m3u8": {
+    "ok": false,
+    "fps": 176.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140154.207323
+  },
+  "https://t.freetv.fun/live/cctv-9hd-3.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140154.8450286
+  },
+  "https://t.freetv.fun/live/cctv-8-3.m3u8": {
+    "ok": false,
+    "fps": 249.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140155.409433
+  },
+  "https://t.freetv.fun/live/cctv9hd-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140156.2404249
+  },
+  "https://t.freetv.fun/live/cctv-8-5.m3u8": {
+    "ok": false,
+    "fps": 247.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140156.4126043
+  },
+  "https://t.freetv.fun/live/cctv-9-4.m3u8": {
+    "ok": false,
+    "fps": 236.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140156.9658988
+  },
+  "https://t.freetv.fun/live/cctv9hd-2.m3u8": {
+    "ok": false,
+    "fps": 197.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140158.6112444
+  },
+  "https://t.freetv.fun/live/cctv-9-5.m3u8": {
+    "ok": false,
+    "fps": 228.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140159.0421772
+  },
+  "https://t.freetv.fun/live/cctv-9-6.m3u8": {
+    "ok": false,
+    "fps": 195.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140159.490416
+  },
+  "https://t.freetv.fun/live/cctv5-7.m3u8": {
+    "ok": true,
+    "fps": 57.0,
+    "frames": 563,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140168.344297
+  },
+  "http://116.77.239.26:44300/tsfile/live/0006_1.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140170.9033859
+  },
+  "http://120.196.235.42:9901/tsfile/live/1026_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140171.0515044
+  },
+  "https://t.freetv.fun/live/cctv5-plus-8.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140172.344147
+  },
+  "https://t.freetv.fun/live/cctv5-12.m3u8": {
+    "ok": true,
+    "fps": 41.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140173.671488
+  },
+  "https://t.freetv.fun/live/cctv5-plus.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140179.8147714
+  },
+  "https://t.freetv.fun/live/cctv5-8.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140183.618609
+  },
+  "https://t.freetv.fun/live/cctv5-3.m3u8": {
+    "ok": true,
+    "fps": 52.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140184.3066554
+  },
+  "https://t.freetv.fun/live/cctv-5.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 348,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140186.1212292
+  },
+  "https://t.freetv.fun/live/cctv5-6.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140188.81431
+  },
+  "https://t.freetv.fun/live/cctv5-21.m3u8": {
+    "ok": false,
+    "fps": 223.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140191.6014524
+  },
+  "https://t.freetv.fun/live/cctv5-plus-2.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140193.3518739
+  },
+  "https://t.freetv.fun/live/cctv5-plus-6.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140195.9115098
+  },
+  "https://t.freetv.fun/live/cctv-5-2.m3u8": {
+    "ok": false,
+    "fps": 200.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140196.4127138
+  },
+  "https://t.freetv.fun/live/cctv5-2.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140197.3575592
+  },
+  "https://t.freetv.fun/live/cctv-5-3.m3u8": {
+    "ok": false,
+    "fps": 224.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140198.7229445
+  },
+  "https://t.freetv.fun/live/cctv-5-4.m3u8": {
+    "ok": false,
+    "fps": 247.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140199.0476978
+  },
+  "https://t.freetv.fun/live/cctv5p.m3u8": {
+    "ok": false,
+    "fps": 200.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140200.3993983
+  },
+  "https://t.freetv.fun/live/cctv5-plus-3.m3u8": {
+    "ok": false,
+    "fps": 238.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140201.7990668
+  },
+  "https://t.freetv.fun/live/cctv5-plus-1.m3u8": {
+    "ok": false,
+    "fps": 190.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140201.8585117
+  },
+  "https://t.freetv.fun/live/cctv-5-plus.m3u8": {
+    "ok": false,
+    "fps": 230.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140201.9939466
+  },
+  "https://t.freetv.fun/live/cctv-5-plus-2.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140202.2415118
+  },
+  "https://t.freetv.fun/live/cctv-5-plus-1.m3u8": {
+    "ok": false,
+    "fps": 207.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140204.2435172
+  },
+  "https://t.freetv.fun/live/cctv-5-plus-5.m3u8": {
+    "ok": false,
+    "fps": 231.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140204.5712025
+  },
+  "https://t.freetv.fun/live/cctv5-plus-5.m3u8": {
+    "ok": false,
+    "fps": 233.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140204.580171
+  },
+  "https://t.freetv.fun/live/cctv5-5.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140204.8252342
+  },
+  "https://t.freetv.fun/live/cctv-5-plus-6.m3u8": {
+    "ok": false,
+    "fps": 211.0,
+    "frames": 249,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140206.3945925
+  },
+  "https://t.freetv.fun/live/cctv-5-plus-8.m3u8": {
+    "ok": false,
+    "fps": 237.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140207.3045316
+  },
+  "https://t.freetv.fun/live/cctv-5-plus-7.m3u8": {
+    "ok": false,
+    "fps": 218.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140207.5009518
+  },
+  "https://t.freetv.fun/live/cctv-5-plus-9.m3u8": {
+    "ok": false,
+    "fps": 240.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140207.5174837
+  },
+  "https://t.freetv.fun/live/cctv-5-plusti-yu-sai-shi.m3u8": {
+    "ok": false,
+    "fps": 249.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140209.2081084
+  },
+  "https://t.freetv.fun/live/cctv5-9.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140211.1309862
+  },
+  "https://t.freetv.fun/live/cctv-5-plusti-yu-sai-shi-5.m3u8": {
+    "ok": false,
+    "fps": 183.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140212.4594557
+  },
+  "https://t.freetv.fun/live/cctv-5-plusti-yu-sai-shi-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140213.9353085
+  },
+  "https://t.freetv.fun/live/cctv-5-plusti-yu-sai-shi-4.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140213.9389768
+  },
+  "https://t.freetv.fun/live/cctv-5-plusti-yu-sai-shi-3.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140213.9429827
+  },
+  "https://t.freetv.fun/live/cctv13.m3u8": {
+    "ok": true,
+    "fps": 237.0,
+    "frames": 569,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140215.0692515
+  },
+  "https://t.freetv.fun/live/cctv5-26.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140216.6180196
+  },
+  "https://t.freetv.fun/live/cctv13-21.m3u8": {
+    "ok": false,
+    "fps": 196.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140217.210991
+  },
+  "https://t.freetv.fun/live/cctv13-4.m3u8": {
+    "ok": true,
+    "fps": 115.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140217.8278487
+  },
+  "https://t.freetv.fun/live/cctv-13hd.m3u8": {
+    "ok": false,
+    "fps": 234.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140218.285874
+  },
+  "https://t.freetv.fun/live/cctv13xin-wen-1.m3u8": {
+    "ok": false,
+    "fps": 233.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140220.0245106
+  },
+  "https://t.freetv.fun/live/cctv13-2.m3u8": {
+    "ok": false,
+    "fps": 93.0,
+    "frames": 395,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140220.7090063
+  },
+  "https://t.freetv.fun/live/cctv-13-1.m3u8": {
+    "ok": false,
+    "fps": 138.0,
+    "frames": 259,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140221.0702937
+  },
+  "https://t.freetv.fun/live/cctv-13-2.m3u8": {
+    "ok": false,
+    "fps": 202.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140221.381279
+  },
+  "https://t.freetv.fun/live/cctv-13-3.m3u8": {
+    "ok": false,
+    "fps": 233.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140222.9372554
+  },
+  "https://t.freetv.fun/live/cctv-13xin-wen.m3u8": {
+    "ok": true,
+    "fps": 218.0,
+    "frames": 446,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140223.6551304
+  },
+  "https://t.freetv.fun/live/cctv-13hd-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 386,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140224.6131408
+  },
+  "https://t.freetv.fun/live/cctv13-1.m3u8": {
+    "ok": true,
+    "fps": 56.0,
+    "frames": 552,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140225.267961
+  },
+  "https://t.freetv.fun/live/cctv-13hd-2.m3u8": {
+    "ok": false,
+    "fps": 221.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140225.9352276
+  },
+  "https://t.freetv.fun/live/cctv13hd.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140226.2795107
+  },
+  "https://t.freetv.fun/live/cctv-13xin-wen-5.m3u8": {
+    "ok": true,
+    "fps": 212.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140229.7727084
+  },
+  "https://t.freetv.fun/live/cctv-13xin-wen-2.m3u8": {
+    "ok": true,
+    "fps": 324.0,
+    "frames": 458,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140235.6889591
+  },
+  "https://t.freetv.fun/live/cctv-13xin-wen-6.m3u8": {
+    "ok": true,
+    "fps": 328.0,
+    "frames": 458,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140237.7038736
+  },
+  "https://t.freetv.fun/live/cctv-13xin-wen-4.m3u8": {
+    "ok": true,
+    "fps": 318.0,
+    "frames": 458,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140238.055063
+  },
+  "https://t.freetv.fun/live/cctv-15-5.m3u8": {
+    "ok": false,
+    "fps": 157.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140241.7789626
+  },
+  "https://t.freetv.fun/live/cctv-15-4.m3u8": {
+    "ok": false,
+    "fps": 157.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140241.7855313
+  },
+  "https://t.freetv.fun/live/cctv-15yin-le-15.m3u8": {
+    "ok": false,
+    "fps": 153.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140241.9158945
+  },
+  "https://t.freetv.fun/live/cctv-16.m3u8": {
+    "ok": false,
+    "fps": 134.0,
+    "frames": 375,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140242.103104
+  },
+  "https://t.freetv.fun/live/cctv16hd.m3u8": {
+    "ok": false,
+    "fps": 110.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140244.705249
+  },
+  "https://t.freetv.fun/live/cctv-16-1.m3u8": {
+    "ok": false,
+    "fps": 172.0,
+    "frames": 348,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140244.8140006
+  },
+  "https://t.freetv.fun/live/cctv-16hd.m3u8": {
+    "ok": false,
+    "fps": 90.0,
+    "frames": 400,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140246.9850225
+  },
+  "https://t.freetv.fun/live/cctv-16hd-1.m3u8": {
+    "ok": false,
+    "fps": 77.0,
+    "frames": 356,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140247.3755274
+  },
+  "https://t.freetv.fun/live/cctv-16-3.m3u8": {
+    "ok": false,
+    "fps": 198.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140247.8639672
+  },
+  "https://t.freetv.fun/live/cctv16hd-1.m3u8": {
+    "ok": false,
+    "fps": 174.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140248.196157
+  },
+  "https://t.freetv.fun/live/cctv-15yin-le-6.m3u8": {
+    "ok": true,
+    "fps": 133.0,
+    "frames": 459,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140249.4723535
+  },
+  "https://t.freetv.fun/live/cctv-16-4.m3u8": {
+    "ok": false,
+    "fps": 191.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140250.3471766
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-3.m3u8": {
+    "ok": false,
+    "fps": 144.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140250.5652905
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-16.m3u8": {
+    "ok": false,
+    "fps": 234.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140253.187953
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-13.m3u8": {
+    "ok": false,
+    "fps": 137.0,
+    "frames": 358,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140253.8080907
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-6.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140255.1346316
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-1.m3u8": {
+    "ok": true,
+    "fps": 44.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140265.2864664
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-7.m3u8": {
+    "ok": true,
+    "fps": 43.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140265.5382185
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-10.m3u8": {
+    "ok": true,
+    "fps": 198.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140268.9321516
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-26.m3u8": {
+    "ok": true,
+    "fps": 360.0,
+    "frames": 458,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140269.1578956
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-25.m3u8": {
+    "ok": false,
+    "fps": 283.0,
+    "frames": 348,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140271.3099432
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-11.m3u8": {
+    "ok": false,
+    "fps": 204.0,
+    "frames": 358,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140271.9621496
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-4.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140272.880256
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-5.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140273.2057364
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-9.m3u8": {
+    "ok": false,
+    "fps": 230.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140274.1401246
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-8.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140276.8553476
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140278.824938
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-17.m3u8": {
+    "ok": false,
+    "fps": 258.0,
+    "frames": 375,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140278.8516018
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-2.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140280.1460955
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-20.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140280.967325
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-23.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140281.8844461
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-24.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140282.2310202
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-21.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140283.2247376
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-27.m3u8": {
+    "ok": true,
+    "fps": 92.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140296.5627477
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-12.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140297.889503
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-14.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140298.2133076
+  },
+  "https://t.freetv.fun/live/tian-jin-wei-shi-15.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140299.14918
+  },
+  "http://rihou.cc:555/tv/szws": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140307.238565
+  },
+  "http://183.62.8.58:50085/tsfile/live/0126_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140308.2366028
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-24.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140314.171902
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-25.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140315.294169
+  },
+  "http://120.198.84.146:9901/tsfile/live/1052_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": true,
+    "fps": 26.0,
+    "frames": 429,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140318.06604
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-28.m3u8": {
+    "ok": false,
+    "fps": 212.0,
+    "frames": 371,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140318.227663
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-38.m3u8": {
+    "ok": false,
+    "fps": 270.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140320.7221682
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-39.m3u8": {
+    "ok": false,
+    "fps": 249.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140321.2796664
+  },
+  "http://183.10.180.143:202/tsfile/live/1042_1.m3u8?key=txiptv&playlive=1&down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140321.570211
+  },
+  "http://120.238.94.82:9901/tsfile/live/1065_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140322.8991292
+  },
+  "http://116.77.239.26:44300/tsfile/live/1013_1.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140323.223091
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-16.m3u8": {
+    "ok": false,
+    "fps": 238.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140324.6574485
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-7.m3u8": {
+    "ok": true,
+    "fps": 269.0,
+    "frames": 458,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140328.3665652
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-6.m3u8": {
+    "ok": false,
+    "fps": 194.0,
+    "frames": 375,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140330.847744
+  },
+  "http://120.196.235.42:9901/tsfile/live/1059_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140332.249281
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-29.m3u8": {
+    "ok": true,
+    "fps": 123.0,
+    "frames": 420,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140336.245952
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-9.m3u8": {
+    "ok": true,
+    "fps": 73.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140336.2957191
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-19.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140341.9831512
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-20.m3u8": {
+    "ok": true,
+    "fps": 71.0,
+    "frames": 979,
+    "width": 3840,
+    "height": 2160,
+    "timestamp": 1782140344.6395452
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-14.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140346.5803773
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-27.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140348.231698
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-2.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140349.8357868
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-4.m3u8": {
+    "ok": false,
+    "fps": 233.0,
+    "frames": 375,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140350.7464771
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-3.m3u8": {
+    "ok": true,
+    "fps": 83.0,
+    "frames": 495,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140353.2443333
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-8.m3u8": {
+    "ok": true,
+    "fps": 308.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140353.2539608
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-5.m3u8": {
+    "ok": false,
+    "fps": 90.0,
+    "frames": 375,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140354.8336792
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-26.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140355.8570063
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-11.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140356.5679352
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-12.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140360.7670226
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140361.3322818
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-15.m3u8": {
+    "ok": false,
+    "fps": 126.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140363.4394143
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140366.994383
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-22.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140372.5910914
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-23.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140374.047103
+  },
+  "https://t.freetv.fun/live/shen-zhen-wei-shi-10.m3u8": {
+    "ok": true,
+    "fps": 51.0,
+    "frames": 977,
+    "width": 3840,
+    "height": 2160,
+    "timestamp": 1782140377.0792239
+  },
+  "https://t.freetv.fun/live/hu-bei-wei-shi-32.m3u8": {
+    "ok": false,
+    "fps": 176.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140377.9189384
+  },
+  "https://t.freetv.fun/live/yan-xi-wei-shi-9.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140382.4858313
+  },
+  "https://t.freetv.fun/live/yan-xi-wei-shi-15.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140382.7843945
+  },
+  "https://t.freetv.fun/live/yan-xi-wei-shi-11.m3u8": {
+    "ok": true,
+    "fps": 107.0,
+    "frames": 459,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140384.0909226
+  },
+  "https://t.freetv.fun/live/yan-xi-wei-shi-1.m3u8": {
+    "ok": false,
+    "fps": 59.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140384.1219697
+  },
+  "https://t.freetv.fun/live/yan-xi-wei-shi-8.m3u8": {
+    "ok": false,
+    "fps": 30.0,
+    "frames": 245,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140385.8864925
+  },
+  "https://t.freetv.fun/live/yan-xi-wei-shi-3.m3u8": {
+    "ok": false,
+    "fps": 121.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140386.538025
+  },
+  "https://t.freetv.fun/live/yan-xi-wei-shi-24.m3u8": {
+    "ok": false,
+    "fps": 209.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140388.9005373
+  },
+  "https://t.freetv.fun/live/yan-xi-wei-shi.m3u8": {
+    "ok": false,
+    "fps": 22.0,
+    "frames": 245,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140391.1004074
+  },
+  "https://t.freetv.fun/live/yan-xi-wei-shi-37.m3u8": {
+    "ok": false,
+    "fps": 242.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140393.8258858
+  },
+  "https://t.freetv.fun/live/yan-xi-wei-shi-20.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 145,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140395.8579335
+  },
+  "https://t.freetv.fun/live/yan-xi-wei-shi-7.m3u8": {
+    "ok": true,
+    "fps": 109.0,
+    "frames": 473,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140396.3256335
+  },
+  "https://t.freetv.fun/live/yan-xi-wei-shi-16.m3u8": {
+    "ok": true,
+    "fps": 108.0,
+    "frames": 473,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140396.348575
+  },
+  "https://t.freetv.fun/live/zhong-qing-wei-shi-25.m3u8": {
+    "ok": false,
+    "fps": 234.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140399.139737
+  },
+  "https://t.freetv.fun/live/zhong-qing-wei-shi-2.m3u8": {
+    "ok": true,
+    "fps": 105.0,
+    "frames": 445,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140401.987026
+  },
+  "https://t.freetv.fun/live/zhong-qing-wei-shi-5.m3u8": {
+    "ok": true,
+    "fps": 171.0,
+    "frames": 458,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140402.5927982
+  },
+  "https://t.freetv.fun/live/zhong-qing-wei-shi-8.m3u8": {
+    "ok": false,
+    "fps": 246.0,
+    "frames": 375,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140404.0800867
+  },
+  "https://t.freetv.fun/live/zhong-qing-wei-shi-12.m3u8": {
+    "ok": true,
+    "fps": 139.0,
+    "frames": 445,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140408.3891606
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140409.6909053
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-11.m3u8": {
+    "ok": false,
+    "fps": 166.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140412.0609803
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-9.m3u8": {
+    "ok": false,
+    "fps": 82.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140412.340113
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-3.m3u8": {
+    "ok": false,
+    "fps": 114.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140412.3477104
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-14.m3u8": {
+    "ok": true,
+    "fps": 144.0,
+    "frames": 445,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140414.005883
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-28.m3u8": {
+    "ok": false,
+    "fps": 161.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140415.26444
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-42.m3u8": {
+    "ok": false,
+    "fps": 238.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140416.8417177
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi.m3u8": {
+    "ok": true,
+    "fps": 198.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140417.6976564
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-2.m3u8": {
+    "ok": true,
+    "fps": 88.0,
+    "frames": 448,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1782140418.4159985
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-4.m3u8": {
+    "ok": false,
+    "fps": 201.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140419.2823648
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-5.m3u8": {
+    "ok": true,
+    "fps": 118.0,
+    "frames": 475,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140423.3623266
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-6.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140423.6235406
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-8.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140424.8681228
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-10.m3u8": {
+    "ok": false,
+    "fps": 202.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140425.9840262
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-12.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140430.4215531
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-24.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140437.0717003
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-25.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140437.3503778
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-18.m3u8": {
+    "ok": false,
+    "fps": 297.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140439.7108662
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-36.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140440.2730637
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-17.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140443.2236784
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-16.m3u8": {
+    "ok": true,
+    "fps": 138.0,
+    "frames": 458,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140444.009985
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-7.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140444.289063
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-26.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140444.954209
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-20.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140445.4648354
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-22.m3u8": {
+    "ok": false,
+    "fps": 216.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140446.8538547
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-39.m3u8": {
+    "ok": false,
+    "fps": 185.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140448.1619637
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-21.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140448.4217303
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-43.m3u8": {
+    "ok": false,
+    "fps": 193.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140448.5561311
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-19.m3u8": {
+    "ok": true,
+    "fps": 88.0,
+    "frames": 448,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1782140448.664907
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-44.m3u8": {
+    "ok": false,
+    "fps": 257.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140449.402121
+  },
+  "https://t.freetv.fun/live/he-nan-wei-shi-15.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140450.9963675
+  },
+  "http://120.198.84.146:9901/tsfile/live/1046_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": true,
+    "fps": 39.0,
+    "frames": 436,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140463.5078285
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi.m3u8": {
+    "ok": true,
+    "fps": 74.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140467.081657
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-2.m3u8": {
+    "ok": false,
+    "fps": 246.0,
+    "frames": 418,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140469.371772
+  },
+  "http://183.10.180.143:202/tsfile/live/1017_1.m3u8?key=txiptv&playlive=1&down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140473.1706004
+  },
+  "http://120.238.94.82:9901/tsfile/live/1020_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140473.5655599
+  },
+  "http://120.238.94.82:9901/tsfile/live/1080_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140473.6757107
+  },
+  "http://116.77.239.26:44300/tsfile/live/0136_1.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140474.4115505
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-9.m3u8": {
+    "ok": false,
+    "fps": 181.0,
+    "frames": 418,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140476.042726
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-12.m3u8": {
+    "ok": true,
+    "fps": 169.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140477.633543
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-7.m3u8": {
+    "ok": true,
+    "fps": 126.0,
+    "frames": 476,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140478.0124004
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-13.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140481.5279515
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-19.m3u8": {
+    "ok": true,
+    "fps": 189.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140484.462648
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-15.m3u8": {
+    "ok": false,
+    "fps": 212.0,
+    "frames": 327,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140487.0768402
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140488.5168793
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-4.m3u8": {
+    "ok": true,
+    "fps": 204.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140491.7586603
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-14.m3u8": {
+    "ok": true,
+    "fps": 29.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140493.0508919
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-10.m3u8": {
+    "ok": true,
+    "fps": 274.0,
+    "frames": 449,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140495.228385
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-17.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140495.9935455
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-8.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140496.9690657
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-23.m3u8": {
+    "ok": false,
+    "fps": 221.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140499.2168615
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-16.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140499.4202745
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-29.m3u8": {
+    "ok": false,
+    "fps": 271.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140501.890997
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-3.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140503.0214982
+  },
+  "https://t.freetv.fun/live/liao-zhu-wei-shi-18.m3u8": {
+    "ok": true,
+    "fps": 104.0,
+    "frames": 476,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140503.9933853
+  },
+  "https://t.freetv.fun/live/dong-nan-wei-shi-24.m3u8": {
+    "ok": false,
+    "fps": 135.0,
+    "frames": 396,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140507.54499
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-6.m3u8": {
+    "ok": false,
+    "fps": 129.0,
+    "frames": 418,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140507.8669994
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-12.m3u8": {
+    "ok": true,
+    "fps": 159.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140509.1152773
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-4.m3u8": {
+    "ok": true,
+    "fps": 90.0,
+    "frames": 448,
+    "width": 854,
+    "height": 480,
+    "timestamp": 1782140513.3946595
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-16.m3u8": {
+    "ok": false,
+    "fps": 154.0,
+    "frames": 419,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140517.6643014
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-31.m3u8": {
+    "ok": false,
+    "fps": 242.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140520.3327842
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-15.m3u8": {
+    "ok": true,
+    "fps": 47.0,
+    "frames": 458,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140522.328726
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140529.0165374
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-17.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140529.0185473
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-3.m3u8": {
+    "ok": false,
+    "fps": 142.0,
+    "frames": 405,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140532.4449375
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140532.561601
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-5.m3u8": {
+    "ok": false,
+    "fps": 130.0,
+    "frames": 405,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140532.6930368
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-10.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140534.12894
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-11.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140534.807481
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-13.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140534.867369
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-9.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140537.8079395
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-18.m3u8": {
+    "ok": false,
+    "fps": 176.0,
+    "frames": 412,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140538.369158
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-14.m3u8": {
+    "ok": false,
+    "fps": 125.0,
+    "frames": 405,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140538.6003964
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-19.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140538.7370992
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-34.m3u8": {
+    "ok": true,
+    "fps": 30.0,
+    "frames": 471,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140538.7538683
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-8.m3u8": {
+    "ok": true,
+    "fps": 115.0,
+    "frames": 458,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140541.1202471
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi.m3u8": {
+    "ok": true,
+    "fps": 158.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140543.8334136
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-7.m3u8": {
+    "ok": true,
+    "fps": 190.0,
+    "frames": 445,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140544.4165351
+  },
+  "https://t.freetv.fun/live/ji-lin-wei-shi-2.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140547.342155
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-2.m3u8": {
+    "ok": true,
+    "fps": 263.0,
+    "frames": 445,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140549.956133
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-9-1.m3u8": {
+    "ok": true,
+    "fps": 186.0,
+    "frames": 423,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140552.7777128
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-17.m3u8": {
+    "ok": true,
+    "fps": 208.0,
+    "frames": 423,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140555.378461
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-22.m3u8": {
+    "ok": false,
+    "fps": 231.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140558.2029483
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-1-1.m3u8": {
+    "ok": true,
+    "fps": 87.0,
+    "frames": 448,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140558.707946
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-3.m3u8": {
+    "ok": false,
+    "fps": 218.0,
+    "frames": 405,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140561.1480799
+  },
+  "http://120.198.84.146:9901/tsfile/live/1090_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140563.377524
+  },
+  "http://116.77.239.26:44300/tsfile/live/0113_2.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140563.6108444
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-6.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140563.7637079
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-20.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140563.7699857
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-5-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140564.4086576
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-4.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140566.3753068
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-11-1.m3u8": {
+    "ok": false,
+    "fps": 149.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140566.6894875
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-12-1.m3u8": {
+    "ok": false,
+    "fps": 190.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140567.0235193
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-13-1.m3u8": {
+    "ok": false,
+    "fps": 170.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140567.19014
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-14-1.m3u8": {
+    "ok": false,
+    "fps": 146.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140567.5678842
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-8.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140568.8449743
+  },
+  "https://t.freetv.fun/live/zhu-xia-wei-shi.m3u8": {
+    "ok": false,
+    "fps": 217.0,
+    "frames": 397,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140571.2173939
+  },
+  "https://t.freetv.fun/live/zhu-xia-wei-shi-10.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140573.4816992
+  },
+  "https://t.freetv.fun/live/zhu-xia-wei-shi-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140576.4301894
+  },
+  "https://t.freetv.fun/live/zhu-xia-wei-shi-2.m3u8": {
+    "ok": true,
+    "fps": 175.0,
+    "frames": 475,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140577.9880476
+  },
+  "https://t.freetv.fun/live/zhu-xia-wei-shi-12.m3u8": {
+    "ok": false,
+    "fps": 95.0,
+    "frames": 397,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140581.2579427
+  },
+  "https://t.freetv.fun/live/shan-xi-wei-shi-19.m3u8": {
+    "ok": true,
+    "fps": 56.0,
+    "frames": 468,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140582.2392204
+  },
+  "https://t.freetv.fun/live/zhu-xia-wei-shi-18.m3u8": {
+    "ok": true,
+    "fps": 79.0,
+    "frames": 468,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140582.9348688
+  },
+  "https://t.freetv.fun/live/zhu-xia-wei-shi-13.m3u8": {
+    "ok": true,
+    "fps": 103.0,
+    "frames": 468,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140585.7376485
+  },
+  "https://t.freetv.fun/live/bing-tuan-wei-shi-5.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 475,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140587.5192096
+  },
+  "https://t.freetv.fun/live/bing-tuan-wei-shi-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140592.7195213
+  },
+  "http://120.238.94.82:9901/tsfile/live/1094_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": true,
+    "fps": 34.0,
+    "frames": 453,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140601.511652
+  },
+  "http://120.198.84.146:9901/tsfile/live/1071_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": true,
+    "fps": 27.0,
+    "frames": 451,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140604.986665
+  },
+  "https://t.freetv.fun/live/bing-tuan-wei-shi-2.m3u8": {
+    "ok": true,
+    "fps": 240.0,
+    "frames": 475,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140605.9236813
+  },
+  "https://t.freetv.fun/live/bing-tuan-wei-shi-11.m3u8": {
+    "ok": true,
+    "fps": 451.0,
+    "frames": 475,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140606.5582795
+  },
+  "https://t.freetv.fun/live/bing-tuan-wei-shi-7.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 475,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140607.8343885
+  },
+  "http://183.62.8.58:50085/tsfile/live/0115_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 18.0,
+    "frames": 381,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140609.780469
+  },
+  "http://120.196.235.42:9901/tsfile/live/1087_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140610.7747912
+  },
+  "http://122.224.58.42:85/tsfile/live/0115_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140610.7768793
+  },
+  "https://t.freetv.fun/live/bing-tuan-wei-shi-4.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 475,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140612.0045972
+  },
+  "https://t.freetv.fun/live/bing-tuan-wei-shi.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140617.7260313
+  },
+  "https://t.freetv.fun/live/bing-tuan-wei-shi-14.m3u8": {
+    "ok": true,
+    "fps": 40.0,
+    "frames": 458,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140619.1402194
+  },
+  "https://t.freetv.fun/live/bing-tuan-wei-shi-12.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140623.4729671
+  },
+  "https://t.freetv.fun/live/bing-tuan-wei-shi-3.m3u8": {
+    "ok": true,
+    "fps": 81.0,
+    "frames": 448,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140626.621752
+  },
+  "https://t.freetv.fun/live/bing-tuan-wei-shi-9.m3u8": {
+    "ok": true,
+    "fps": 32.0,
+    "frames": 468,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140631.7051692
+  },
+  "https://t.freetv.fun/live/cctv2-4.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140638.2956488
+  },
+  "https://t.freetv.fun/live/cctv2-3.m3u8": {
+    "ok": true,
+    "fps": 103.0,
+    "frames": 559,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140638.7120051
+  },
+  "https://t.freetv.fun/live/cctv2-6.m3u8": {
+    "ok": false,
+    "fps": 174.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140642.1853938
+  },
+  "https://t.freetv.fun/live/cctv2-25.m3u8": {
+    "ok": false,
+    "fps": 266.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140644.735654
+  },
+  "https://t.freetv.fun/live/cctv2-26.m3u8": {
+    "ok": false,
+    "fps": 257.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140647.303757
+  },
+  "https://t.freetv.fun/live/cctv2-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140648.4823427
+  },
+  "https://t.freetv.fun/live/cctv2-2.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140651.6315238
+  },
+  "https://t.freetv.fun/live/cctv2hd.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140652.5005972
+  },
+  "https://t.freetv.fun/live/cctv2hd-1.m3u8": {
+    "ok": false,
+    "fps": 237.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140655.1936903
+  },
+  "https://t.freetv.fun/live/cctv2-7.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140656.7216032
+  },
+  "https://t.freetv.fun/live/cctv22.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140656.723713
+  },
+  "https://t.freetv.fun/live/cctv-2-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140657.7514195
+  },
+  "https://t.freetv.fun/live/cctv-2-2.m3u8": {
+    "ok": false,
+    "fps": 222.0,
+    "frames": 249,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140659.345015
+  },
+  "https://t.freetv.fun/live/cctv-2-4.m3u8": {
+    "ok": false,
+    "fps": 236.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140659.4226532
+  },
+  "https://t.freetv.fun/live/cctv-2-5.m3u8": {
+    "ok": false,
+    "fps": 218.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140660.63689
+  },
+  "https://t.freetv.fun/live/cctv-2-6.m3u8": {
+    "ok": false,
+    "fps": 247.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140662.0374558
+  },
+  "https://t.freetv.fun/live/cctv-2-7.m3u8": {
+    "ok": false,
+    "fps": 268.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140662.1512358
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-7.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 348,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140663.5220852
+  },
+  "https://t.freetv.fun/live/cctv2-cai-jing.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140663.7208884
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-20.m3u8": {
+    "ok": false,
+    "fps": 122.0,
+    "frames": 274,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140667.3612828
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-16.m3u8": {
+    "ok": true,
+    "fps": 113.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140669.5074148
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-15.m3u8": {
+    "ok": false,
+    "fps": 243.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140670.0303876
+  },
+  "https://t.freetv.fun/live/cctv2-cai-jing-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140673.4901836
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-9.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140676.4644573
+  },
+  "https://t.freetv.fun/live/cctv2-cai-jing-4.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140676.6402833
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-6.m3u8": {
+    "ok": true,
+    "fps": 158.0,
+    "frames": 476,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140677.812918
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-8.m3u8": {
+    "ok": true,
+    "fps": 34.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140678.8405104
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-28.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140683.4781444
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140684.0625877
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-3.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140684.9349372
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140685.6532094
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-25.m3u8": {
+    "ok": true,
+    "fps": 176.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140685.984571
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-11.m3u8": {
+    "ok": false,
+    "fps": 176.0,
+    "frames": 375,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140688.6880755
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-10.m3u8": {
+    "ok": false,
+    "fps": 196.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140688.870596
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-2.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140689.1661172
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-13.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140690.5845642
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-18.m3u8": {
+    "ok": true,
+    "fps": 27.0,
+    "frames": 437,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140691.907212
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-12.m3u8": {
+    "ok": false,
+    "fps": 137.0,
+    "frames": 314,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140692.2793093
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-5.m3u8": {
+    "ok": false,
+    "fps": 51.0,
+    "frames": 349,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140692.888413
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-17.m3u8": {
+    "ok": true,
+    "fps": 128.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140697.7444043
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-21.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140698.1519835
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-19.m3u8": {
+    "ok": true,
+    "fps": 100.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140700.1932423
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-22.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140701.4767478
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-24.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140703.4047997
+  },
+  "https://t.freetv.fun/live/yan-dong-wei-shi-23.m3u8": {
+    "ok": true,
+    "fps": 67.0,
+    "frames": 476,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140704.998306
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-16.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140710.5919673
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-41.m3u8": {
+    "ok": false,
+    "fps": 84.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140711.4156816
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-21.m3u8": {
+    "ok": false,
+    "fps": 84.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140711.4156945
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-4.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140713.4055955
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-14.m3u8": {
+    "ok": false,
+    "fps": 51.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140713.4289541
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-3.m3u8": {
+    "ok": false,
+    "fps": 41.0,
+    "frames": 254,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140713.9075694
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-10.m3u8": {
+    "ok": false,
+    "fps": 91.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140715.8300052
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-13.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140719.49957
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-9.m3u8": {
+    "ok": true,
+    "fps": 91.0,
+    "frames": 475,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140720.7011433
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-18.m3u8": {
+    "ok": false,
+    "fps": 53.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140724.0100255
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-5.m3u8": {
+    "ok": true,
+    "fps": 48.0,
+    "frames": 468,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140725.5052383
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-12.m3u8": {
+    "ok": true,
+    "fps": 46.0,
+    "frames": 468,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140725.8486445
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-20.m3u8": {
+    "ok": false,
+    "fps": 95.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140726.517047
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-15.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140730.0699127
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-22.m3u8": {
+    "ok": false,
+    "fps": 94.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140730.0749662
+  },
+  "http://120.198.84.146:9901/tsfile/live/1033_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140730.8967447
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-23.m3u8": {
+    "ok": false,
+    "fps": 97.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140731.250988
+  },
+  "https://t.freetv.fun/live/xin-jiang-wei-shi-19.m3u8": {
+    "ok": true,
+    "fps": 36.0,
+    "frames": 468,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140735.584381
+  },
+  "https://t.freetv.fun/live/cctv11-2.m3u8": {
+    "ok": true,
+    "fps": 56.0,
+    "frames": 559,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140747.1719744
+  },
+  "http://124.228.160.176:9901/tsfile/live/0011_2.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140750.8781908
+  },
+  "http://183.10.180.143:202/tsfile/live/1130_1.m3u8?key=txiptv&playlive=1&down=1": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140751.554667
+  },
+  "http://120.196.235.42:9901/tsfile/live/1031_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140755.1063466
+  },
+  "http://122.224.58.42:85/tsfile/live/0011_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140755.9639864
+  },
+  "https://t.freetv.fun/live/cctv11-6.m3u8": {
+    "ok": true,
+    "fps": 187.0,
+    "frames": 569,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140756.280944
+  },
+  "http://116.77.239.26:44300/tsfile/live/0011_1.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140756.31003
+  },
+  "https://t.freetv.fun/live/cctv11-11.m3u8": {
+    "ok": false,
+    "fps": 154.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140759.0279136
+  },
+  "https://t.freetv.fun/live/cctv11-3.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140761.7455337
+  },
+  "https://t.freetv.fun/live/cctv11-16.m3u8": {
+    "ok": true,
+    "fps": 156.0,
+    "frames": 450,
+    "width": 1066,
+    "height": 600,
+    "timestamp": 1782140764.545564
+  },
+  "https://t.freetv.fun/live/cctv11.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140772.1802905
+  },
+  "https://t.freetv.fun/live/cctv-11-2.m3u8": {
+    "ok": false,
+    "fps": 247.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140774.8515368
+  },
+  "https://t.freetv.fun/live/cctv11-5.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140775.8859165
+  },
+  "https://t.freetv.fun/live/cctv-11-3.m3u8": {
+    "ok": false,
+    "fps": 208.0,
+    "frames": 333,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140777.5380142
+  },
+  "https://t.freetv.fun/live/cctv-11hd.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140778.8948383
+  },
+  "https://t.freetv.fun/live/cctv-11-4.m3u8": {
+    "ok": false,
+    "fps": 210.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140778.9685228
+  },
+  "https://t.freetv.fun/live/cctv11hd.m3u8": {
+    "ok": false,
+    "fps": 230.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140780.462498
+  },
+  "https://t.freetv.fun/live/cctv11-4.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140781.2926207
+  },
+  "https://t.freetv.fun/live/cctv11-7.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140781.3210917
+  },
+  "https://t.freetv.fun/live/cctv-11hd-3.m3u8": {
+    "ok": false,
+    "fps": 211.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140782.9610744
+  },
+  "https://t.freetv.fun/live/cctv-11hd-1.m3u8": {
+    "ok": false,
+    "fps": 200.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140783.624303
+  },
+  "https://t.freetv.fun/live/cctv-11hd-2.m3u8": {
+    "ok": false,
+    "fps": 196.0,
+    "frames": 416,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140784.010049
+  },
+  "https://t.freetv.fun/live/cctv-11-5.m3u8": {
+    "ok": false,
+    "fps": 215.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140785.9291499
+  },
+  "https://t.freetv.fun/live/cctv-11xi-qu-12.m3u8": {
+    "ok": false,
+    "fps": 244.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140786.3750615
+  },
+  "https://t.freetv.fun/live/cctv11-xi-qu.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140786.7560167
+  },
+  "https://t.freetv.fun/live/cctv-11xi-qu-13.m3u8": {
+    "ok": false,
+    "fps": 210.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140786.9484448
+  },
+  "https://t.freetv.fun/live/cctv11-xi-qu-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140789.5537913
+  },
+  "https://t.freetv.fun/live/cctv14.m3u8": {
+    "ok": true,
+    "fps": 55.0,
+    "frames": 544,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140801.3363335
+  },
+  "https://t.freetv.fun/live/cctv11-xi-qu-3.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140803.9765007
+  },
+  "http://116.77.239.26:44300/tsfile/live/0014_1.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": true,
+    "fps": 28.0,
+    "frames": 474,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140806.809083
+  },
+  "https://t.freetv.fun/live/cctv14-2.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140806.8452673
+  },
+  "http://120.238.94.82:9901/tsfile/live/1037_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140810.9406955
+  },
+  "http://120.198.84.146:9901/tsfile/live/1036_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 23.0,
+    "frames": 459,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140811.1113334
+  },
+  "http://120.196.235.42:9901/tsfile/live/1034_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140811.958006
+  },
+  "https://t.freetv.fun/live/cctv-14shao-er.m3u8": {
+    "ok": true,
+    "fps": 167.0,
+    "frames": 445,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140815.6887248
+  },
+  "https://t.freetv.fun/live/cctv14-1.m3u8": {
+    "ok": false,
+    "fps": 188.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140815.8490415
+  },
+  "https://t.freetv.fun/live/cctv14shao-er-1.m3u8": {
+    "ok": false,
+    "fps": 256.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140818.4669285
+  },
+  "https://t.freetv.fun/live/cctv14-6.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140820.8874495
+  },
+  "https://t.freetv.fun/live/cctv-14.m3u8": {
+    "ok": false,
+    "fps": 182.0,
+    "frames": 358,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140822.018655
+  },
+  "https://t.freetv.fun/live/cctv14-3.m3u8": {
+    "ok": true,
+    "fps": 55.0,
+    "frames": 547,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140822.4402106
+  },
+  "https://t.freetv.fun/live/cctv-14hd.m3u8": {
+    "ok": false,
+    "fps": 234.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140822.4402204
+  },
+  "https://t.freetv.fun/live/cctv-14-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 248,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140823.6119833
+  },
+  "https://t.freetv.fun/live/cctv14-8.m3u8": {
+    "ok": false,
+    "fps": 27.0,
+    "frames": 348,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140825.1344867
+  },
+  "https://t.freetv.fun/live/cctv-14-3.m3u8": {
+    "ok": false,
+    "fps": 243.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140826.256028
+  },
+  "https://t.freetv.fun/live/cctv14hd.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140827.6393342
+  },
+  "https://t.freetv.fun/live/cctv-14-4.m3u8": {
+    "ok": false,
+    "fps": 236.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140827.9025311
+  },
+  "https://t.freetv.fun/live/cctv14-4.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140829.0104265
+  },
+  "https://t.freetv.fun/live/cctv-14shao-er-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140829.9749947
+  },
+  "https://t.freetv.fun/live/cctv-14hd-1.m3u8": {
+    "ok": false,
+    "fps": 138.0,
+    "frames": 374,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140830.9112742
+  },
+  "https://t.freetv.fun/live/cctv-14hd-2.m3u8": {
+    "ok": false,
+    "fps": 151.0,
+    "frames": 391,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140831.0720263
+  },
+  "https://t.freetv.fun/live/cctv14-5.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140831.8182766
+  },
+  "https://t.freetv.fun/live/cctv-14hd-3.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140832.5779889
+  },
+  "https://t.freetv.fun/live/cctv-14shao-er-5.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140837.1081564
+  },
+  "https://t.freetv.fun/live/cctv-14-5.m3u8": {
+    "ok": false,
+    "fps": 252.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140839.6767566
+  },
+  "https://t.freetv.fun/live/cctv14hd-1.m3u8": {
+    "ok": false,
+    "fps": 243.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140842.9319293
+  },
+  "https://t.freetv.fun/live/cctv-14shao-er-6.m3u8": {
+    "ok": true,
+    "fps": 62.0,
+    "frames": 468,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140843.4594321
+  },
+  "https://t.freetv.fun/live/cctv14hd-2.m3u8": {
+    "ok": false,
+    "fps": 188.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140846.0753517
+  },
+  "https://t.freetv.fun/live/cctv-14shao-er-14.m3u8": {
+    "ok": false,
+    "fps": 205.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140846.4190476
+  },
+  "https://t.freetv.fun/live/cctv14-shao-er-1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140847.030381
+  },
+  "https://t.freetv.fun/live/cctv-14shao-er-3.m3u8": {
+    "ok": true,
+    "fps": 139.0,
+    "frames": 459,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140847.42821
+  },
+  "https://t.freetv.fun/live/cctv-14shao-er-2.m3u8": {
+    "ok": true,
+    "fps": 137.0,
+    "frames": 459,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140847.4674675
+  },
+  "https://t.freetv.fun/live/he-bei-wei-shi-17.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140848.7918868
+  },
+  "https://t.freetv.fun/live/cctv-14shao-er-15.m3u8": {
+    "ok": false,
+    "fps": 224.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140849.0210092
+  },
+  "https://t.freetv.fun/live/he-bei-wei-shi-13.m3u8": {
+    "ok": false,
+    "fps": 230.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140849.9223425
+  },
+  "https://t.freetv.fun/live/he-bei-wei-shi-12.m3u8": {
+    "ok": true,
+    "fps": 199.0,
+    "frames": 445,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140850.834746
+  },
+  "https://t.freetv.fun/live/he-bei-wei-shi-3.m3u8": {
+    "ok": false,
+    "fps": 197.0,
+    "frames": 398,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140851.4033954
+  },
+  "https://t.freetv.fun/live/he-bei-wei-shi.m3u8": {
+    "ok": false,
+    "fps": 189.0,
+    "frames": 409,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140853.159843
+  },
+  "https://t.freetv.fun/live/he-bei-wei-shi-1.m3u8": {
+    "ok": false,
+    "fps": 218.0,
+    "frames": 398,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140853.2539847
+  },
+  "https://t.freetv.fun/live/he-bei-wei-shi-4.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140855.895639
+  },
+  "https://t.freetv.fun/live/cctv14-shao-er-4.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140857.593471
+  },
+  "https://t.freetv.fun/live/he-bei-wei-shi-7.m3u8": {
+    "ok": false,
+    "fps": 211.0,
+    "frames": 249,
+    "width": 1280,
+    "height": 720,
+    "timestamp": 1782140857.8079631
+  },
+  "https://t.freetv.fun/live/he-bei-wei-shi-2.m3u8": {
+    "ok": true,
+    "fps": 107.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140857.8644388
+  },
+  "https://t.freetv.fun/live/he-bei-wei-shi-9.m3u8": {
+    "ok": true,
+    "fps": 148.0,
+    "frames": 442,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140861.3471444
+  },
+  "https://t.freetv.fun/live/he-bei-wei-shi-11.m3u8": {
+    "ok": true,
+    "fps": 141.0,
+    "frames": 442,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140861.569633
+  },
+  "https://t.freetv.fun/live/he-bei-wei-shi-14.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140863.401933
+  },
+  "https://t.freetv.fun/live/he-bei-wei-shi-16.m3u8": {
+    "ok": true,
+    "fps": 275.0,
+    "frames": 445,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782140864.3123813
+  },
+  "https://t.freetv.fun/live/he-bei-wei-shi-5.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782140871.4297097
+  },
+  "https://t.freetv.fun/live/he-bei-wei-shi-6.m3u8": {
+    "ok": true,
+    "fps": 203.0,
+    "frames": 458,
+    "width": 720,
+    "height": 576,
+    "timestamp": 1782140872.8214705
   }
 }
