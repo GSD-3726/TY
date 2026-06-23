@@ -57,11 +57,11 @@ DATA_CHECK_INTERVAL    = 30                              # 数据加载检查间
 # -------------------------- 4. GitHub源订阅 --------------------------------
 ENABLE_GITHUB_SOURCES = True                            # 是否启用GitHub源
 GITHUB_M3U_LINKS = [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/mzky/checklist/refs/heads/master/itvlist.m3u",
-    "https://gh-proxy.com/ https://github.com/vbskycn/iptv/blob/master/tv/iptv4.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/ajqubbs/zhiboyuan/main/%E9%A6%99%E9%9B%A8%E7%9B%B4%E6%92%AD.txt",
+    #"https://gh-proxy.com/https://raw.githubusercontent.com/mzky/checklist/refs/heads/master/itvlist.m3u",
+    "https://gh-proxy.com/https://github.com/vbskycn/iptv/blob/master/tv/iptv4.txt",
+    "https://gh-proxy.com/https://github.com/GSD-3726/MMM/blob/main/iptv_channels.txt"
    # "https://gh-proxy.com/https://raw.githubusercontent.com/fafa002/yf2025/refs/heads/main/yiyifafa.txt",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/vinkerq/iptv-api/refs/heads/master/iptv.txt"
+   # "https://gh-proxy.com/https://raw.githubusercontent.com/vinkerq/iptv-api/refs/heads/master/iptv.txt"
 ]
 
 # -------------------------- 5. FFmpeg测速设置 -------------------------------
@@ -130,7 +130,7 @@ CONNECTIVITY_CONCURRENCY = 15
 CONNECTIVITY_TIMEOUT     = 2
 
 # -------------------------- 12. 增量更新配置 --------------------------------
-ENABLE_INCREMENTAL_UPDATE = True
+ENABLE_INCREMENTAL_UPDATE = False
 QUALITY_THRESHOLD         = 4
 REQUIRED_CHANNELS_FILE    = OUTPUT_DIR / "频道.txt"      # 定义必须包含的频道列表
 
