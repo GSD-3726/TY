@@ -1,48 +1,4 @@
 {
-  "http://171.43.64.216:85/tsfile/live/1000_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1782042567.2876568,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://101.66.195.40:85/tsfile/live/0118_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1782042567.2889762,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://171.43.64.216:85/tsfile/live/0107_1.m3u8?key=txiptv&amp;playlive=1&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1782042567.2890651,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
-  "http://219.144.190.2:9901/tsfile/live/0001_1.m3u8?key=txiptv&amp;playlive=0&amp;authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1782042567.2893817,
-    "drop": 0,
-    "speed": 0.0,
-    "quality_score": 0.0
-  },
   "http://115.56.90.71:843/live02.hrtn.net/live/cctv15hd_3000.m3u8": {
     "ok": false,
     "fps": 0.0,
@@ -55866,5 +55822,149 @@
     "width": 0,
     "height": 0,
     "timestamp": 1782283839.7606173
+  },
+  "http://123.129.70.178:9901/tsfile/live/0006_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782301896.4181035
+  },
+  "http://123.129.70.178:9901/tsfile/live/0007_1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782301896.4266407
+  },
+  "http://61.136.172.236:9901/tsfile/live/0009_1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782301915.7863865
+  },
+  "http://183.11.239.36:808/hls/25/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782301915.788755
+  },
+  "http://112.27.235.94:8000/hls/14/index.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782301915.7929556
+  },
+  "http://144.123.165.186:9901/tsfile/live/1001_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782301915.8048987
+  },
+  "http://59.39.89.130:60901/tsfile/live/0001_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": true,
+    "fps": 24.0,
+    "frames": 467,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782301920.2597268
+  },
+  "http://61.136.172.236:9901/tsfile/live/0001_1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782301921.432346
+  },
+  "http://222.169.85.8:9901/tsfile/live/0130_1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782301922.2969205
+  },
+  "http://61.136.172.236:9901/tsfile/live/0003_1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782301940.7924519
+  },
+  "http://59.39.89.130:60901/tsfile/live/0003_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782301940.799491
+  },
+  "http://61.136.172.236:9901/tsfile/live/0137_1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782301940.8102937
+  },
+  "http://live.metshop.top/huya/21059587?cdn=alicdn": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782301943.0658598
+  },
+  "http://l.cztvcloud.com/channels/lantian/SXdongyang1/720p.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782301945.264402
+  },
+  "http://123.129.70.178:9901/tsfile/live/0127_1.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782301946.1891973
+  },
+  "http://59.39.89.130:60901/tsfile/live/0125_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782301946.441108
+  },
+  "http://61.136.172.236:9901/tsfile/live/0125_1.m3u8?key=txiptv&playlive=1&authid=0": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "width": 0,
+    "height": 0,
+    "timestamp": 1782301947.3026967
+  },
+  "http://live.zohi.tv/video/s10001-fztv-4/index.m3u8": {
+    "ok": true,
+    "fps": 76.0,
+    "frames": 447,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1782301949.1820588
   }
 }
