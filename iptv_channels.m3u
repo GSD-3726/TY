@@ -101,9 +101,9 @@ https://t.freetv.fun/live/dong-fang-wei-shi-13.m3u8
 #EXTINF:-1 group-title="卫视频道",东方卫视
 https://t.freetv.fun/live/dong-fang-wei-shi-19.m3u8
 #EXTINF:-1 group-title="卫视频道",云南卫视
-https://t.freetv.fun/live/yun-nan-wei-shi-23.m3u8
-#EXTINF:-1 group-title="卫视频道",云南卫视
 https://t.freetv.fun/live/yun-nan-wei-shi-18.m3u8
+#EXTINF:-1 group-title="卫视频道",云南卫视
+https://t.freetv.fun/live/yun-nan-wei-shi-23.m3u8
 #EXTINF:-1 group-title="卫视频道",人间卫视
 https://5ddce30eb4b55.streamlock.net/bltvhd/bltv1/chunklist_w511254805.m3u8
 #EXTINF:-1 group-title="卫视频道",人间卫视
@@ -211,7 +211,9 @@ https://t.freetv.fun/live/yan-xi-wei-shi-7.m3u8
 #EXTINF:-1 group-title="卫视频道",广西卫视
 https://t.freetv.fun/live/yan-xi-wei-shi-11.m3u8
 #EXTINF:-1 group-title="卫视频道",延边卫视
-http://l.cztvcloud.com/channels/lantian/SXxinchang2/720p.m3u8#
+https://srs.iyb983.cn:443/video/CYS/index.m3u8
+#EXTINF:-1 group-title="卫视频道",延边卫视
+https://srs.iyb983.cn/video/CYS/index.m3u8
 #EXTINF:-1 group-title="卫视频道",新疆卫视
 https://t.freetv.fun/live/xin-jiang-wei-shi-19.m3u8
 #EXTINF:-1 group-title="卫视频道",新疆卫视
@@ -355,20 +357,12 @@ https://t.freetv.fun/live/hei-long-jiang-wei-shi-8.m3u8
 #EXTINF:-1 group-title="卫视频道",黑龙江卫视
 https://t.freetv.fun/live/hei-long-jiang-wei-shi-16.m3u8
 
-#EXTINF:-1 group-title="电影频道",上虞文化影院
-http://l.cztvcloud.com/channels/lantian/SXshangyu2/720p.m3u8
 #EXTINF:-1 group-title="电影频道",东阳影视生活
 http://l.cztvcloud.com/channels/lantian/SXdongyang1/720p.m3u8
-#EXTINF:-1 group-title="电影频道",华语影视
-http://www.goodiptv.club/douyu/3928
 #EXTINF:-1 group-title="电影频道",哈尔滨影视
 http://stream.hrbtv.net/yspd/sd/live.m3u8?zheild
 #EXTINF:-1 group-title="电影频道",浙江教科影视
-http://ali-xwl.cztv.com/live/channel04720Plxw.m3u8
-#EXTINF:-1 group-title="电影频道",浙江教科影视
 http://ali-vl.cztv.com/channels/lantian/channel004/360p.m3u8
-#EXTINF:-1 group-title="电影频道",都市剧场
-https://shcm-stream-cf1.stream.264788.xyz/cms001/ch00000090990000001203/index.m3u8?streamid=fd36352c039198fe0978687774e97e59&streamkey=0WsC3jqv5pZMcRRCygo4VTlOTvi9bTCwlnIuuJUBjnBWTwcjoCuCI96qfPqPDVNZ0aqEUXrCtmdYiA55XouMxl7kXeqYtnnZLSPxmTgKz4J1lElEFPNAHdBzm&token=1775754833-0c24e6f296307991-0-4b1ed6441088c73ad4569aca7aa649a5
 #EXTINF:-1 group-title="电影频道",韩国电影
 https://stream.ads.ottera.tv/playlist.m3u8?network_id=743
 
@@ -389,5 +383,5 @@ https://t.freetv.fun/live/jin-ying-qia-tong-2.m3u8
 #EXTINF:-1 group-title="儿童频道",韩国少儿
 http://ebsonairios.ebs.co.kr/ebsutablet500k/tablet500k/playlist.m3u8
 
-#EXTINF:-1 group-title="更新时间",2026-06-28 06:11:40
+#EXTINF:-1 group-title="更新时间",2026-06-28 19:17:25
 https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8
