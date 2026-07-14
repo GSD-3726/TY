@@ -24,8 +24,6 @@ https://t.freetv.fun/live/zhu-xia-wei-shi-7.m3u8
 https://t.freetv.fun/live/shan-xi-wei-shi-11.m3u8
 #EXTINF:-1 group-title="卫视频道",延边卫视
 http://l.cztvcloud.com/channels/lantian/SXxinchang2/720p.m3u8#
-#EXTINF:-1 group-title="卫视频道",延边卫视
-https://srs.iyb983.cn/video/CYS/index.m3u8
 #EXTINF:-1 group-title="卫视频道",新疆卫视
 http://218.84.12.186:8001/hls/main/playlist.m3u8?zxinjd;http://218.84.12.186:8001/hls/main/playlist.m3u8zxinjd
 #EXTINF:-1 group-title="卫视频道",浙江卫视
@@ -48,8 +46,6 @@ http://hlsal-ldvt.qing.mgtv.com/nn_live/nn_x64/Y2RuZXhfaWQ9YWxfaGxzX2xkdnQmZT02O
 https://txmov2.a.kwimgs.com/bs3/video-hls/5199687338554291078_hlsb.m3u8
 #EXTINF:-1 group-title="卫视频道",湖南卫视
 http://antvlive.ab5c6921.cdnviet.com/antv/playlist.m3u8
-#EXTINF:-1 group-title="卫视频道",甘肃卫视
-http://live.zohi.tv/video/s10001-fztv-3/index.m3u8
 #EXTINF:-1 group-title="卫视频道",贵州卫视
 https://t.freetv.fun/live/gui-zhou-wei-shi-16.m3u8
 
@@ -68,12 +64,10 @@ https://stream.ads.ottera.tv/playlist.m3u8?network_id=743
 
 #EXTINF:-1 group-title="儿童频道",浙江少儿
 http://ali-vl.cztv.com/channels/lantian/channel008/360p.m3u8
-#EXTINF:-1 group-title="儿童频道",福州少儿
-http://live.zohi.tv/video/s10001-fztv-4/index.m3u8
 #EXTINF:-1 group-title="儿童频道",金鹰卡通
 https://t.freetv.fun/live/jin-ying-qia-tong-2.m3u8
 #EXTINF:-1 group-title="儿童频道",韩国少儿
 http://ebsonairios.ebs.co.kr/ebsutablet500k/tablet500k/playlist.m3u8
 
-#EXTINF:-1 group-title="更新时间",2026-07-14 06:06:42
+#EXTINF:-1 group-title="更新时间",2026-07-14 10:44:09
 https://gitee.com/bmg369/tvtest/raw/master/cg/index.m3u8

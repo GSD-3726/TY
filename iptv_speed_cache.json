@@ -1,228 +1,4 @@
 {
-  "http://ali-m-l.cztv.com/channels/lantian/channel001/1080p.m3u8": {
-    "ok": false,
-    "fps": 124.0,
-    "frames": 395,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1783721535.0154788
-  },
-  "http://live.zohi.tv/video/s10001-fztv-4/index.m3u8": {
-    "ok": true,
-    "fps": 82.0,
-    "frames": 447,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1783721538.9239788
-  },
-  "http://112.27.235.94:8000/hls/5/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721553.562596
-  },
-  "http://112.27.235.94:8000/hls/31/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721553.5648122
-  },
-  "http://112.27.235.94:8000/hls/4/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721553.5648198
-  },
-  "http://112.27.235.94:8000/hls/3/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721553.5672202
-  },
-  "http://74.91.26.218:82/live/cctv1hd.m3u8": {
-    "ok": false,
-    "fps": 212.0,
-    "frames": 248,
-    "width": 1280,
-    "height": 720,
-    "timestamp": 1783721555.1874642
-  },
-  "http://112.27.235.94:8000/hls/6/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721560.023851
-  },
-  "http://112.27.235.94:8000/hls/2/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721563.9328482
-  },
-  "http://112.27.235.94:8000/hls/8/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721578.5776505
-  },
-  "http://112.27.235.94:8000/hls/7/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721578.582645
-  },
-  "http://112.27.235.94:8000/hls/1/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721578.5838165
-  },
-  "http://124.165.251.82:85/tsfile/live/0008_1.m3u8?key=txiptv&playlive=1&authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721580.1965892
-  },
-  "http://112.27.235.94:8000/hls/10/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721585.0324025
-  },
-  "http://124.165.251.82:85/tsfile/live/0012_1.m3u8?key=txiptv&playlive=1&authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721588.959275
-  },
-  "https://shcm-stream-cf1.stream.264788.xyz/cms001/ch00000090990000001620/index.m3u8?streamid=8a034b40397504e25b3775c772237996&streamkey=01vY5fRxC8VyKg4oq30vfikHXTCAKySLP29l6OG91kQlzDttHgzNLkUw5kivm3PfNsVHJv5FgdsPBYFYI2IWpt7tfRCuFHqLT2pvX67ubMds8jl2DHtvOh0&token=1775754349-4f33f4f84a4abeba-0-91687dc8c9325092efa1d00f330d2710": {
-    "ok": true,
-    "fps": 313.0,
-    "frames": 466,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1783721589.837293
-  },
-  "http://hls.nntv.cn/nnlive/NNTV_VOD_A.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721597.859295
-  },
-  "http://112.27.235.94:8000/hls/13/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721603.5860674
-  },
-  "http://112.27.235.94:8000/hls/15/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721603.5926125
-  },
-  "http://112.27.235.94:8000/hls/16/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721603.5943906
-  },
-  "http://112.27.235.94:8000/hls/26/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721610.0412993
-  },
-  "http://112.27.235.94:8000/hls/27/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721613.9673245
-  },
-  "http://112.27.235.94:8000/hls/37/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721622.8669384
-  },
-  "http://l.cztvcloud.com/channels/lantian/SXxinchang2/720p.m3u8": {
-    "ok": true,
-    "fps": 74.0,
-    "frames": 475,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1783721623.473848
-  },
-  "http://l.cztvcloud.com/channels/lantian/SXxinchang2/720p.m3u8#": {
-    "ok": true,
-    "fps": 52.0,
-    "frames": 475,
-    "width": 1920,
-    "height": 1080,
-    "timestamp": 1783721627.6818743
-  },
-  "http://112.27.235.94:8000/hls/32/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721628.5938725
-  },
-  "http://112.27.235.94:8000/hls/44/index.m3u8": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721628.60132
-  },
-  "http://183.237.95.108:9901/tsfile/live/1008_1.m3u8?key=txiptv&playlive=0&authid=0": {
-    "ok": false,
-    "fps": 0.0,
-    "frames": 0,
-    "width": 0,
-    "height": 0,
-    "timestamp": 1783721638.9773076
-  },
   "http://125.42.148.50:9901/tsfile/live/0126_1.m3u8?key=txiptv&playlive=1&authid=0": {
     "ok": false,
     "fps": 0.0,
@@ -2934,5 +2710,21 @@
     "width": 0,
     "height": 0,
     "timestamp": 1783980402.5736914
+  },
+  "http://l.cztvcloud.com/channels/lantian/SXxinchang2/720p.m3u8#": {
+    "ok": true,
+    "fps": 113.0,
+    "frames": 475,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1783997047.0923643
+  },
+  "https://shcm-stream-cf1.stream.264788.xyz/cms001/ch00000090990000001620/index.m3u8?streamid=8a034b40397504e25b3775c772237996&streamkey=01vY5fRxC8VyKg4oq30vfikHXTCAKySLP29l6OG91kQlzDttHgzNLkUw5kivm3PfNsVHJv5FgdsPBYFYI2IWpt7tfRCuFHqLT2pvX67ubMds8jl2DHtvOh0&token=1775754349-4f33f4f84a4abeba-0-91687dc8c9325092efa1d00f330d2710": {
+    "ok": true,
+    "fps": 132.0,
+    "frames": 466,
+    "width": 1920,
+    "height": 1080,
+    "timestamp": 1783997049.6349945
   }
 }
