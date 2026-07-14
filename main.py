@@ -23,7 +23,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 # 所有可调参数均集中于此，分类整理，方便修改
 
 # -------------------------- 1. 基础设置 ------------------------------------
-TARGET_URL            = "https://iptv.809899.xyz"       # 目标网站地址
+TARGET_URL            = "https://iptv.cqshushu.com/index.php"  # 目标网站地址
 HEADLESS              = True                            # 无头模式（GitHub运行必须True）
 BROWSER_TYPE          = "chromium"                      # 浏览器内核
 OUTPUT_DIR            = Path(__file__).parent           # 输出目录（当前脚本目录）
@@ -33,9 +33,9 @@ MAX_LINKS_PER_CHANNEL = 8                               # 每个频道最多保�
 DEFAULT_PROTOCOL      = "http://"                        # 默认协议（用于补全链接）
 
 # -------------------------- 2. 爬取控制 ------------------------------------
-EXTRACT_MODE          = "酒店提取"                       # "酒店提取" 或 "组播提取"
+EXTRACT_MODE          = "酒店提取"                       # "酒店提取" 或 "组播提取" 或 "酒店源提取"
 ENABLE_WEB_SCRAPING   = True                            # 是否启用网站爬取
-MAX_IPS               = 100                               # 最多处理多少个IP
+MAX_IPS               = 10                               # 最多处理多少个IP
 MAX_TOTAL_CHANNELS    = 0                                # 总频道上限（0=不限制）
 MAX_CHANNELS_PER_IP   = 0                                # 单个IP最多提取频道数
 DELAY_BETWEEN_IPS     = 0.1                              # 切换IP间隔（秒）
@@ -120,6 +120,11 @@ PAGE_CONFIG = {
     "multicast":    ["组播提取"],
     "start_button": ["开始播放", "开始搜索", "开始提取"],
 }
+
+# -------------------------- 9b. 酒店源站点配置 --------------------------------
+CQSHUSHU_MAX_PAGES       = 50       # 酒店源站点最大翻页数
+CQSHUSHU_DETAIL_TIMEOUT  = 15       # 获取IP节目列表页超时(秒)
+CQSHUSHU_FILTER_TYPE     = "hotel"  # 筛选类型: hotel/multicast/migu/all
 
 # -------------------------- 10. 日志与更新 --------------------------------
 TIME_DISPLAY_AT_TOP    = False
@@ -333,7 +338,7 @@ def print_progress_bar(current: int, total: int, success: int, failed: int, last
         return last_percent
     if percent_int == last_percent and current != total:
         return last_percent
-    bar = '█' * int(20 * current / total) + '░' * (20 - int(20 * current / total))
+    bar = '█' * int(20 * current / total) + '?' * (20 - int(20 * current / total))
     logger.info(f"[{percent_int:3d}%] {bar} ({current}/{total}) | 成功:{success} | 失败:{failed}")
     sys.stdout.flush()
     return percent_int
@@ -732,6 +737,186 @@ async def extract_one_ip(page, row, idx):
         pass
     return e
 
+# ============================================================================
+# =========== 酒店源站点 (iptv.cqshushu.com) 提取 =================================
+# ============================================================================
+async def cqshushu_scrape_hotel_ips(page, filter_type="hotel", max_pages=50):
+    """从 cqshushu 站列表页提取酒店源IP"""
+    entries = []
+    seen_ips = set()
+
+    logger.info(f"[cqshushu] 获取IP列表, 筛选: {filter_type}")
+
+    if filter_type != "all":
+        try:
+            await page.select_option("#typeSelect", filter_type)
+            await asyncio.sleep(1.5)
+            try:
+                await page.wait_for_load_state("networkidle", timeout=10000)
+            except:
+                pass
+        except Exception as e:
+            logger.warning(f"[cqshushu] 设置筛选失败: {e}，将获取全部数据")
+
+    current_page = 1
+    while current_page <= max_pages:
+        logger.info(f"[cqshushu] 获取第 {current_page} 页...")
+        try:
+            await page.wait_for_selector("table.iptv-table tbody tr", timeout=10000)
+        except:
+            logger.info("[cqshushu] 无更多数据或超时")
+            break
+
+        await asyncio.sleep(1)
+
+        rows = await page.query_selector_all("table.iptv-table tbody tr")
+        if not rows:
+            break
+
+        new_count = 0
+        for row in rows:
+            cells = await row.query_selector_all("td")
+            if len(cells) < 6:
+                continue
+            ip_link = await cells[0].query_selector("a.ip-link")
+            if not ip_link:
+                continue
+            ip_text = (await ip_link.inner_text()).strip()
+            onclick = await ip_link.get_attribute("onclick") or ""
+            m = re.search(r"gotoIP\('([^']+)',\s*'([^']+)'\)", onclick)
+            ip_hash = m.group(1) if m else ""
+            ip_type = m.group(2) if m else ""
+
+            if filter_type != "all" and ip_type != filter_type:
+                continue
+            if ip_text in seen_ips:
+                continue
+            seen_ips.add(ip_text)
+
+            channel_count = (await cells[1].inner_text()).strip()
+            type_info = (await cells[2].inner_text()).strip()
+            online_time = (await cells[3].inner_text()).strip()
+            update_time = (await cells[4].inner_text()).strip()
+            status = (await cells[5].inner_text()).strip()
+
+            entries.append({
+                "ip": ip_text,
+                "hash": ip_hash,
+                "type": ip_type,
+                "channel_count": channel_count,
+                "type_info": type_info,
+                "online_time": online_time,
+                "update_time": update_time,
+                "status": status,
+            })
+            new_count += 1
+
+        logger.info(f"[cqshushu] 本页新增 {new_count} 条 (累计 {len(entries)} 条)")
+
+        # 翻页
+        try:
+            next_btn = await page.query_selector('a:has-text("下一页")')
+            if next_btn:
+                href = await next_btn.get_attribute("href") or ""
+                if "page=" in href:
+                    await next_btn.click()
+                    try:
+                        await page.wait_for_load_state("networkidle", timeout=10000)
+                    except:
+                        pass
+                    await asyncio.sleep(1.5)
+                    current_page += 1
+                else:
+                    break
+            else:
+                break
+        except Exception as e:
+            logger.warning(f"[cqshushu] 翻页出错: {e}")
+            break
+
+    return entries
+
+
+async def cqshushu_extract_channels(page, detail_url, timeout_s=15):
+    """从 cqshushu IP详情页提取节目列表"""
+    channels = []
+    try:
+        await page.goto(detail_url, wait_until="domcontentloaded", timeout=timeout_s * 1000)
+        try:
+            await page.wait_for_load_state("networkidle", timeout=8000)
+        except:
+            pass
+        await asyncio.sleep(2)
+
+        # 点击“查看频道列表”链接
+        ch_link = await page.query_selector('a:has-text("查看频道列表")')
+        if ch_link:
+            await ch_link.click()
+            try:
+                await page.wait_for_load_state("networkidle", timeout=10000)
+            except:
+                pass
+            await asyncio.sleep(2)
+
+            # 选择每页显示100条
+            try:
+                await page.select_option('select', '100')
+                await asyncio.sleep(2)
+            except:
+                pass
+
+            # 提取当前页的频道
+            rows = await page.query_selector_all("table.iptv-table tbody tr, table tbody tr")
+            for row in rows:
+                cells = await row.query_selector_all("td")
+                if len(cells) >= 3:
+                    ch_name = (await cells[1].inner_text()).strip()
+                    ch_url_el = await cells[2].query_selector("a")
+                    if ch_url_el:
+                        ch_url = (await ch_url_el.get_attribute("href") or (await cells[2].inner_text()).strip())
+                    else:
+                        ch_url = (await cells[2].inner_text()).strip()
+                    if ch_name and ch_url:
+                        ch_url = ch_url.replace('&amp;', '&')
+                        if not ch_url.startswith(("http://", "https://")):
+                            ch_url = DEFAULT_PROTOCOL + ch_url
+                        channels.append((ch_name, ch_url))
+
+            # 检查是否有下一页
+            while True:
+                next_btn = await page.query_selector('a:has-text("下一页")')
+                if not next_btn:
+                    break
+                href = await next_btn.get_attribute("href") or ""
+                if not href or "page=" not in href:
+                    break
+                await next_btn.click()
+                try:
+                    await page.wait_for_load_state("networkidle", timeout=8000)
+                except:
+                    pass
+                await asyncio.sleep(1.5)
+
+                rows = await page.query_selector_all("table.iptv-table tbody tr, table tbody tr")
+                for row in rows:
+                    cells = await row.query_selector_all("td")
+                    if len(cells) >= 3:
+                        ch_name = (await cells[1].inner_text()).strip()
+                        ch_url_el = await cells[2].query_selector("a")
+                        if ch_url_el:
+                            ch_url = (await ch_url_el.get_attribute("href") or (await cells[2].inner_text()).strip())
+                        else:
+                            ch_url = (await cells[2].inner_text()).strip()
+                        if ch_name and ch_url:
+                            ch_url = ch_url.replace('&amp;', '&')
+                            if not ch_url.startswith(("http://", "https://")):
+                                ch_url = DEFAULT_PROTOCOL + ch_url
+                            channels.append((ch_name, ch_url))
+    except Exception as e:
+        logger.debug(f"[cqshushu] 获取节目失败: {e}")
+    return channels
+
+
 async def wait_data(page):
     logger.info("等待数据加载...")
     async def data_ready():
@@ -903,7 +1088,7 @@ def export_results_with_timestamp(channel_map):
 # ============================================================================
 def print_source_statistics(stats):
     logger.info("="*60)
-    logger.info("📊 各数据源统计结果（有效率=连通有效数/原始获取数）")
+    logger.info("?? 各数据源统计结果（有效率=连通有效数/原始获取数）")
     logger.info("="*60)
     for i, gh in enumerate(stats["github"]):
         raw = gh["raw"]
@@ -924,7 +1109,7 @@ def print_source_statistics(stats):
     rate = (valid / raw * 100) if raw > 0 else 0.0
     logger.info(f"本地TXT源 | 原始获取:{raw:4d} | 有效:{valid:4d} | 有效率:{rate:6.1f}% | 最终输出:{output:4d}")
     if "reused" in stats:
-        logger.info(f"🔁 复用旧链接数: {stats['reused']} (来自上次输出文件)")
+        logger.info(f"?? 复用旧链接数: {stats['reused']} (来自上次输出文件)")
     logger.info("="*60)
 
 # ============================================================================
@@ -942,11 +1127,11 @@ async def main():
     }
     all_entries_with_source = []
 
-    if EXTRACT_MODE not in ["酒店提取", "组播提取"]:
-        logger.error("配置错误！EXTRACT_MODE 只能填写：酒店提取 或 组播提取")
+    if EXTRACT_MODE not in ["酒店提取", "组播提取", "酒店源提取"]:
+        logger.error("配置错误！EXTRACT_MODE 只能填写：酒店提取 或 组播提取 或 酒店源提取")
         return
 
-    logger.info(f"✅ 当前运行模式：【{EXTRACT_MODE}】(网站爬取{'开启' if ENABLE_WEB_SCRAPING else '关闭'}，增量更新{'开启' if inc_update else '关闭'})")
+    logger.info(f"? 当前运行模式：【{EXTRACT_MODE}】(网站爬取{'开启' if ENABLE_WEB_SCRAPING else '关闭'}，增量更新{'开启' if inc_update else '关闭'})")
 
     # ===================== 增量更新：解析现有输出文件 =====================
     old_valid_map = {}
@@ -1061,7 +1246,7 @@ async def main():
                     else:
                         channels = parse_txt_content(content, default_group="GitHub源")
                     stats["github"][idx]["raw"] = len(channels)
-                    logger.info(f"✅ GitHub链接 {link_no} 获取到 {len(channels)} 条频道")
+                    logger.info(f"? GitHub链接 {link_no} 获取到 {len(channels)} 条频道")
                     added = 0
                     for g, n, u in channels:
                         if inc_update and u in old_all_urls:
@@ -1071,7 +1256,7 @@ async def main():
                     if added < len(channels):
                         logger.debug(f"GitHub源{link_no} 过滤旧链接 {len(channels)-added} 条")
                 else:
-                    logger.info(f"✅ GitHub链接 {link_no} 获取到 0 条频道")
+                    logger.info(f"? GitHub链接 {link_no} 获取到 0 条频道")
             logger.info(f"GitHub源累计获取: {sum(s['raw'] for s in stats['github'])} 条，去重后新增: {len([e for e in all_entries_with_source if e[3]=='github'])} 条")
 
     # ===================== 网站爬取 =====================
@@ -1081,50 +1266,102 @@ async def main():
         async with async_playwright() as p:
             browser = await p.chromium.launch(
                 headless=HEADLESS,
-                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--single-process"]
+                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--single-process",
+                      "--disable-blink-features=AutomationControlled"]
             )
-            ctx = await browser.new_context(viewport={"width": 1920, "height": 1080})
+            ctx = await browser.new_context(
+                viewport={"width": 1920, "height": 1080},
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            )
+            await ctx.add_init_script("""
+                Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+                Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+                Object.defineProperty(navigator, 'languages', { get: () => ['zh-CN', 'zh', 'en'] });
+            """)
             page = await ctx.new_page()
             try:
-                logger.info(f"--- 正在爬取网站: {TARGET_URL} ---")
-                await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT*1000, wait_until="domcontentloaded")
-                eng_sel = build_selector(PAGE_CONFIG["engine_search"], "a.sidebar-link,button,div.segment-item")
-                if eng_sel:
-                    eng = page.locator(eng_sel).first
-                    if await eng.count() > 0:
-                        logger.info("点击引擎搜索")
-                        await robust_click(eng)
-                if EXTRACT_MODE == "酒店提取":
-                    tab_sel = build_selector(PAGE_CONFIG["hotel"], "div.segment-item")
-                else:
-                    tab_sel = build_selector(PAGE_CONFIG["multicast"], "div.segment-item")
-                tab = page.locator(tab_sel).first
-                await robust_click(tab)
-                start_sel = build_selector(PAGE_CONFIG["start_button"], "button")
-                start_btn = page.locator(start_sel).first
-                logger.info("点击【开始提取】")
-                await robust_click(start_btn)
-                logger.info(f"⏳ 等待 {AFTER_START_WAIT} 秒后开始提取数据...")
-                await asyncio.sleep(AFTER_START_WAIT)
-                if await wait_data(page):
-                    rows = page.locator("div.ios-list-item").filter(
-                        has=page.locator("div.item-subtitle:has-text('频道:')")
-                    )
-                    total_rows = await rows.count()
-                    process_count = min(total_rows, MAX_IPS) if MAX_IPS > 0 else total_rows
-                    logger.info(f"找到 {total_rows} 个IP，准备处理前 {process_count} 个")
-                    for i in range(process_count):
-                        entries = await extract_one_ip(page, rows.nth(i), i + 1)
-                        if entries:
-                            web_entries.extend(entries)
+                if EXTRACT_MODE == "酒店源提取":
+                    # === cqshushu 站点提取 ===
+                    logger.info(f"--- 从cqshushu站点提取: {TARGET_URL} ---")
+                    await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT*1000, wait_until="domcontentloaded")
+                    try:
+                        await page.wait_for_load_state("networkidle", timeout=15000)
+                    except:
+                        pass
+                    await asyncio.sleep(2)
+
+                    filter_type = CQSHUSHU_FILTER_TYPE
+                    max_pages = CQSHUSHU_MAX_PAGES
+
+                    ip_list = await cqshushu_scrape_hotel_ips(page, filter_type, max_pages)
+                    stats["web"]["raw"] = len(ip_list)
+                    logger.info(f"[cqshushu] 获取到 {len(ip_list)} 个IP")
+
+                    for i, entry in enumerate(ip_list):
+                        ip_addr = entry["ip"]
+                        ip_hash = entry["hash"]
+                        ip_type = entry["type"]
+                        detail_url = f"{TARGET_URL}?p={ip_hash}&t={ip_type}"
+                        logger.info(f"[cqshushu] [{i+1}/{len(ip_list)}] 获取 {ip_addr} 节目...")
+
+                        channels = await cqshushu_extract_channels(page, detail_url, CQSHUSHU_DETAIL_TIMEOUT)
+                        for ch_name, ch_url in channels:
+                            n_cleaned = clean_satellite_name(ch_name)
+                            nn = normalize_cctv(n_cleaned)
+                            g = classify_channel(nn)
+                            if not g:
+                                continue
+                            fn = nn if g == "央视频道" else (clean_chinese_only(n_cleaned) if ENABLE_CHINESE_CLEAN else n_cleaned)
+                            web_entries.append((g, fn, ch_url))
+
                         if MAX_TOTAL_CHANNELS > 0 and len(web_entries) >= MAX_TOTAL_CHANNELS:
                             web_entries = web_entries[:MAX_TOTAL_CHANNELS]
                             break
                         await asyncio.sleep(DELAY_BETWEEN_IPS)
+
                     stats["web"]["raw"] = len(web_entries)
-                    logger.info(f"网站爬取完成: {len(web_entries)} 条")
+                    logger.info(f"[cqshushu] 网站爬取完成: {len(web_entries)} 条")
+                else:
+                    # === 原站点提取 (809899.xyz) ===
+                    logger.info(f"--- 正在爬取网站: {TARGET_URL} ---")
+                    await page.goto(TARGET_URL, timeout=PAGE_LOAD_TIMEOUT*1000, wait_until="domcontentloaded")
+                    eng_sel = build_selector(PAGE_CONFIG["engine_search"], "a.sidebar-link,button,div.segment-item")
+                    if eng_sel:
+                        eng = page.locator(eng_sel).first
+                        if await eng.count() > 0:
+                            logger.info("点击引擎搜索")
+                            await robust_click(eng)
+                    if EXTRACT_MODE == "酒店提取":
+                        tab_sel = build_selector(PAGE_CONFIG["hotel"], "div.segment-item")
+                    else:
+                        tab_sel = build_selector(PAGE_CONFIG["multicast"], "div.segment-item")
+                    tab = page.locator(tab_sel).first
+                    await robust_click(tab)
+                    start_sel = build_selector(PAGE_CONFIG["start_button"], "button")
+                    start_btn = page.locator(start_sel).first
+                    logger.info("点击【开始提取】")
+                    await robust_click(start_btn)
+                    logger.info(f"? 等待 {AFTER_START_WAIT} 秒后开始提取数据...")
+                    await asyncio.sleep(AFTER_START_WAIT)
+                    if await wait_data(page):
+                        rows = page.locator("div.ios-list-item").filter(
+                            has=page.locator("div.item-subtitle:has-text('频道:')")
+                        )
+                        total_rows = await rows.count()
+                        process_count = min(total_rows, MAX_IPS) if MAX_IPS > 0 else total_rows
+                        logger.info(f"找到 {total_rows} 个IP，准备处理前 {process_count} 个")
+                        for i in range(process_count):
+                            entries = await extract_one_ip(page, rows.nth(i), i + 1)
+                            if entries:
+                                web_entries.extend(entries)
+                            if MAX_TOTAL_CHANNELS > 0 and len(web_entries) >= MAX_TOTAL_CHANNELS:
+                                web_entries = web_entries[:MAX_TOTAL_CHANNELS]
+                                break
+                            await asyncio.sleep(DELAY_BETWEEN_IPS)
+                        stats["web"]["raw"] = len(web_entries)
+                        logger.info(f"网站爬取完成: {len(web_entries)} 条")
             except Exception as e:
-                logger.exception("❌ 爬取过程异常")
+                logger.exception(f"? 爬取过程异常: {e}")
             finally:
                 await page.close()
                 await ctx.close()
@@ -1186,7 +1423,7 @@ async def main():
     logger.info(f"频道筛选: 过滤前 {original_count} 条链接，过滤后 {filtered_count} 条链接")
 
     unique_urls = list(url_source_map.keys())
-    logger.info(f"✅ 合并去重并筛选后共 {len(unique_urls)} 个唯一链接（仅新增部分）")
+    logger.info(f"? 合并去重并筛选后共 {len(unique_urls)} 个唯一链接（仅新增部分）")
 
     # ===================== 新链接连通性测试 =====================
     logger.info("--- 正在进行新链接连通性测试 (前置筛选) ---")
@@ -1289,12 +1526,12 @@ async def main():
 
     total_time = time.time() - overall_start_time
     logger.info("="*30)
-    logger.info(f"⏱️  阶段耗时统计:")
+    logger.info(f"??  阶段耗时统计:")
     logger.info(f"  - 新链接连通性测试: {connectivity_time:.2f}s")
     logger.info(f"  - FFmpeg 测速: {ffmpeg_time:.2f}s")
     logger.info(f"  - 总运行时间: {total_time:.2f}s")
     logger.info("="*30)
-    logger.info("🎉 任务全部完成！")
+    logger.info("?? 任务全部完成！")
 
 if __name__ == "__main__":
     if sys.platform == 'linux':
