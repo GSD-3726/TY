@@ -21,136 +21,94 @@ from playwright.async_api import async_playwright
 #                          网页爬取 配置区域
 # ############################################################################
 
-# 目标网站地址
-TARGET_URL = "https://iptv.cqshushu.com/index.php"
-# 默认协议, 用于无协议前缀的链接
-DEFAULT_PROTOCOL = "http://"
-# 每页显示IP数, 网站支持: 3 / 6 / 10
-IPS_PER_PAGE = 10
-# 最多爬取几页
-MAX_PAGES = 4
-# 每个频道最多保留几条链接
-MAX_LINKS_PER_CHANNEL = 8
-# 最多处理几个IP, 0表示不限制
-MAX_IPS = 0
+TARGET_URL = "https://iptv.cqshushu.com/index.php"        # 目标网站地址
+DEFAULT_PROTOCOL = "http://"                             # 默认协议, 用于无协议前缀的链接
+IPS_PER_PAGE = 10                                        # 每页显示IP数, 网站支持: 3 / 6 / 10
+MAX_PAGES = 4                                            # 最多爬取几页
+MAX_LINKS_PER_CHANNEL = 8                                # 每个频道最多保留几条链接
+MAX_IPS = 0                                              # 最多处理几个IP, 0表示不限制
 
-# 翻页前最小等待秒数, 防429
-PAGE_DELAY_MIN = 5.0
-# 翻页前最大等待秒数
-PAGE_DELAY_MAX = 8.0
-# 切换IP详情页最小等待秒数
-IP_DELAY_MIN = 2.0
-# 切换IP详情页最大等待秒数
-IP_DELAY_MAX = 4.0
-# 详情页加载后等待秒数
-DETAIL_WAIT_MIN = 2.0
-# 详情页最大等待秒数
-DETAIL_WAIT_MAX = 4.0
+PAGE_DELAY_MIN = 5.0                                     # 翻页前最小等待秒数, 防429
+PAGE_DELAY_MAX = 8.0                                     # 翻页前最大等待秒数
+IP_DELAY_MIN = 2.0                                       # 切换IP详情页最小等待秒数
+IP_DELAY_MAX = 4.0                                       # 切换IP详情页最大等待秒数
+DETAIL_WAIT_MIN = 2.0                                    # 详情页加载后等待秒数
+DETAIL_WAIT_MAX = 4.0                                    # 详情页最大等待秒数
 
-# 是否无头模式, GitHub Actions设True
-HEADLESS = True
-# 页面加载超时毫秒
-PAGE_TIMEOUT = 30000
-# 网络空闲超时毫秒
-IDLE_TIMEOUT = 15000
+HEADLESS = True                                          # 是否无头模式, GitHub Actions设True
+PAGE_TIMEOUT = 30000                                     # 页面加载超时毫秒
+IDLE_TIMEOUT = 15000                                     # 网络空闲超时毫秒
 
 # ############################################################################
 #                          FFmpeg测速 配置区域
 # ############################################################################
 
-# 是否启用FFmpeg测速
-ENABLE_FFMPEG = True
-# FFmpeg可执行文件路径
-FFMPEG_PATH = "ffmpeg"
-# 每条流测速时长秒数
-FFMPEG_DURATION = 20
-# 测速并发数
-FFMPEG_CONCURRENCY = 6
-# 最低平均帧率, 低于此值判定卡顿
-MIN_AVG_FPS = 24
-# 最低总帧数, 低于此值判定卡顿
-MIN_FRAMES = 420
+ENABLE_FFMPEG = True                                     # 是否启用FFmpeg测速
+FFMPEG_PATH = "ffmpeg"                                   # FFmpeg可执行文件路径
+FFMPEG_DURATION = 20                                     # 每条流测速时长秒数
+FFMPEG_CONCURRENCY = 6                                   # 测速并发数
+MIN_AVG_FPS = 24                                         # 最低平均帧率, 低于此值判定卡顿
+MIN_FRAMES = 420                                         # 最低总帧数, 低于此值判定卡顿
 
 # ############################################################################
 #                          连通性测试 配置区域
 # ############################################################################
 
-# 是否启用连通性预测试
-ENABLE_CONNECTIVITY = True
-# 连通性测试并发数
-CONN_CONCURRENCY = 15
-# 连通性测试超时秒数
-CONN_TIMEOUT = 2
+ENABLE_CONNECTIVITY = True                               # 是否启用连通性预测试
+CONN_CONCURRENCY = 15                                    # 连通性测试并发数
+CONN_TIMEOUT = 2                                         # 连通性测试超时秒数
 
 # ############################################################################
 #                          缓存 配置区域
 # ############################################################################
 
-# 是否启用测速缓存
-ENABLE_CACHE = True
-# 缓存文件路径
-CACHE_FILE = Path(__file__).parent / "iptv_speed_cache.json"
-# 缓存有效期小时数
-CACHE_EXPIRE_HOURS = 72
+ENABLE_CACHE = True                                      # 是否启用测速缓存
+CACHE_FILE = Path(__file__).parent / "iptv_speed_cache.json"  # 缓存文件路径
+CACHE_EXPIRE_HOURS = 72                                  # 缓存有效期小时数
 
-# 是否启用GitHub源
-ENABLE_GITHUB = True
-# GitHub源列表, 支持M3U和TXT格式
-GITHUB_URLS = [
+ENABLE_GITHUB = True                                     # 是否启用GitHub源
+GITHUB_URLS = [                                          # GitHub源列表, 支持M3U和TXT格式
     "https://gh-proxy.com/https://github.com/vbskycn/iptv/blob/master/tv/iptv4.txt",
     "https://gh-proxy.com/https://github.com/GSD-3726/MMM/blob/main/iptv_channels.txt",
 ]
-# 下载超时秒数
-GITHUB_TIMEOUT = 30
-# 下载重试次数
-GITHUB_RETRIES = 3
+GITHUB_TIMEOUT = 30                                      # 下载超时秒数
+GITHUB_RETRIES = 3                                       # 下载重试次数
 
 # ############################################################################
 #                          输出 配置区域
 # ############################################################################
 
-# 输出目录
-OUTPUT_DIR = Path(__file__).parent
-# M3U输出文件名
-OUTPUT_M3U = OUTPUT_DIR / "iptv_channels.m3u"
-# TXT输出文件名
-OUTPUT_TXT = OUTPUT_DIR / "iptv_channels.txt"
+OUTPUT_DIR = Path(__file__).parent                       # 输出目录
+OUTPUT_M3U = OUTPUT_DIR / "iptv_channels.m3u"            # M3U输出文件名
+OUTPUT_TXT = OUTPUT_DIR / "iptv_channels.txt"           # TXT输出文件名
 
 # ############################################################################
 #                          频道分类 配置区域
 # ############################################################################
 
-# 分类规则, 按优先级排列
-CATEGORY_RULES = [
+CATEGORY_RULES = [                                       # 分类规则, 按优先级排列
     {"name": "央视频道", "keywords": ["cctv", "cetv", "央视"]},
     {"name": "卫视频道", "keywords": ["卫视"]},
     {"name": "影视频道", "keywords": ["影视", "影院", "chc", "剧场", "电影"]},
     {"name": "少儿频道", "keywords": ["少儿", "卡通", "动画", "动漫"]},
     {"name": "地方频道", "keywords": ["地方", "都市", "综合", "新闻", "公共"]},
 ]
-# 分组导出顺序
-GROUP_ORDER = ["央视频道", "卫视频道", "影视频道", "少儿频道", "地方频道"]
+GROUP_ORDER = ["央视频道", "卫视频道", "影视频道", "少儿频道", "地方频道"]  # 分组导出顺序
 
-# CCTV编号到名称映射
-CCTV_MAP = {
+CCTV_MAP = {                                             # CCTV编号到名称映射
     "1": "综合", "2": "财经", "3": "综艺", "4": "中文国际", "5": "体育",
     "5+": "体育赛事", "6": "电影", "7": "国防军事", "8": "电视剧",
     "9": "纪录", "10": "科教", "11": "戏曲", "12": "社会与法",
     "13": "新闻", "14": "少儿", "15": "音乐", "16": "奥林匹克", "17": "农业农村",
 }
-# CCTV标准排序
-CCTV_ORDER = [f"CCTV-{k}{v}" for k, v in CCTV_MAP.items() if k != "5+"]
+CCTV_ORDER = [f"CCTV-{k}{v}" for k, v in CCTV_MAP.items() if k != "5+"]  # CCTV标准排序
 CCTV_ORDER.insert(5, "CCTV-5+体育赛事")
 
-# 正则: 5\+ 放在 \d 前面, 保证优先匹配5+
-CCTV_RE = re.compile(r'(cctv)[-\s]?(5\+|\d{1,3})', re.IGNORECASE)
-# 正则: 只保留中文
-CHINESE_ONLY = re.compile(r'[^\u4e00-\u9fff]')
-# 正则: 内网IP
-INTERNAL_IP = re.compile(r'^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|127\.0\.0\.1)')
+CCTV_RE = re.compile(r'(cctv)[-\s]?(5\+|\d{1,3})', re.IGNORECASE)  # 正则: 5\+ 放在 \d 前面, 保证优先匹配5+
+CHINESE_ONLY = re.compile(r'[^\u4e00-\u9fff]')                    # 正则: 只保留中文
+INTERNAL_IP = re.compile(r'^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|127\.0\.0\.1)') # 正则: 内网IP
 
-# 反检测JS注入
-STEALTH_JS = """
+STEALTH_JS = """                                         # 反检测JS注入
 Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
 Object.defineProperty(navigator, 'plugins', {get: () => [1,2,3,4,5]});
 Object.defineProperty(navigator, 'languages', {get: () => ['zh-CN','zh','en']});
@@ -1036,4 +994,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main())  # 程序入口，启动异步主函数
