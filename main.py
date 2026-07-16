@@ -69,6 +69,7 @@ CACHE_EXPIRE_HOURS = 72                                  # 缓存有效期小时
 ENABLE_GITHUB = True                                     # 是否启用GitHub源
 GITHUB_URLS = [                                          # GitHub源列表, 支持M3U和TXT格式
     "https://gh-proxy.com/https://github.com/vbskycn/iptv/blob/master/tv/iptv4.txt",
+    "https://gh-proxy.com/https://github.com/GSD-3726/TY/blob/main/iptv_channels.txt",
     "https://gh-proxy.com/https://github.com/GSD-3726/MMM/blob/main/iptv_channels.txt",
 ]
 GITHUB_TIMEOUT = 30                                      # 下载超时秒数
