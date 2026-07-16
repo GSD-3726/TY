@@ -109,6 +109,9 @@ CCTV_RE = re.compile(r'(cctv)[-\s]?(5\+|\d{1,3})', re.IGNORECASE)  # 正则: 5\+
 CHINESE_ONLY = re.compile(r'[^\u4e00-\u9fff]')                    # 正则: 只保留中文
 INTERNAL_IP = re.compile(r'^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|127\.0\.0\.1)') # 正则: 内网IP
 
+# 清晰度后缀清洗正则，用于合并高清/标清/4K同频道
+CLEAR_SUFFIX_RE = re.compile(r'[\s\-_]*(高清|超清|4K|超高清|标清|HD|FHD|UHD|2K|蓝光|原画|流畅|720P|1080P|2160P)', re.IGNORECASE)
+
 STEALTH_JS = """                                         # 反检测JS注入
 Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
 Object.defineProperty(navigator, 'plugins', {get: () => [1,2,3,4,5]});
@@ -163,6 +166,16 @@ def norm_cctv(name: str) -> str:
             return f"CCTV-{num}{CCTV_MAP[num]}"
         return f"CCTV-{num}"
     return name
+
+
+def unify_channel_name(raw_name: str) -> str:
+    """统一频道名称，清除高清/4K/HD等清晰度后缀，实现同频道合并"""
+    std_name = norm_cctv(raw_name)
+    # 清除清晰度后缀
+    std_name = CLEAR_SUFFIX_RE.sub("", std_name)
+    # 清除末尾多余分隔符
+    std_name = re.sub(r'[\s\-_]+$', "", std_name).strip()
+    return std_name
 
 
 def clean_cn(name: str) -> str:
@@ -395,7 +408,7 @@ async def ffmpeg_batch_test(
     """
     批量FFmpeg测速
     输入: {(分组, 频道名): [url1, url2, ...]}
-    输出: 测试通过的, 每频道最多MAX_LINKS_PER_CHANNEL条, 按分辨率降序
+    输出: 测试通过的, 每频道最多保留MAX_LINKS_PER_CHANNEL条, 按分辨率降序
     """
     if not channel_map:
         return {}
@@ -479,7 +492,7 @@ async def ffmpeg_batch_test(
     for k, vs in result_map.items():
         vs.sort(key=lambda x: (-x[2] * x[3], -x[1]))
         final[k] = [u for u, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]
-    logger.info(f"FFmpeg测速完成: {len(final)} 个频道通过")
+    logger.info(f"FFmpeg测速完成: {len(final)} 个频道")
     return final
 
 
@@ -520,11 +533,13 @@ def parse_m3u_content(content: str) -> List[Tuple[str, str, str]]:
                 m2 = re.search(r'#EXTINF:-1.*?,(.+)', line)
                 name = m2.group(1).strip() if m2 else ""
         elif line.startswith("http") and name:
-            nn = norm_cctv(name)
-            g = classify(nn)
+            url = line.strip()
+            # 统一频道名，合并高清/4K同频道
+            std_ch = unify_channel_name(name)
+            g = classify(std_ch)
             if g:
-                fn = nn if g == "央视频道" else clean_cn(name)
-                channels.append((g, fn, line.strip()))
+                fn = std_ch if g == "央视频道" else clean_cn(std_ch)
+                channels.append((g, fn, url))
             name = ""
     return channels
 
@@ -544,10 +559,11 @@ def parse_txt_content(content: str) -> List[Tuple[str, str, str]]:
                 if '$' in url:
                     url = url.split('$')[0].strip()
                 if name and url:
-                    nn = norm_cctv(name)
-                    g = classify(nn)
+                    # 统一频道名，合并高清/4K同频道
+                    std_ch = unify_channel_name(name)
+                    g = classify(std_ch)
                     if g:
-                        fn = nn if g == "央视频道" else clean_cn(name)
+                        fn = std_ch if g == "央视频道" else clean_cn(std_ch)
                         channels.append((g, fn, url))
     return channels
 
@@ -673,7 +689,7 @@ async def scrape_ips(page, filter_type: str, max_pages: int) -> list:
         await asyncio.sleep(delay)
         await nxt.click()
         try:
-            await page.wait_for_load_state('networkidle', timeout=IDLE_TIMEOUT)
+            await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
         except:
             pass
         await asyncio.sleep(random.uniform(PAGE_DELAY_MIN, PAGE_DELAY_MAX))
@@ -926,10 +942,11 @@ async def main():
                         logger.info(f"[{i + 1}/{len(entries)}] {entry['ip']}")
                         chs = await extract_detail_channels(page, detail_url)
                         for name, url in chs:
-                            nn = norm_cctv(name)
-                            g = classify(nn)
+                            # 统一频道名，合并高清/4K同频道
+                            std_ch = unify_channel_name(name)
+                            g = classify(std_ch)
                             if g:
-                                fn = nn if g == "央视频道" else clean_cn(name)
+                                fn = std_ch if g == "央视频道" else clean_cn(std_ch)
                                 all_channels.append((g, fn, url))
                         await asyncio.sleep(random.uniform(IP_DELAY_MIN, IP_DELAY_MAX))
                     except Exception as e:
