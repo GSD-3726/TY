@@ -39,6 +39,9 @@ HEADLESS = True                                          # 是否无头模式, G
 PAGE_TIMEOUT = 30000                                     # 页面加载超时毫秒
 IDLE_TIMEOUT = 15000                                     # 网络空闲超时毫秒
 
+# 新增配置：网站源筛选，默认爬酒店源，可选 all / hotel / multicast / migu / other
+SCRAPE_SOURCE_FILTER = "multicast"
+
 # ############################################################################
 #                          FFmpeg测速 配置区域
 # ############################################################################
@@ -874,7 +877,7 @@ def export(ch_map: Dict[Tuple[str, str], List[str]]):
 
 async def main():
     parser = argparse.ArgumentParser(description="IPTV源抓取器 v3")
-    parser.add_argument("--type", default="hotel", help="抓取类型: all/hotel/multicast/migu/other")
+    parser.add_argument("--type", default="all", help="抓取类型: all/hotel/multicast/migu/other（命令行优先级高于配置SCRAPE_SOURCE_FILTER）")
     parser.add_argument("--max-pages", type=int, default=MAX_PAGES, help="最多爬几页")
     parser.add_argument("--max-ips", type=int, default=MAX_IPS, help="最多处理几个IP, 0不限")
     parser.add_argument("--headless", default="true", help="无头模式: true/false")
@@ -883,7 +886,16 @@ async def main():
     parser.add_argument("--skip-github", action="store_true", help="跳过GitHub源")
     args = parser.parse_args()
 
-    ft = norm_type(args.type)
+    # 读取配置默认类型，命令行参数优先覆盖配置
+    config_raw_type = SCRAPE_SOURCE_FILTER
+    cmd_raw_type = args.type
+    if cmd_raw_type and cmd_raw_type.strip().lower() != "all":
+        ft = norm_type(cmd_raw_type)
+        logger.info(f"已使用命令行指定类型: {ft}（覆盖配置 SCRAPE_SOURCE_FILTER={config_raw_type}）")
+    else:
+        ft = norm_type(config_raw_type)
+        logger.info(f"使用配置文件指定爬取类型: {ft}")
+
     max_pages = args.max_pages
     max_ips = args.max_ips
     headless = args.headless.lower() != "false"
