@@ -2018,5 +2018,65 @@
     "speed": 1.37,
     "bitrate": 0.0,
     "ts": 1784370941.5609152
+  },
+  "http://www.goodiptv.club/douyu/3928": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "w": 0,
+    "h": 0,
+    "speed": 0.0,
+    "bitrate": 0.0,
+    "ts": 1784412511.2975512
+  },
+  "http://live.metshop.top/huya/11352884?cdn=alicdn": {
+    "ok": true,
+    "fps": 30.21,
+    "frames": 538,
+    "w": 1280,
+    "h": 720,
+    "speed": 1.52,
+    "bitrate": 0.0,
+    "ts": 1784412523.725856
+  },
+  "http://live.metshop.top/huya/21059599?cdn=alicdn": {
+    "ok": true,
+    "fps": 30.21,
+    "frames": 538,
+    "w": 1280,
+    "h": 720,
+    "speed": 1.46,
+    "bitrate": 0.0,
+    "ts": 1784412523.786548
+  },
+  "http://lbyzztfe.live.sxmty.com/live/hls/645ff4c60e0a49f0a203abbd73dd8be9/0720e665f10f48e98c9639f4f492fb4a-1.m3u8?zshanxd": {
+    "ok": true,
+    "fps": 30.33,
+    "frames": 579,
+    "w": 1280,
+    "h": 720,
+    "speed": 2.18,
+    "bitrate": 0.0,
+    "ts": 1784412524.6411579
+  },
+  "http://live.metshop.top/huya/11342424?cdn=alicdn": {
+    "ok": true,
+    "fps": 32.21,
+    "frames": 573,
+    "w": 720,
+    "h": 368,
+    "speed": 1.38,
+    "bitrate": 0.0,
+    "ts": 1784412525.0375335
+  },
+  "http://drive.mxmy.net:8888/udp/239.3.1.209:8052": {
+    "ok": false,
+    "fps": 23.45,
+    "frames": 326,
+    "w": 1920,
+    "h": 1080,
+    "speed": 1.37,
+    "bitrate": 0.0,
+    "ts": 1784412529.9532723
   }
 }
