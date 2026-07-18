@@ -78,7 +78,7 @@ ENABLE_CACHE = True                                      # 是否启用测速缓
 CACHE_FILE = Path(__file__).parent / "iptv_speed_cache.json"  # 缓存文件路径
 
 # [修复] 直播源IP变化快，缓存有效期从72小时缩短到24小时
-CACHE_EXPIRE_HOURS = 24
+CACHE_EXPIRE_HOURS = 72
 
 ENABLE_GITHUB = True                                     # 是否启用GitHub源
 GITHUB_URLS = [                                          # GitHub源列表, 支持M3U和TXT格式
