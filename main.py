@@ -40,7 +40,7 @@ PAGE_TIMEOUT = 30000                                     # 页面加载超时毫
 IDLE_TIMEOUT = 15000                                     # 网络空闲超时毫秒
 
 # 新增配置：网站源筛选，默认爬酒店源，可选 all / hotel / multicast / migu / other
-SCRAPE_SOURCE_FILTER = "multicast"
+SCRAPE_SOURCE_FILTER = "hotel"
 
 # ############################################################################
 #                          FFmpeg测速 配置区域
@@ -353,23 +353,31 @@ def retry_async(max_retries=2, delay=1.0):
 
 @retry_async(max_retries=2, delay=1.0)
 async def test_stream(url: str) -> Dict[str, Any]:
-    """用FFmpeg测试单条流, 返回 {ok, fps, frames, width, height}"""
+    """用FFmpeg测试单条流, 返回 {ok, fps, frames, width, height, speed, bitrate, elapsed}"""
     if not shutil.which(FFMPEG_PATH):
-        return {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0}
+        return {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0,
+                "speed": 0.0, "bitrate": 0.0, "elapsed": 0.0}
 
     headers = (
         "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n"
         "Referer: https://www.miguvideo.com/\r\n"
     )
+
+    # rw_timeout 设为测试时长的1.5倍且至少10秒，避免网络轻微波动就断开
+    rw_timeout_us = max(int(FFMPEG_DURATION * 1.5 * 1000000), 10000000)
+
     cmd = [
         FFMPEG_PATH, "-hide_banner", "-y",
         "-headers", headers,
         "-fflags", "nobuffer",
-        "-rw_timeout", "5000000",
+        "-rw_timeout", str(rw_timeout_us),
         "-i", url,
         "-t", str(FFMPEG_DURATION),
         "-f", "null", "-"
     ]
+
+    start_time = time.perf_counter()
+
     try:
         proc = await asyncio.create_subprocess_exec(
             *cmd,
@@ -379,20 +387,21 @@ async def test_stream(url: str) -> Dict[str, Any]:
         try:
             _, stderr = await asyncio.wait_for(
                 proc.communicate(),
-                timeout=FFMPEG_DURATION + 5
+                timeout=FFMPEG_DURATION + 15  # 给FFmpeg额外15秒收尾，避免超时杀进程
             )
         except asyncio.TimeoutError:
             proc.kill()
             await proc.wait()
-            return {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0}
+            elapsed = time.perf_counter() - start_time
+            return {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0,
+                    "speed": 0.0, "bitrate": 0.0, "elapsed": round(elapsed, 2)}
 
+        elapsed = time.perf_counter() - start_time
         output = stderr.decode('utf-8', errors='ignore')
 
-        # 提取帧数和帧率
+        # 提取帧数
         frame_matches = re.findall(r'frame=\s*(\d+)', output)
-        fps_matches = re.findall(r'fps=\s*([\d.]+)', output)
         frames = int(frame_matches[-1]) if frame_matches else 0
-        avg_fps = float(fps_matches[-1]) if fps_matches else 0.0
 
         # 提取分辨率
         width, height = 0, 0
@@ -400,11 +409,47 @@ async def test_stream(url: str) -> Dict[str, Any]:
         if vm:
             width, height = int(vm.group(1)), int(vm.group(2))
 
-        is_ok = frames >= MIN_FRAMES and avg_fps >= MIN_AVG_FPS
-        return {"ok": is_ok, "fps": avg_fps, "frames": frames, "width": width, "height": height}
-    except Exception as e:
-        return {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0}
+        # 提取码率 (bitrate= 1234.5kbits/s)
+        bitrate = 0.0
+        bm = re.search(r'bitrate=\s*([\d.]+)\s*kbits/s', output, re.IGNORECASE)
+        if bm:
+            bitrate = float(bm.group(1))
 
+        # 提取 speed 值 (speed=1.23x) —— 关键指标：>=1.0表示能跟上播放速度，<0.85大概率卡顿
+        speed = 0.0
+        sm = re.search(r'speed=\s*([\d.]+)x', output, re.IGNORECASE)
+        if sm:
+            speed = float(sm.group(1))
+
+        # 计算实际平均帧率（基于真实耗时，比 FFmpeg 输出的瞬时 fps 更可靠）
+        actual_fps = frames / elapsed if elapsed > 0 else 0.0
+
+        # 综合判定（四项全部满足才算通过）：
+        # 1. 拿到足够帧数（容忍少量丢帧）
+        # 2. 实际平均帧率达标（说明没有长时间卡顿）
+        # 3. FFmpeg 处理速度 >= 0.85x（接近实时播放速度）
+        # 4. 有实际码率数据流入（排除空连接/假响应）
+        is_ok = (
+            frames >= MIN_FRAMES 
+            and actual_fps >= MIN_AVG_FPS 
+            and speed >= 0.85
+            and bitrate > 0
+        )
+
+        return {
+            "ok": is_ok, 
+            "fps": round(actual_fps, 2),
+            "frames": frames, 
+            "width": width, 
+            "height": height,
+            "speed": round(speed, 2),
+            "bitrate": round(bitrate, 2),
+            "elapsed": round(elapsed, 2)
+        }
+    except Exception as e:
+        logger.debug(f"FFmpeg测试异常 {url[:60]}: {e}")
+        return {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0,
+                "speed": 0.0, "bitrate": 0.0, "elapsed": 0.0}
 
 async def ffmpeg_batch_test(
     channel_map: Dict[Tuple[str, str], List[str]]
@@ -482,6 +527,8 @@ async def ffmpeg_batch_test(
                 "frames": res.get("frames", 0),
                 "w": res.get("width", 0),
                 "h": res.get("height", 0),
+                "speed": res.get("speed", 0.0),
+                "bitrate": res.get("bitrate", 0.0),
                 "ts": time.time()
             }
         lp = progress_bar(done, len(tasks), ok, fail, lp)
