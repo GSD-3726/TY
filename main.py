@@ -138,7 +138,7 @@ if (!window.chrome) window.chrome = {runtime: {}};
 RE_FRAME = re.compile(r'frame=\s*(\d+)')
 RE_SPEED = re.compile(r'speed=\s*([\d.]+)x')
 RE_BITRATE = re.compile(r'bitrate=\s*([\d.]+)\s*kbits/s')
-# [修复2] 分辨率正则：要求至少3位数字，避免匹配到十六进制如 0x001
+# [修复2-关键] 分辨率正则：要求至少3位数字，避免匹配到十六进制如 0x001
 RE_VIDEO_RES = re.compile(r'Video:.*?(\d{3,})x(\d{3,})', re.IGNORECASE)
 # [新增] 匹配 FFmpeg 输出中的 time= 字段，用于精确计算实际播放时长
 RE_TIME = re.compile(r'time=(\d+):(\d+):([\d.]+)')
@@ -454,13 +454,21 @@ async def test_stream(url: str) -> Dict[str, Any]:
             speed = float(sm[-1])
 
         # [修复5-核心] 用 FFmpeg 输出的 time= 字段计算实际播放时长
-        # 这比用 wall clock 计时更准确，因为不包含进程启动、TCP连接、TLS握手的时间
+        # [关键修复] 直播流的时间戳是流内绝对时间（可能从 02:30:00 开始），
+        # 不能直接用最后一个 time 的绝对值，必须用 首尾差值！
         time_matches = RE_TIME.findall(output)
-        if time_matches:
-            last_time = time_matches[-1]
-            actual_play_time = parse_ffmpeg_time(last_time[0], last_time[1], last_time[2])
+        if len(time_matches) >= 2:
+            first_time = parse_ffmpeg_time(time_matches[0][0], time_matches[0][1], time_matches[0][2])
+            last_time = parse_ffmpeg_time(time_matches[-1][0], time_matches[-1][1], time_matches[-1][2])
+            actual_play_time = last_time - first_time
+            # 差值异常兜底（如跨天、单帧等）
+            if actual_play_time <= 0 or actual_play_time > FFMPEG_DURATION * 2:
+                actual_play_time = float(FFMPEG_DURATION)
+        elif len(time_matches) == 1:
+            # 只有一个 time 值，无法算差值，用配置时长兜底
+            actual_play_time = float(FFMPEG_DURATION)
         else:
-            # 兜底：如果没解析到 time=，用配置时长作为近似值
+            # 没解析到 time=，用 wall clock 时间兜底（但会包含连接开销）
             actual_play_time = float(FFMPEG_DURATION)
 
         # 确保 actual_play_time 合理（防止极端值）
