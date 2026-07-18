@@ -1908,5 +1908,95 @@
     "speed": 14.9,
     "bitrate": 0.0,
     "ts": 1784365595.7424316
+  },
+  "http://live.metshop.top/huya/880261?cdn=alicdn": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "w": 0,
+    "h": 0,
+    "speed": 0.0,
+    "bitrate": 0.0,
+    "ts": 1784370062.2288132
+  },
+  "http://www.goodiptv.club/douyu/4246519": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "w": 1280,
+    "h": 720,
+    "speed": 13.8,
+    "bitrate": 0.0,
+    "ts": 1784370062.7475493
+  },
+  "http://ls.qingting.fm/live/4885.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "w": 0,
+    "h": 0,
+    "speed": 44.8,
+    "bitrate": 0.0,
+    "ts": 1784370063.601472
+  },
+  "http://ls.qingting.fm/live/1222.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "w": 0,
+    "h": 0,
+    "speed": 39.2,
+    "bitrate": 0.0,
+    "ts": 1784370066.4505484
+  },
+  "https://p2.vzan.com/slowlive/596867413819827251/live.m3u8?zbid=1725814272&tpid=1516989100&type=0": {
+    "ok": true,
+    "fps": 25.32,
+    "frames": 470,
+    "w": 1024,
+    "h": 768,
+    "speed": 2.51,
+    "bitrate": 0.0,
+    "ts": 1784370072.8187327
+  },
+  "http://live.metshop.top/huya/11352974?cdn=alicdn": {
+    "ok": true,
+    "fps": 36.2,
+    "frames": 644,
+    "w": 1920,
+    "h": 1080,
+    "speed": 1.62,
+    "bitrate": 0.0,
+    "ts": 1784370074.8731446
+  },
+  "http://124.227.114.179:9901/tsfile/live/0002_1.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": true,
+    "fps": 25.01,
+    "frames": 427,
+    "w": 720,
+    "h": 576,
+    "speed": 1.17,
+    "bitrate": 0.0,
+    "ts": 1784370081.4932175
+  },
+  "http://124.227.114.185:9901/tsfile/live/0131_1.m3u8?key=txiptv&playlive=0&authid=0": {
+    "ok": true,
+    "fps": 25.01,
+    "frames": 442,
+    "w": 720,
+    "h": 576,
+    "speed": 1.16,
+    "bitrate": 0.0,
+    "ts": 1784370081.575353
+  },
+  "http://ls.qingting.fm/live/1861.m3u8": {
+    "ok": false,
+    "fps": 0.0,
+    "frames": 0,
+    "w": 0,
+    "h": 0,
+    "speed": 8.42,
+    "bitrate": 0.0,
+    "ts": 1784370096.6654272
   }
 }
