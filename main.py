@@ -59,8 +59,8 @@ FFMPEG_DURATION = 20                                     # 每条流测速时长
 FFMPEG_CONCURRENCY = 6                                   # 测速并发数
 
 # [修复] 放宽阈值：直播流允许一定丢帧，20s×25fps=500帧，允许丢20%
-MIN_AVG_FPS = 20                                         # 最低平均帧率 (原24，放宽到20)
-MIN_FRAMES = 400                                         # 最低总帧数 (原420，放宽到400)
+MIN_AVG_FPS = 24                                         # 最低平均帧率 (原24，放宽到20)
+MIN_FRAMES = 420                                         # 最低总帧数 (原420，放宽到400)
 
 # ############################################################################
 #                          连通性测试 配置区域
@@ -134,11 +134,12 @@ Object.defineProperty(navigator, 'languages', {get: () => ['zh-CN','zh','en']});
 if (!window.chrome) window.chrome = {runtime: {}};
 """
 
-# [新增] FFmpeg stderr 解析用的正则 (预编译提升性能)
+# [修复1] FFmpeg stderr 解析用的正则 (预编译提升性能)
 RE_FRAME = re.compile(r'frame=\s*(\d+)')
 RE_SPEED = re.compile(r'speed=\s*([\d.]+)x')
 RE_BITRATE = re.compile(r'bitrate=\s*([\d.]+)\s*kbits/s')
-RE_VIDEO_RES = re.compile(r'Video:.*?(\d+)x(\d+)', re.IGNORECASE)
+# [修复2] 分辨率正则：要求至少3位数字，避免匹配到十六进制如 0x001
+RE_VIDEO_RES = re.compile(r'Video:.*?(\d{3,})x(\d{3,})', re.IGNORECASE)
 # [新增] 匹配 FFmpeg 输出中的 time= 字段，用于精确计算实际播放时长
 RE_TIME = re.compile(r'time=(\d+):(\d+):([\d.]+)')
 
@@ -433,13 +434,14 @@ async def test_stream(url: str) -> Dict[str, Any]:
         frame_matches = RE_FRAME.findall(output)
         frames = int(frame_matches[-1]) if frame_matches else 0
 
-        # [修复2] 提取分辨率
+        # [修复2] 提取分辨率（已修复正则，避免匹配十六进制）
         width, height = 0, 0
         vm = RE_VIDEO_RES.search(output)
         if vm:
             width, height = int(vm.group(1)), int(vm.group(2))
 
         # [修复3] 提取码率：取最后一个匹配值（最终统计值）
+        # 注意：-f null - 模式下进度行 bitrate 通常为 N/A，此处提取可能为 0
         bitrate = 0.0
         bm = RE_BITRATE.findall(output)
         if bm:
@@ -467,16 +469,15 @@ async def test_stream(url: str) -> Dict[str, Any]:
         # [修复6] 基于实际播放时长计算帧率（不包含启动开销）
         actual_fps = frames / actual_play_time
 
-        # 综合判定：
+        # [修复7-核心] 综合判定：
         # 1. 拿到足够帧数
         # 2. 实际平均帧率达标（基于FFmpeg内部时钟，更准确）
         # 3. FFmpeg 处理速度 >= 0.85x
-        # 4. 有实际码率数据流入
+        # 移除：bitrate > 0 的硬性要求，因为 -f null - 模式下进度行 bitrate 永远为 N/A
         is_ok = (
             frames >= MIN_FRAMES
             and actual_fps >= MIN_AVG_FPS
             and speed >= 0.85
-            and bitrate > 0
         )
 
         return {
@@ -504,7 +505,7 @@ def stream_quality_score(item: tuple) -> float:
     
     权重分配:
     - 流畅度(fps):    40%  — 直播最重要的是不卡
-    - 码率(bitrate):  35%  — 码率越高画质越好
+    - 码率(bitrate):  35%  — 码率越高画质越好（-f null - 下可能为0，此时该维度得0分）
     - 分辨率(pixels): 25%  — 分辨率是基础
     """
     _url, fps, w, h, br = item
