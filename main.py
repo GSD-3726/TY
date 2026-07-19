@@ -47,7 +47,7 @@ PAGE_TIMEOUT = 30000                                     # 页面加载超时毫
 IDLE_TIMEOUT = 15000                                     # 网络空闲超时毫秒
 
 # 新增配置：网站源筛选，默认爬酒店源，可选 all / hotel / multicast / migu / other
-SCRAPE_SOURCE_FILTER = "hotel"
+SCRAPE_SOURCE_FILTER = "multicast"
 
 # ############################################################################
 #                          FFmpeg测速 配置区域
