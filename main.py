@@ -54,7 +54,7 @@ SCRAPE_SOURCE_FILTER = "multicast"
 
 ENABLE_FFMPEG = True                                     # 是否启用FFmpeg测速
 FFMPEG_PATH = "ffmpeg"                                   # FFmpeg可执行文件路径
-FFMPEG_DURATION = 6                                      # 每条流测速时长秒数 (20→6, 节省70%时间)
+FFMPEG_DURATION = 6                                      # 每条流测速时长秒数 (6秒极速测速)
 FFMPEG_CONCURRENCY = 30                                  # 测速并发数 (GitHub 2C 可承受30并发)
 FFMPEG_PROC_TIMEOUT = 12                                 # 子进程强制结束超时秒数=FFMPEG_DURATION+6
 
@@ -62,8 +62,8 @@ FFMPEG_PROC_TIMEOUT = 12                                 # 子进程强制结束
 MIN_AVG_FPS = 18                                         # 最低平均帧率 (低于18肉眼会卡)
 MIN_FRAMES = 90                                          # 最低总帧数 (6s × 18fps = 108, 留些冗余)
 
-# 综合实时性指标 = 帧率 × ffmpeg处理速度 / 25fps. 必须 ≥ 0.65 才算真的不卡
-MIN_REALTIME_FACTOR = 0.65
+# 综合实时性指标 = 帧率 × ffmpeg处理速度 / 25fps. 必须 ≥ 0.68 才算真的不卡
+MIN_REALTIME_FACTOR = 0.68
 
 # ############################################################################
 #                          连通性测试 配置区域
@@ -282,7 +282,7 @@ def parse_ffmpeg_time(time_str_h: str, time_str_m: str, time_str_s: str) -> floa
 
 async def test_stream(url: str) -> Dict[str, Any]:
     """
-    用FFmpeg测试单条流 (6秒快速严苛判定版)
+    用FFmpeg测试单条流 (防后期缓冲严苛判定版)
     """
     if not shutil.which(FFMPEG_PATH):
         return {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0,
@@ -293,15 +293,17 @@ async def test_stream(url: str) -> Dict[str, Any]:
         "Referer: https://www.miguvideo.com/\r\n"
     )
 
-    # rw_timeout: 5秒无数据流入直接断开
-    rw_timeout_us = 5 * 1000000
+    # rw_timeout: 3秒无数据流入直接断开，杜绝龟速拉流
+    rw_timeout_us = 3 * 1000000
 
     cmd = [
         FFMPEG_PATH, "-hide_banner", "-y",
         "-headers", headers,
         "-fflags", "+genpts+nobuffer+discardcorrupt+ignidx",
-        "-analyzeduration", "1000000",  # 加速流分析
-        "-probesize", "1000000",       # 加速流分析
+        "-flags", "low_delay",           # 强制低延迟解码，不允许积压缓冲掩盖卡顿
+        "-max_delay", "500000",          # 最大延迟 0.5 秒
+        "-analyzeduration", "1000000",  
+        "-probesize", "1000000",        
         "-rw_timeout", str(rw_timeout_us),
         "-i", url,
         "-t", str(FFMPEG_DURATION),
@@ -342,10 +344,13 @@ async def test_stream(url: str) -> Dict[str, Any]:
         if vm:
             width, height = int(vm.group(1)), int(vm.group(2))
 
-        speed = 0.0
-        sm = RE_SPEED.findall(output)
-        if sm:
-            speed = float(sm[-1])
+        # 提取末尾 3 次的 speed 样本求平均，抓出“先快后限速”的虚假好流
+        speed_strs = RE_SPEED.findall(output)
+        avg_speed = 0.0
+        if speed_strs:
+            last_speeds = [float(s) for s in speed_strs[-3:]]
+            avg_speed = sum(last_speeds) / len(last_speeds)
+        speed = avg_speed
 
         time_matches = RE_TIME.findall(output)
         if len(time_matches) >= 2:
@@ -362,20 +367,26 @@ async def test_stream(url: str) -> Dict[str, Any]:
         actual_play_time = max(actual_play_time, 1.0)
         actual_fps = frames / actual_play_time
 
-        # 综合实时进度指标 = 帧率速度 × ffmpeg处理速度 / 25fps
+        # 综合实时进度指标
         realtime = actual_fps * speed / 25.0 if (actual_fps > 0 and speed > 0) else 0.0
 
-        # 防"前半段流畅后半段卡死"
-        stalled = (actual_play_time < FFMPEG_DURATION * 0.6)
+        # 防"前半段流畅后半段卡死"：推演进度不得少于测试时长的 85%
+        stalled = (actual_play_time < FFMPEG_DURATION * 0.85)
+        
+        # 网络持续喂食率: (推演进度 / 真实消耗时间)。因有 1 秒起播开销，故减去 1 秒再算比率
+        net_feed_ratio = actual_play_time / (elapsed - 1.0) if (elapsed - 1.0) > 0 else 0.0
 
-        # 严苛判定防卡顿: speed 必须 >= 0.85, realtime >= 0.65, 且不卡死
+        # 严苛判定防起播后缓冲:
+        # 1. 末尾稳态处理速度必须 >= 0.90x，即网络喂流速度必须跟得上视频码率
+        # 2. 真实喂食比率 >= 0.82，证明中途没有发生长时间暗中等待缓冲
         is_ok = (
             frames >= MIN_FRAMES
             and actual_fps >= MIN_AVG_FPS
-            and speed >= 0.85
+            and speed >= 0.90
             and realtime >= MIN_REALTIME_FACTOR
             and not stalled
-            and elapsed < FFMPEG_DURATION * 2.5
+            and net_feed_ratio >= 0.82
+            and elapsed < FFMPEG_DURATION * 2.2
         )
 
         return {
@@ -494,7 +505,6 @@ async def ffmpeg_batch_test(
                 "elapsed": res.get("elapsed", 0.0),
                 "ts": time.time()
             }
-        # 进度条刷屏控制
         now = time.time()
         if now - last_log_time >= 1.0 or done == len(tasks):
             lp = progress_bar(done, len(tasks), ok, fail, lp)
