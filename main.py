@@ -46,7 +46,6 @@ HEADLESS = True                                          # 是否无头模式, G
 PAGE_TIMEOUT = 30000                                     # 页面加载超时毫秒
 IDLE_TIMEOUT = 15000                                     # 网络空闲超时毫秒
 
-# 新增配置：网站源筛选，默认爬酒店源，可选 all / hotel / multicast / migu / other
 SCRAPE_SOURCE_FILTER = "multicast"
 
 # ############################################################################
@@ -55,21 +54,24 @@ SCRAPE_SOURCE_FILTER = "multicast"
 
 ENABLE_FFMPEG = True                                     # 是否启用FFmpeg测速
 FFMPEG_PATH = "ffmpeg"                                   # FFmpeg可执行文件路径
-FFMPEG_DURATION = 20                                     # 每条流测速时长秒数
-FFMPEG_CONCURRENCY = 10                                  # 测速并发数 (因关闭了连通性预测试，适当调大)
+FFMPEG_DURATION = 6                                      # 每条流测速时长秒数 (20→6, 节省70%时间)
+FFMPEG_CONCURRENCY = 30                                  # 测速并发数 (GitHub 2C 可承受30并发)
+FFMPEG_PROC_TIMEOUT = 12                                 # 子进程强制结束超时秒数=FFMPEG_DURATION+6
 
-# 直播流允许一定丢帧，20s×25fps=500帧，允许丢20%
-MIN_AVG_FPS = 20                                         # 最低平均帧率
-MIN_FRAMES = 400                                         # 最低总帧数
+# 配套: 严苛防卡顿阈值
+MIN_AVG_FPS = 18                                         # 最低平均帧率 (低于18肉眼会卡)
+MIN_FRAMES = 90                                          # 最低总帧数 (6s × 18fps = 108, 留些冗余)
+
+# 综合实时性指标 = 帧率 × ffmpeg处理速度 / 25fps. 必须 ≥ 0.65 才算真的不卡
+MIN_REALTIME_FACTOR = 0.65
 
 # ############################################################################
 #                          连通性测试 配置区域
 # ############################################################################
-# [修改] 关闭连通性预测试，避免 aiohttp 误杀需要特定 UA/Referer 或 302跳转的有效直播源
-# 测试工作全部交由 FFmpeg 承担
-ENABLE_CONNECTIVITY = False                               # 是否启用连通性预测试
-CONN_CONCURRENCY = 15                                    # 连通性测试并发数
-CONN_TIMEOUT = 2                                         # 连通性测试超时秒数
+
+ENABLE_CONNECTIVITY = False                              # 关闭, 测试全部交由 FFmpeg 承担
+CONN_CONCURRENCY = 15
+CONN_TIMEOUT = 2
 
 # ############################################################################
 #                          缓存 配置区域
@@ -77,55 +79,53 @@ CONN_TIMEOUT = 2                                         # 连通性测试超时
 
 ENABLE_CACHE = True                                      # 是否启用测速缓存
 CACHE_FILE = Path(__file__).parent / "iptv_speed_cache.json"  # 缓存文件路径
-
-# [修改] 直播源IP变化快，缓存有效期从72小时缩短到12小时，确保源的新鲜度
-CACHE_EXPIRE_HOURS = 12
+CACHE_EXPIRE_HOURS = 12                                  # 缓存有效期12小时
+CACHE_EXPIRE_SEC = CACHE_EXPIRE_HOURS * 3600
 
 ENABLE_GITHUB = True                                     # 是否启用GitHub源
-GITHUB_URLS = [                                          # GitHub源列表, 支持M3U和TXT格式
+GITHUB_URLS = [                                          # GitHub源列表
     "https://gh-proxy.com/https://github.com/vbskycn/iptv/blob/master/tv/iptv4.txt",
     "https://gh-proxy.com/https://github.com/GSD-3726/TY/blob/main/iptv_channels.txt",
     "https://gh-proxy.com/https://github.com/GSD-3726/MMM/blob/main/iptv_channels.txt",
 ]
-GITHUB_TIMEOUT = 30                                      # 下载超时秒数
-GITHUB_RETRIES = 3                                       # 下载重试次数
+GITHUB_TIMEOUT = 30
+GITHUB_RETRIES = 3
 
 # ############################################################################
 #                          输出 配置区域
 # ############################################################################
 
-OUTPUT_DIR = Path(__file__).parent                       # 输出目录
-OUTPUT_M3U = OUTPUT_DIR / "iptv_channels.m3u"            # M3U输出文件名
-OUTPUT_TXT = OUTPUT_DIR / "iptv_channels.txt"           # TXT输出文件名
+OUTPUT_DIR = Path(__file__).parent
+OUTPUT_M3U = OUTPUT_DIR / "iptv_channels.m3u"
+OUTPUT_TXT = OUTPUT_DIR / "iptv_channels.txt"
 
 # ############################################################################
 #                          频道分类 配置区域
 # ############################################################################
 
-CATEGORY_RULES = [                                       # 分类规则, 按优先级排列
+CATEGORY_RULES = [
     {"name": "央视频道", "keywords": ["cctv", "cetv", "央视"]},
     {"name": "卫视频道", "keywords": ["卫视"]},
     {"name": "影视频道", "keywords": ["影视", "影院", "chc", "剧场", "电影"]},
     {"name": "少儿频道", "keywords": ["少儿", "卡通", "动画", "动漫"]},
     {"name": "地方频道", "keywords": ["地方", "都市", "综合", "新闻", "公共"]},
 ]
-GROUP_ORDER = ["央视频道", "卫视频道", "影视频道", "少儿频道", "地方频道"]  # 分组导出顺序
+GROUP_ORDER = ["央视频道", "卫视频道", "影视频道", "少儿频道", "地方频道"]
 
-CCTV_MAP = {                                             # CCTV编号到名称映射
+CCTV_MAP = {
     "1": "综合", "2": "财经", "3": "综艺", "4": "中文国际", "5": "体育",
     "5+": "体育赛事", "6": "电影", "7": "国防军事", "8": "电视剧",
     "9": "纪录", "10": "科教", "11": "戏曲", "12": "社会与法",
     "13": "新闻", "14": "少儿", "15": "音乐", "16": "奥林匹克", "17": "农业农村",
 }
-CCTV_ORDER = [f"CCTV-{k}{v}" for k, v in CCTV_MAP.items() if k != "5+"]  # CCTV标准排序
+CCTV_ORDER = [f"CCTV-{k}{v}" for k, v in CCTV_MAP.items() if k != "5+"]
 CCTV_ORDER.insert(5, "CCTV-5+体育赛事")
-CCTV_ORDER.append("CCTV-4K")  # 将4K放到CCTV序列最后
+CCTV_ORDER.append("CCTV-4K")
 
 CCTV_RE = re.compile(r'(cctv)[-\s]?(5\+|\d{1,3})', re.IGNORECASE)
 CHINESE_ONLY = re.compile(r'[^\u4e00-\u9fff]')
 INTERNAL_IP = re.compile(r'^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|127\.0\.0\.1)')
 
-# 清晰度后缀清洗正则
 CLEAR_SUFFIX_RE = re.compile(r'[\s\-_]*(高清|超清|4K|超高清|标清|HD|FHD|UHD|2K|蓝光|原画|流畅|720P|1080P|2160P)', re.IGNORECASE)
 
 STEALTH_JS = """
@@ -135,13 +135,11 @@ Object.defineProperty(navigator, 'languages', {get: () => ['zh-CN','zh','en']});
 if (!window.chrome) window.chrome = {runtime: {}};
 """
 
-# FFmpeg stderr 解析用的正则
+# FFmpeg stderr 解析正则
 RE_FRAME = re.compile(r'frame=\s*(\d+)')
 RE_SPEED = re.compile(r'speed=\s*([\d.]+)x')
 RE_VIDEO_RES = re.compile(r'Video:.*?(\d{3,})x(\d{3,})', re.IGNORECASE)
 RE_TIME = re.compile(r'time=(\d+):(\d+):([\d.]+)')
-# [新增] 检测画面冻结滤镜输出
-RE_FREEZE = re.compile(r'freezedetect')
 
 # ############################################################################
 #                          日志
@@ -245,8 +243,6 @@ async def random_mouse(page):
 #                          缓存
 # ############################################################################
 
-CACHE_EXPIRE_SEC = CACHE_EXPIRE_HOURS * 3600
-
 def load_cache() -> dict:
     if not ENABLE_CACHE or not CACHE_FILE.exists():
         return {}
@@ -275,71 +271,8 @@ def save_cache(cache: dict):
         logger.warning(f"缓存保存失败: {e}")
 
 # ############################################################################
-#                          连通性测试
+#                          FFmpeg测速核心
 # ############################################################################
-
-async def check_url(url: str, timeout: int) -> bool:
-    if not url.startswith(('http://', 'https://')):
-        return True
-    try:
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout)) as s:
-            async with s.get(url, headers={'User-Agent': 'Mozilla/5.0'}, allow_redirects=True) as r:
-                if r.status != 200:
-                    return False
-                try:
-                    await r.content.readexactly(8192)
-                except asyncio.IncompleteReadError as e:
-                    return len(e.partial) > 512
-                except:
-                    return False
-                return True
-    except:
-        return False
-
-async def batch_connectivity(urls: List[str]) -> set:
-    if not urls:
-        return set()
-    sem = asyncio.Semaphore(CONN_CONCURRENCY)
-
-    async def _check(url):
-        async with sem:
-            return url, await check_url(url, CONN_TIMEOUT)
-
-    tasks = [_check(u) for u in urls]
-    ok_set = set()
-    done = 0
-    ok = 0
-    fail = 0
-    lp = -1
-    for coro in asyncio.as_completed(tasks):
-        url, is_ok = await coro
-        done += 1
-        if is_ok:
-            ok += 1
-            ok_set.add(url)
-        else:
-            fail += 1
-        lp = progress_bar(done, len(tasks), ok, fail, lp)
-    return ok_set
-
-# ############################################################################
-#                          FFmpeg测速
-# ############################################################################
-
-def retry_async(max_retries=2, delay=1.0):
-    def decorator(func):
-        @functools.wraps(func)
-        async def wrapper(*args, **kwargs):
-            for attempt in range(1, max_retries + 1):
-                try:
-                    return await func(*args, **kwargs)
-                except Exception as e:
-                    if attempt == max_retries:
-                        raise
-                    await asyncio.sleep(delay)
-            return None
-        return wrapper
-    return decorator
 
 def parse_ffmpeg_time(time_str_h: str, time_str_m: str, time_str_s: str) -> float:
     try:
@@ -347,31 +280,30 @@ def parse_ffmpeg_time(time_str_h: str, time_str_m: str, time_str_s: str) -> floa
     except (ValueError, TypeError):
         return 0.0
 
-@retry_async(max_retries=2, delay=1.0)
 async def test_stream(url: str) -> Dict[str, Any]:
     """
-    用FFmpeg测试单条流
-    返回 {ok, fps, frames, width, height, speed, elapsed}
+    用FFmpeg测试单条流 (6秒快速严苛判定版)
     """
     if not shutil.which(FFMPEG_PATH):
         return {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0,
-                "speed": 0.0, "elapsed": 0.0}
+                "speed": 0.0, "elapsed": 0.0, "realtime": 0.0}
 
     headers = (
         "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n"
         "Referer: https://www.miguvideo.com/\r\n"
     )
 
-    rw_timeout_us = max(int(FFMPEG_DURATION * 2 * 1000000), 20000000) # 放宽超时容忍
+    # rw_timeout: 5秒无数据流入直接断开
+    rw_timeout_us = 5 * 1000000
 
     cmd = [
         FFMPEG_PATH, "-hide_banner", "-y",
         "-headers", headers,
-        "-fflags", "+genpts+nobuffer",
+        "-fflags", "+genpts+nobuffer+discardcorrupt+ignidx",
+        "-analyzeduration", "1000000",  # 加速流分析
+        "-probesize", "1000000",       # 加速流分析
         "-rw_timeout", str(rw_timeout_us),
         "-i", url,
-        # [新增] 加入画面冻结检测，如果连续2秒画面卡住不动，会被记录到 stderr
-        "-vf", "freezedetect=duration=2:noise=-40dB",
         "-t", str(FFMPEG_DURATION),
         "-f", "null", "-"
     ]
@@ -387,20 +319,20 @@ async def test_stream(url: str) -> Dict[str, Any]:
         try:
             _, stderr = await asyncio.wait_for(
                 proc.communicate(),
-                timeout=FFMPEG_DURATION + 20
+                timeout=FFMPEG_PROC_TIMEOUT
             )
         except asyncio.TimeoutError:
-            proc.kill()
+            try:
+                proc.kill()
+            except ProcessLookupError:
+                pass
             await proc.wait()
             elapsed = time.perf_counter() - start_time
             return {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0,
-                    "speed": 0.0, "elapsed": round(elapsed, 2)}
+                    "speed": 0.0, "elapsed": round(elapsed, 2), "realtime": 0.0}
 
         elapsed = time.perf_counter() - start_time
         output = stderr.decode('utf-8', errors='ignore')
-
-        # [检测画面冻结] 如果出现 freezedetect 字样，说明流卡死了
-        has_freeze = bool(RE_FREEZE.search(output))
 
         frame_matches = RE_FRAME.findall(output)
         frames = int(frame_matches[-1]) if frame_matches else 0
@@ -418,9 +350,9 @@ async def test_stream(url: str) -> Dict[str, Any]:
         time_matches = RE_TIME.findall(output)
         if len(time_matches) >= 2:
             first_time = parse_ffmpeg_time(time_matches[0][0], time_matches[0][1], time_matches[0][2])
-            last_time = parse_ffmpeg_time(time_matches[-1][0], time_matches[-1][1], time_matches[-1][2])
+            last_time  = parse_ffmpeg_time(time_matches[-1][0], time_matches[-1][1], time_matches[-1][2])
             actual_play_time = last_time - first_time
-            if actual_play_time <= 0 or actual_play_time > FFMPEG_DURATION * 2:
+            if actual_play_time <= 0 or actual_play_time > FFMPEG_DURATION * 1.5:
                 actual_play_time = float(FFMPEG_DURATION)
         elif len(time_matches) == 1:
             actual_play_time = float(FFMPEG_DURATION)
@@ -430,12 +362,20 @@ async def test_stream(url: str) -> Dict[str, Any]:
         actual_play_time = max(actual_play_time, 1.0)
         actual_fps = frames / actual_play_time
 
-        # [修改] 综合判定：足够帧数 + 达标帧率 + 处理速度跟得上 + 无画面冻结
+        # 综合实时进度指标 = 帧率速度 × ffmpeg处理速度 / 25fps
+        realtime = actual_fps * speed / 25.0 if (actual_fps > 0 and speed > 0) else 0.0
+
+        # 防"前半段流畅后半段卡死"
+        stalled = (actual_play_time < FFMPEG_DURATION * 0.6)
+
+        # 严苛判定防卡顿: speed 必须 >= 0.85, realtime >= 0.65, 且不卡死
         is_ok = (
             frames >= MIN_FRAMES
             and actual_fps >= MIN_AVG_FPS
             and speed >= 0.85
-            and not has_freeze
+            and realtime >= MIN_REALTIME_FACTOR
+            and not stalled
+            and elapsed < FFMPEG_DURATION * 2.5
         )
 
         return {
@@ -446,43 +386,44 @@ async def test_stream(url: str) -> Dict[str, Any]:
             "height": height,
             "speed": round(speed, 2),
             "elapsed": round(elapsed, 2),
-            "freeze": has_freeze
+            "realtime": round(realtime, 3)
         }
     except Exception as e:
         logger.debug(f"FFmpeg测试异常 {url[:60]}: {e}")
         return {"ok": False, "fps": 0.0, "frames": 0, "width": 0, "height": 0,
-                "speed": 0.0, "elapsed": 0.0, "freeze": True}
+                "speed": 0.0, "elapsed": 0.0, "realtime": 0.0}
 
-# [修复] 全新的综合评分函数：放弃获取不到的码率，改为以流畅度、处理速度和起播延迟为核心
+
 def stream_quality_score(item: tuple) -> float:
     """
     item 结构: (url, fps, w, h, speed, elapsed)
-    权重分配:
-    - 帧率达标度: 40%  — 保证画面连续不卡顿 (以30fps为满分基准)
-    - FFmpeg处理速度: 40% — speed>=1.0说明网络带宽完全跟得上视频流要求，无压力
-    - 起播速度: 20% — elapsed越短越好，秒开体验佳 (3秒内满分，超过15秒0分)
+    不卡顿是首要指标, 其次起播速度, 最后分辨率.
     """
-    _url, fps, _w, _h, speed, elapsed = item
-    
-    fps_score = min(fps / 30.0, 2.0) if fps > 0 else 0.0
-    speed_score = min(speed, 2.0) if speed > 0 else 0.0
-    time_score = max(0.0, 1.5 - (elapsed / 10.0)) if elapsed > 0 else 0.0
-    
-    return fps_score * 0.40 + speed_score * 0.40 + time_score * 0.20
+    _url, fps, w, _h, speed, elapsed = item
+
+    fps_score = min(fps / 25.0, 1.0) if fps > 0 else 0.0
+    speed_score = min(speed, 1.5) / 1.5 if speed > 0 else 0.0
+    # 3秒内起播满分, 超过8秒0分
+    time_score = max(0.0, 1.0 - (max(elapsed - 3.0, 0) / 5.0))
+
+    res_score = 0.0
+    if w >= 1280:
+        res_score = 0.15
+    elif w >= 720:
+        res_score = 0.05
+
+    return fps_score * 0.40 + speed_score * 0.40 + time_score * 0.15 + res_score
+
 
 async def ffmpeg_batch_test(
     channel_map: Dict[Tuple[str, str], List[str]]
 ) -> Dict[Tuple[str, str], List[str]]:
-    """
-    批量FFmpeg测速
-    """
     if not channel_map:
         return {}
 
     cache = load_cache() if ENABLE_CACHE else {}
     new_cache = {}
 
-    # [修改] result_map 存储6元组: (url, fps, w, h, speed, elapsed)
     result_map = defaultdict(list)
     pending = []
     cached_ok = 0
@@ -525,20 +466,18 @@ async def ffmpeg_batch_test(
 
     tasks = [asyncio.ensure_future(_test(item)) for item in pending]
 
-    done = 0
-    ok = 0
-    fail = 0
+    done = ok = fail = 0
     lp = -1
+    last_log_time = time.time()
 
     for coro in asyncio.as_completed(tasks):
         try:
             g, n, u, res = await coro
-        except:
+        except Exception:
             continue
         done += 1
         if res["ok"]:
             ok += 1
-            # [修改] 保存完整的6元组
             result_map[(g, n)].append((
                 u, res["fps"], res["width"], res["height"], res["speed"], res["elapsed"]
             ))
@@ -555,7 +494,11 @@ async def ffmpeg_batch_test(
                 "elapsed": res.get("elapsed", 0.0),
                 "ts": time.time()
             }
-        lp = progress_bar(done, len(tasks), ok, fail, lp)
+        # 进度条刷屏控制
+        now = time.time()
+        if now - last_log_time >= 1.0 or done == len(tasks):
+            lp = progress_bar(done, len(tasks), ok, fail, lp)
+            last_log_time = now
 
     if ENABLE_CACHE and new_cache:
         cache.update(new_cache)
@@ -949,13 +892,13 @@ def export(ch_map: Dict[Tuple[str, str], List[str]]):
 # ############################################################################
 
 async def main():
-    parser = argparse.ArgumentParser(description="IPTV源抓取器 v4 (准确测速版)")
-    parser.add_argument("--type", default="all", help="抓取类型: all/hotel/multicast/migu/other（命令行优先级高于配置）")
+    parser = argparse.ArgumentParser(description="IPTV源抓取器 v4 (极速准确测速版)")
+    parser.add_argument("--type", default="all", help="抓取类型: all/hotel/multicast/migu/other")
     parser.add_argument("--max-pages", type=int, default=MAX_PAGES, help="最多爬几页")
     parser.add_argument("--max-ips", type=int, default=MAX_IPS, help="最多处理几个IP, 0不限")
     parser.add_argument("--headless", default="true", help="无头模式: true/false")
     parser.add_argument("--skip-ffmpeg", action="store_true", help="跳过FFmpeg测速")
-    parser.add_argument("--skip-scrape", action="store_true", help="跳过网页爬取, 用缓存测速")
+    parser.add_argument("--skip-scrape", action="store_true", help="跳过网页爬取")
     parser.add_argument("--skip-github", action="store_true", help="跳过GitHub源")
     args = parser.parse_args()
 
@@ -976,7 +919,7 @@ async def main():
 
     start_time = time.time()
     logger.info("=" * 60)
-    logger.info("IPTV源抓取器 v4 启动 (准确测速版)")
+    logger.info("IPTV源抓取器 v4 启动 (极速准确测速版)")
     logger.info(f"  类型: {ft}")
     logger.info(f"  每页IP: {IPS_PER_PAGE}")
     logger.info(f"  最大页: {max_pages}")
@@ -1071,26 +1014,8 @@ async def main():
 
     logger.info(f"清洗后: {len(ch_map)} 个频道, {sum(len(v) for v in ch_map.values())} 条链接")
 
-    # 连通性测试已被配置为关闭，防止好源被误杀
-    if ENABLE_CONNECTIVITY and ch_map:
-        logger.info("--- 连通性测试 ---")
-        all_urls = []
-        for urls in ch_map.values():
-            all_urls.extend(urls)
-        unique_urls = list(set(all_urls))
-
-        ok_set = await batch_connectivity(unique_urls)
-
-        filtered = defaultdict(list)
-        for (g, n), urls in ch_map.items():
-            valid = [u for u in urls if u in ok_set]
-            if valid:
-                filtered[(g, n)] = valid
-        ch_map = dict(filtered)
-        logger.info(f"连通性过滤: {len(ch_map)} 个频道")
-
     if do_ffmpeg and ch_map:
-        logger.info("--- FFmpeg测速 ---")
+        logger.info("--- FFmpeg极速测速 ---")
         ff_start = time.time()
         ch_map = await ffmpeg_batch_test(ch_map)
         logger.info(f"FFmpeg耗时: {time.time() - ff_start:.1f}s")
