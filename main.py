@@ -47,7 +47,7 @@ HEADLESS = True
 PAGE_TIMEOUT = 30000
 IDLE_TIMEOUT = 15000
 
-SCRAPE_SOURCE_FILTER = "multicast"
+SCRAPE_SOURCE_FILTER = "hotel"
 
 # ############################################################################
 #                          FFmpeg测速 配置区域 (优化)
