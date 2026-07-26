@@ -43,7 +43,8 @@ IP_DELAY_MAX = 4.0                                       # 处理不同IP之间�
 DETAIL_WAIT_MIN = 2.0                                    # 进入详情页后初始等待最小时间（秒）
 DETAIL_WAIT_MAX = 4.0                                    # 进入详情页后初始等待最大时间（秒）
 
-HEADLESS = True                                          # 是否启用无头模式（不显示浏览器窗口）
+HEADLESS = True                                          # 是否使用无头模式（不显示浏览器窗口）
+CHROME_PATH = ""                                           # Chrome/Chromium 可执行文件路径（留空则自动检测）
 PAGE_TIMEOUT = 60000                                     # 页面加载超时（毫秒）
 IDLE_TIMEOUT = 15000                                     # 网络空闲等待超时（毫秒）
 
@@ -850,25 +851,40 @@ async def scrape_ips_playwright(page, filter_type: str, max_pages: int) -> list:
     entries = []
     seen = set()
 
+    # 直接导航到带过滤参数的URL
+    # 注意：反爬系统会随机清除URL参数，需要重试
     if filter_type != "all":
         target_url = f"{TARGET_URL}?t={filter_type}&province=all&limit={IPS_PER_PAGE}"
     else:
         target_url = f"{TARGET_URL}?province=all&limit={IPS_PER_PAGE}"
 
-    for _retry in range(3):
+    filter_applied = False
+    for _attempt in range(5):
         try:
             await page.goto(target_url, timeout=PAGE_TIMEOUT, wait_until="commit")
-            break
         except Exception as e:
-            if _retry == 2:
-                raise
-            logger.info(f"[PW] 页面加载超时，重试 {_retry+1}/3...")
+            logger.info(f"[PW] 页面加载超时，重试 {_attempt+1}/5...")
             await asyncio.sleep(3)
-    await asyncio.sleep(random.uniform(5, 8))
-    try:
-        await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
-    except:
-        pass
+            continue
+        await asyncio.sleep(random.uniform(5, 8))
+        try:
+            await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
+        except:
+            pass
+        # 检查过滤是否生效
+        if filter_type != "all":
+            current_filter = await page.evaluate("() => document.querySelector('#typeSelect')?.value")
+            if current_filter == filter_type:
+                filter_applied = True
+                break
+            else:
+                logger.info(f"[PW] 过滤未生效(下拉框={current_filter})，重试 {_attempt+1}/5...")
+                await asyncio.sleep(random.uniform(2, 4))
+        else:
+            filter_applied = True
+            break
+    if not filter_applied:
+        logger.warning(f"[PW] 类型过滤未能生效，将使用全部数据+客户端过滤")
 
     current_page = 1
     while current_page <= max_pages:
@@ -1147,6 +1163,7 @@ async def main():
     parser.add_argument("--max-ips", type=int, default=MAX_IPS, help="最多处理几个IP, 0不限")
     parser.add_argument("--headless", default="true", help="无头模式: true/false")
     parser.add_argument("--skip-ffmpeg", action="store_true", help="跳过FFmpeg测速")
+    parser.add_argument("--chrome-path", default="", help="Chrome/Chromium 可执行文件路径（留空自动检测）")
     parser.add_argument("--skip-scrape", action="store_true", help="跳过网页爬取")
     parser.add_argument("--skip-github", action="store_true", help="跳过GitHub源")
     args = parser.parse_args()
@@ -1194,16 +1211,38 @@ async def main():
         entries = []
 
         try:
+            # 自动检测 Chrome 路径
+            chrome_path = args.chrome_path or CHROME_PATH
+            if not chrome_path:
+                # 按优先级查找
+                candidates = [
+                    str(Path(__file__).parent / ".openclaw/tmp/browser/chrome-linux64/chrome"),
+                    "/usr/bin/google-chrome-stable",
+                    "/usr/bin/google-chrome",
+                    "/usr/bin/chromium-browser",
+                    "/usr/bin/chromium",
+                ]
+                for c in candidates:
+                    if Path(c).exists() and Path(c).is_file():
+                        chrome_path = c
+                        break
+            if chrome_path:
+                logger.info(f"  Chrome路径: {chrome_path}")
+            else:
+                logger.info("  Chrome路径: Playwright默认")
+
             async with async_playwright() as p:
-                browser = await p.chromium.launch(
-                    headless=headless,
-                    executable_path=str(Path(__file__).parent / ".openclaw/tmp/browser/chrome-linux64/chrome"),
-                    args=[
+                launch_opts = {
+                    "headless": headless,
+                    "args": [
                         "--no-sandbox", "--disable-setuid-sandbox",
                         "--disable-dev-shm-usage", "--disable-gpu",
                         "--single-process", "--disable-blink-features=AutomationControlled"
                     ]
-                )
+                }
+                if chrome_path:
+                    launch_opts["executable_path"] = chrome_path
+                browser = await p.chromium.launch(**launch_opts)
                 ctx = await browser.new_context(
                     viewport={"width": 1920, "height": 1080},
                     user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
