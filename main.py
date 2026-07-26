@@ -12,7 +12,7 @@ import os
 from collections import defaultdict
 from pathlib import Path
 from urllib.parse import urlparse
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, Tuple, Optional, Any, Set
 import functools
 
 import aiohttp
@@ -48,7 +48,7 @@ CHROME_PATH = ""                                           # Chrome/Chromium 可
 PAGE_TIMEOUT = 60000                                     # 页面加载超时（毫秒）
 IDLE_TIMEOUT = 15000                                     # 网络空闲等待超时（毫秒）
 
-SCRAPE_SOURCE_FILTER = "hotel"                           # 默认抓取的类型：all/hotel/multicast/migu/other
+SCRAPE_SOURCE_FILTER = "multicast"                           # 默认抓取的类型：all/hotel/multicast/migu/other
 
 # ############################################################################
 #                          FFmpeg测速 配置区域 (可根据需要调整)
@@ -113,7 +113,7 @@ CATEGORY_RULES = [
     {"name": "少儿频道", "keywords": ["少儿", "卡通", "动画", "动漫"]},
     {"name": "地方频道", "keywords": ["地方", "都市", "综合", "新闻", "公共"]},
 ]
-GROUP_ORDER = ["央视频道", "卫视频道", "影视频道", "少儿频道", "地方频道"]  # 输出分组顺序
+GROUP_ORDER = ["央视频道", "卫视频道", "影视频道", "少儿频道"]  # 输出分组顺序
 
 CCTV_MAP = {
     "1": "综合", "2": "财经", "3": "综艺", "4": "中文国际", "5": "体育",
@@ -246,9 +246,9 @@ def progress_bar(cur: int, total: int, ok: int, fail: int, last_pct: int) -> int
     pct = int(cur / total * 100)
     if pct == last_pct and cur != total:
         return last_pct
-    # 使用纯ASCII字符 # 表示完成，- 表示未完成，避免终端显示乱码（原?显示为乱码）
+    # 使用纯ASCII字符 # 表示完成，- 表示未完成，避免终端显示乱码
     bar = '#' * (pct // 5) + '-' * (20 - pct // 5)
-    logger.info(f"[{pct:3d}%] {bar} ({cur}/{total}) 成功:{ok} 失败:{fail}")
+    logger.info(f"({pct}%) {bar} ({cur}/{total}) 成功：{ok} 失败：{fail}")
     sys.stdout.flush()
     return pct
 
@@ -474,14 +474,15 @@ def get_adaptive_concurrency() -> int:
 
 async def ffmpeg_batch_test(
     channel_map: Dict[Tuple[str, str], List[str]]
-) -> Dict[Tuple[str, str], List[str]]:
+) -> Tuple[Dict[Tuple[str, str], List[str]], Set[str]]:
     if not channel_map:
-        return {}
+        return {}, set()
 
     cache = load_cache() if ENABLE_CACHE else {}
     new_cache = {}
 
     result_map = defaultdict(list)
+    ok_urls = set()
     pending = []
     cached_ok = 0
 
@@ -499,6 +500,7 @@ async def ffmpeg_batch_test(
                             ci.get("speed", 0.0),
                             ci.get("elapsed", 0.0)
                         ))
+                        ok_urls.add(u)
                         cached_ok += 1
                     continue
             if is_internal(u):
@@ -512,7 +514,7 @@ async def ffmpeg_batch_test(
         for k, vs in result_map.items():
             vs.sort(key=stream_quality_score, reverse=True)
             final[k] = [u for u, _, _, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]
-        return final
+        return final, ok_urls
 
     sem = asyncio.Semaphore(concurrency)
 
@@ -539,6 +541,7 @@ async def ffmpeg_batch_test(
             result_map[(g, n)].append((
                 u, res["fps"], res["width"], res["height"], res["speed"], res["elapsed"]
             ))
+            ok_urls.add(u)
         else:
             fail += 1
         if ENABLE_CACHE:
@@ -566,7 +569,7 @@ async def ffmpeg_batch_test(
         vs.sort(key=stream_quality_score, reverse=True)
         final[k] = [u for u, _, _, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]
     logger.info(f"FFmpeg测速完成: {len(final)} 个频道")
-    return final
+    return final, ok_urls
 
 # ############################################################################
 #                          GitHub源下载与解析
@@ -636,9 +639,10 @@ def parse_txt_content(content: str) -> List[Tuple[str, str, str]]:
                         channels.append((g, fn, url))
     return channels
 
-async def fetch_github_sources() -> List[Tuple[str, str, str]]:
+async def fetch_github_sources() -> Tuple[List[Tuple[str, str, str]], int]:
+    """返回 (频道列表, 原始链接数)"""
     if not ENABLE_GITHUB or not GITHUB_URLS:
-        return []
+        return [], 0
     logger.info(f"--- GitHub源下载 ({len(GITHUB_URLS)} 个) ---")
     all_channels = []
     timeout = aiohttp.ClientTimeout(total=GITHUB_TIMEOUT)
@@ -656,8 +660,9 @@ async def fetch_github_sources() -> List[Tuple[str, str, str]]:
                 channels = parse_txt_content(content)
             logger.info(f"GitHub源{i+1}: 解析到 {len(channels)} 个频道")
             all_channels.extend(channels)
-    logger.info(f"GitHub源合计: {len(all_channels)} 条")
-    return all_channels
+    raw_count = len(all_channels)
+    logger.info(f"GitHub源合计: {raw_count} 条")
+    return all_channels, raw_count
 
 # ############################################################################
 #                          网页爬取逻辑 (HTTP回退方案)
@@ -1222,7 +1227,7 @@ async def main():
 
     start_time = time.time()
     logger.info("=" * 60)
-    logger.info("IPTV源抓取器 v4 启动 (优化版: 10s测速, 重试, 丢包检测)")
+    logger.info("IPTV 源抓取器 v4 启动 (优化版: 10s 测速，重试，丢包检测)")
     logger.info(f"  类型: {ft}")
     logger.info(f"  每页IP: {IPS_PER_PAGE}")
     logger.info(f"  最大页: {max_pages}")
@@ -1233,10 +1238,17 @@ async def main():
     logger.info("=" * 60)
 
     all_channels = []
+    github_raw_count = 0
+    scrape_raw_count = 0
+    scrape_url_set = set()   # 互斥集合，保证有效数统计不重复
+    github_url_set = set()
 
     if ENABLE_GITHUB and not args.skip_github:
-        github_chs = await fetch_github_sources()
-        all_channels.extend(github_chs)
+        github_chs, github_raw_count = await fetch_github_sources()
+        for g, n, u in github_chs:
+            if u not in scrape_url_set and u not in github_url_set:
+                github_url_set.add(u)
+                all_channels.append((g, n, u))
 
     if do_scrape:
         logger.info("--- 开始网页爬取 ---")
@@ -1312,7 +1324,11 @@ async def main():
                                 g = classify(std_ch)
                                 if g:
                                     fn = std_ch if g == "央视频道" else clean_cn(std_ch)
-                                    all_channels.append((g, fn, url))
+                                    # 统计原始爬取链接数
+                                    scrape_raw_count += 1
+                                    if url not in scrape_url_set and url not in github_url_set:
+                                        scrape_url_set.add(url)
+                                        all_channels.append((g, fn, url))
                             await asyncio.sleep(random.uniform(IP_DELAY_MIN, IP_DELAY_MAX))
                         except Exception as e:
                             logger.warning(f"IP {entry['ip']} 失败: {e}")
@@ -1331,7 +1347,7 @@ async def main():
             except Exception as e2:
                 logger.warning(f"HTTP兜底也失败: {e2}")
 
-        logger.info(f"网页爬取完成: {len(all_channels)} 条原始记录")
+        logger.info(f"网页爬取完成: {scrape_raw_count} 条原始记录")
 
     before = len(all_channels)
     all_channels = [(g, n, u) for g, n, u in all_channels if not is_internal(u)]
@@ -1349,11 +1365,25 @@ async def main():
 
     logger.info(f"清洗后: {len(ch_map)} 个频道, {sum(len(v) for v in ch_map.values())} 条链接")
 
+    ok_urls = set()
     if do_ffmpeg and ch_map:
         logger.info("--- FFmpeg极速测速 (10s) ---")
         ff_start = time.time()
-        ch_map = await ffmpeg_batch_test(ch_map)
+        ch_map, ok_urls = await ffmpeg_batch_test(ch_map)
         logger.info(f"FFmpeg耗时: {time.time() - ff_start:.1f}s")
+
+        # 统计各来源有效链接数
+        scrape_ok = sum(1 for u in ok_urls if u in scrape_url_set)
+        github_ok = sum(1 for u in ok_urls if u in github_url_set)
+        total_raw = scrape_raw_count + github_raw_count
+        total_ok = scrape_ok + github_ok
+
+        if scrape_raw_count > 0:
+            logger.info(f"【测速汇总】网页爬取源原始 {scrape_raw_count} 条，有效 {scrape_ok} 条，有效率：{scrape_ok/scrape_raw_count*100:.2f}%")
+        if github_raw_count > 0:
+            logger.info(f"【测速汇总】GitHub 源原始 {github_raw_count} 条，有效 {github_ok} 条，有效率：{github_ok/github_raw_count*100:.2f}%")
+        if total_raw > 0:
+            logger.info(f"【测速汇总】全局合计原始 {total_raw} 条，最终有效 {total_ok} 条，综合有效率：{total_ok/total_raw*100:.2f}%")
 
     export(ch_map)
 
@@ -1361,7 +1391,7 @@ async def main():
     logger.info("=" * 60)
     logger.info("全部完成!")
     logger.info(f"  频道数: {len(ch_map)}")
-    logger.info(f"  链接数: {sum(len(v) for v in ch_map.values())}")
+    logger.info(f"  最终有效链接总数: {sum(len(v) for v in ch_map.values())}")
     logger.info(f"  总耗时: {total_time:.1f}s")
     logger.info("=" * 60)
 
