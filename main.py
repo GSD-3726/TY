@@ -846,45 +846,48 @@ async def extract_detail_channels_http(detail_url: str) -> list:
 
 # ---- Playwright 版本（保留作为备选） ----
 
-async def scrape_ips_playwright(page, filter_type: str, max_pages: int) -> list:
-    """使用 Playwright 爬取IP列表（需要浏览器能访问目标网站）"""
+async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
+    """使用 Playwright 爬取IP列表（增强容错版，接受 browser context）"""
     entries = []
     seen = set()
 
-    # 直接导航到带过滤参数的URL
-    # 注意：反爬系统会随机清除URL参数，需要重试
-    if filter_type != "all":
-        target_url = f"{TARGET_URL}?t={filter_type}&province=all&limit={IPS_PER_PAGE}"
-    else:
-        target_url = f"{TARGET_URL}?province=all&limit={IPS_PER_PAGE}"
+    target_url = f"{TARGET_URL}?t={filter_type}&province=all&limit={IPS_PER_PAGE}" if filter_type != "all" else f"{TARGET_URL}?province=all&limit={IPS_PER_PAGE}"
 
+    page = None
     filter_applied = False
-    for _attempt in range(5):
+    for attempt in range(5):
         try:
+            if page is None or page.is_closed():
+                page = await ctx.new_page()
+                await page.add_init_script(STEALTH_JS)
+
             await page.goto(target_url, timeout=PAGE_TIMEOUT, wait_until="commit")
-        except Exception as e:
-            logger.info(f"[PW] 页面加载超时，重试 {_attempt+1}/5...")
-            await asyncio.sleep(3)
-            continue
-        await asyncio.sleep(random.uniform(5, 8))
-        try:
-            await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
-        except:
-            pass
-        # 检查过滤是否生效
-        if filter_type != "all":
-            current_filter = await page.evaluate("() => document.querySelector('#typeSelect')?.value")
-            if current_filter == filter_type:
+            await asyncio.sleep(random.uniform(5, 8))
+            try:
+                await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
+            except:
+                pass
+
+            # 检查过滤是否生效
+            if filter_type != "all":
+                current_filter = await page.evaluate("() => document.querySelector('#typeSelect')?.value")
+                if current_filter == filter_type:
+                    filter_applied = True
+                    break
+                else:
+                    logger.info(f"[PW] 过滤未生效(下拉框={current_filter})，重试 {attempt+1}/5...")
+                    await asyncio.sleep(random.uniform(2, 4))
+            else:
                 filter_applied = True
                 break
-            else:
-                logger.info(f"[PW] 过滤未生效(下拉框={current_filter})，重试 {_attempt+1}/5...")
-                await asyncio.sleep(random.uniform(2, 4))
-        else:
-            filter_applied = True
-            break
-    if not filter_applied:
-        logger.warning(f"[PW] 类型过滤未能生效，将使用全部数据+客户端过滤")
+        except Exception as e:
+            logger.warning(f"[PW] 页面初始化失败，重试 {attempt+1}/5: {e}")
+            page = None  # 强制下次循环重新创建页面
+            await asyncio.sleep(3)
+
+    if page is None or page.is_closed():
+        logger.error("[PW] 浏览器页面无法保持打开，放弃爬取")
+        return entries
 
     current_page = 1
     while current_page <= max_pages:
@@ -892,29 +895,33 @@ async def scrape_ips_playwright(page, filter_type: str, max_pages: int) -> list:
         await human_scroll(page)
         await random_mouse(page)
 
-        page_entries = await page.evaluate(r"""
-            () => {
-                const rows = document.querySelectorAll('table.iptv-table tbody tr');
-                return Array.from(rows).map(row => {
-                    const cells = row.querySelectorAll('td');
-                    if (cells.length < 6) return null;
-                    const a = cells[0].querySelector('a');
-                    if (!a) return null;
-                    const onclick = a.getAttribute('onclick') || '';
-                    const m = onclick.match(/gotoIP\('([^']+)',\s*'([^']+)'\)/);
-                    return {
-                        ip: a.innerText.trim(),
-                        hash: m ? m[1] : '',
-                        type: m ? m[2] : '',
-                        channel_count: cells[1].innerText.trim(),
-                        type_info: cells[2].innerText.trim(),
-                        online_time: cells[3].innerText.trim(),
-                        update_time: cells[4].innerText.trim(),
-                        status: cells[5].innerText.trim()
-                    };
-                }).filter(x => x && x.ip && x.hash);
-            }
-        """)
+        try:
+            page_entries = await page.evaluate(r"""
+                () => {
+                    const rows = document.querySelectorAll('table.iptv-table tbody tr');
+                    return Array.from(rows).map(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length < 6) return null;
+                        const a = cells[0].querySelector('a');
+                        if (!a) return null;
+                        const onclick = a.getAttribute('onclick') || '';
+                        const m = onclick.match(/gotoIP\('([^']+)',\s*'([^']+)'\)/);
+                        return {
+                            ip: a.innerText.trim(),
+                            hash: m ? m[1] : '',
+                            type: m ? m[2] : '',
+                            channel_count: cells[1].innerText.trim(),
+                            type_info: cells[2].innerText.trim(),
+                            online_time: cells[3].innerText.trim(),
+                            update_time: cells[4].innerText.trim(),
+                            status: cells[5].innerText.trim()
+                        };
+                    }).filter(x => x && x.ip && x.hash);
+                }
+            """)
+        except Exception as e:
+            logger.warning(f"[PW] 第{current_page}页数据提取失败: {e}")
+            break
 
         new_count = 0
         for entry in page_entries:
@@ -933,36 +940,47 @@ async def scrape_ips_playwright(page, filter_type: str, max_pages: int) -> list:
         if new_count == 0 and current_page > 1:
             break
 
-        nxt = await page.query_selector('a:has-text("下一页")')
-        if not nxt:
-            break
-        href = await nxt.get_attribute('href') or ''
-        if 'page=' not in href:
+        try:
+            nxt = await page.query_selector('a:has-text("下一页")')
+            if not nxt:
+                break
+            href = await nxt.get_attribute('href') or ''
+            if 'page=' not in href:
+                break
+        except Exception as e:
+            logger.warning(f"[PW] 查找下一页按钮失败: {e}")
             break
 
         delay = random.uniform(PAGE_DELAY_MIN, PAGE_DELAY_MAX)
         logger.info(f"[PW] 等待 {delay:.1f}s 后翻页...")
         await asyncio.sleep(delay)
-        await nxt.click()
         try:
-            await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
-        except:
-            pass
-        await asyncio.sleep(random.uniform(PAGE_DELAY_MIN, PAGE_DELAY_MAX))
+            await nxt.click()
+            try:
+                await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
+            except:
+                pass
+            await asyncio.sleep(random.uniform(PAGE_DELAY_MIN, PAGE_DELAY_MAX))
+        except Exception as e:
+            logger.warning(f"[PW] 翻页点击失败: {e}")
+            break
         current_page += 1
 
     return entries
 
 
-async def extract_detail_channels_playwright(page, detail_url: str) -> list:
-    """使用 Playwright 从详情页提取频道列表"""
+async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
+    """使用 Playwright 从详情页提取频道列表（增强容错版）"""
     channels = []
+    page = None
     start_time = time.perf_counter()
 
     def is_overtime():
         return time.perf_counter() - start_time > DETAIL_MAX_SECONDS
 
     try:
+        page = await ctx.new_page()
+        await page.add_init_script(STEALTH_JS)
         await page.goto(detail_url, timeout=DETAIL_PAGE_TIMEOUT, wait_until="commit")
         await asyncio.sleep(random.uniform(DETAIL_WAIT_MIN, DETAIL_WAIT_MAX))
         try:
@@ -1011,22 +1029,30 @@ async def extract_detail_channels_playwright(page, detail_url: str) -> list:
             except:
                 pass
 
-            rows = await page.query_selector_all("table tbody tr")
+            try:
+                rows = await page.query_selector_all("table tbody tr")
+            except Exception as e:
+                logger.debug(f"[PW] 查询表格行失败: {e}")
+                break
+
             page_channels = []
             for row in rows:
-                cells = await row.query_selector_all("td")
-                if len(cells) >= 3:
-                    name = (await cells[1].inner_text()).strip()
-                    url_el = await cells[2].query_selector("a")
-                    if url_el:
-                        url = await url_el.get_attribute("href") or (await cells[2].inner_text()).strip()
-                    else:
-                        url = (await cells[2].inner_text()).strip()
-                    if name and url:
-                        url = url.replace('&amp;', '&')
-                        if not url.startswith(("http://", "https://")):
-                            url = DEFAULT_PROTOCOL + url
-                        page_channels.append((name, url))
+                try:
+                    cells = await row.query_selector_all("td")
+                    if len(cells) >= 3:
+                        name = (await cells[1].inner_text()).strip()
+                        url_el = await cells[2].query_selector("a")
+                        if url_el:
+                            url = await url_el.get_attribute("href") or (await cells[2].inner_text()).strip()
+                        else:
+                            url = (await cells[2].inner_text()).strip()
+                        if name and url:
+                            url = url.replace('&amp;', '&')
+                            if not url.startswith(("http://", "https://")):
+                                url = DEFAULT_PROTOCOL + url
+                            page_channels.append((name, url))
+                except Exception:
+                    continue
 
             if len(page_channels) == 0:
                 break
@@ -1042,15 +1068,19 @@ async def extract_detail_channels_playwright(page, detail_url: str) -> list:
             if page_num >= MAX_DETAIL_PAGES:
                 break
 
-            nxt = await page.query_selector('a:has-text("下一页")')
-            if not nxt:
-                break
-            disabled = await nxt.get_attribute("disabled") or ""
-            cls = await nxt.get_attribute("class") or ""
-            if disabled or "disabled" in cls:
-                break
-            href = await nxt.get_attribute("href") or ""
-            if "page=" not in href:
+            try:
+                nxt = await page.query_selector('a:has-text("下一页")')
+                if not nxt:
+                    break
+                disabled = await nxt.get_attribute("disabled") or ""
+                cls = await nxt.get_attribute("class") or ""
+                if disabled or "disabled" in cls:
+                    break
+                href = await nxt.get_attribute("href") or ""
+                if "page=" not in href:
+                    break
+            except Exception as e:
+                logger.debug(f"[PW] 查找下一页按钮失败: {e}")
                 break
 
             await asyncio.sleep(random.uniform(DETAIL_PAGE_DELAY_MIN, DETAIL_PAGE_DELAY_MAX))
@@ -1066,6 +1096,12 @@ async def extract_detail_channels_playwright(page, detail_url: str) -> list:
 
     except Exception as e:
         logger.debug(f"详情页提取失败: {e}")
+    finally:
+        if page and not page.is_closed():
+            try:
+                await page.close()
+            except:
+                pass
 
     return channels
 
@@ -1204,10 +1240,6 @@ async def main():
     if do_scrape:
         logger.info("--- 开始网页爬取 ---")
 
-        # 目标网站有JS反爬保护（ancr.js + paer.js），HTTP请求会被封锁：
-        #   - 主页第1页可通过HTTP获取，但翻页(第2页+)返回403
-        #   - 详情页返回JS挑战页面，需要浏览器执行JS
-        # 因此统一使用 Playwright 进行爬取
         entries = []
 
         try:
@@ -1237,7 +1269,10 @@ async def main():
                     "args": [
                         "--no-sandbox", "--disable-setuid-sandbox",
                         "--disable-dev-shm-usage", "--disable-gpu",
-                        "--single-process", "--disable-blink-features=AutomationControlled"
+                        "--disable-features=IsolateOrigins,site-per-process",
+                        "--disable-blink-features=AutomationControlled",
+                        "--disable-web-security",
+                        "--disable-features=BlockInsecurePrivateNetworkRequests",
                     ]
                 }
                 if chrome_path:
@@ -1248,11 +1283,10 @@ async def main():
                     user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                 )
                 await ctx.add_init_script(STEALTH_JS)
-                page = await ctx.new_page()
 
                 try:
                     # 第一阶段：用 Playwright 爬取 IP 列表（支持翻页）
-                    entries = await scrape_ips_playwright(page, ft, max_pages)
+                    entries = await scrape_ips_playwright(ctx, ft, max_pages)
                     logger.info(f"[PW] 共获取 {len(entries)} 个IP")
                 except Exception as e:
                     logger.warning(f"Playwright IP列表爬取失败: {e}")
@@ -1269,7 +1303,7 @@ async def main():
                         try:
                             detail_url = f"{TARGET_URL}?p={entry['hash']}&t={entry['type']}"
                             logger.info(f"[{i + 1}/{len(entries)}] {entry['ip']}")
-                            chs = await extract_detail_channels_playwright(page, detail_url)
+                            chs = await extract_detail_channels_playwright(ctx, detail_url)
                             if not chs:
                                 logger.debug(f"[PW] {entry['ip']} 详情页无频道，跳过")
                             for name, url in chs:
@@ -1282,8 +1316,6 @@ async def main():
                         except Exception as e:
                             logger.warning(f"IP {entry['ip']} 失败: {e}")
 
-                try: await page.close()
-                except: pass
                 try: await ctx.close()
                 except: pass
                 try: await browser.close()
