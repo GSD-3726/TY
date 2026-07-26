@@ -246,7 +246,8 @@ def progress_bar(cur: int, total: int, ok: int, fail: int, last_pct: int) -> int
     pct = int(cur / total * 100)
     if pct == last_pct and cur != total:
         return last_pct
-    bar = '█' * (pct // 5) + '?' * (20 - pct // 5)
+    # 使用纯ASCII字符 # 表示完成，- 表示未完成，避免终端显示乱码（原?显示为乱码）
+    bar = '#' * (pct // 5) + '-' * (20 - pct // 5)
     logger.info(f"[{pct:3d}%] {bar} ({cur}/{total}) 成功:{ok} 失败:{fail}")
     sys.stdout.flush()
     return pct
