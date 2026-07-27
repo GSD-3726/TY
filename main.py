@@ -82,7 +82,7 @@ CONN_TIMEOUT = 2                                         # 连通性测试超时
 
 ENABLE_CACHE = True                                      # 是否启用测速结果缓存
 CACHE_FILE = Path(__file__).parent / "iptv_speed_cache.json"  # 缓存文件路径
-CACHE_EXPIRE_HOURS = 6                                   # 缓存有效期（小时），建议6-12小时
+CACHE_EXPIRE_HOURS = 72                                   # 缓存有效期（小时），建议6-12小时
 CACHE_EXPIRE_SEC = CACHE_EXPIRE_HOURS * 3600             # 缓存有效秒数（自动换算，无需修改）
 
 ENABLE_GITHUB = True                                     # 是否启用GitHub源下载
