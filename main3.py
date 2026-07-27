@@ -17,114 +17,120 @@ from typing import Dict, List, Tuple, Optional, Any
 import aiohttp
 from playwright.async_api import async_playwright
 
+# 强制 stdout 行缓冲，解决 GitHub Actions 日志延迟问题
+try:
+    sys.stdout.reconfigure(line_buffering=True)
+except Exception:
+    pass
+
 # ############################################################################
 #                          网页抓取 基础配置
 # ############################################################################
 
-TARGET_URL = "https://iptv.cqshushu.com/index.php"
-DEFAULT_PROTOCOL = "http://"
-IPS_PER_PAGE = 10
-MAX_PAGES = 6
-MAX_LINKS_PER_CHANNEL = 8
-MAX_IPS = 0
-MAX_DETAIL_PAGES = 3
-DETAIL_PAGE_TIMEOUT = 30000
-DETAIL_IDLE_TIMEOUT = 5000
-DETAIL_MAX_SECONDS = 45
-DETAIL_PAGE_DELAY_MIN = 1.0
-DETAIL_PAGE_DELAY_MAX = 2.0
-IP_MAX_SECONDS = 10
+TARGET_URL = "https://iptv.cqshushu.com/index.php"          # 目标抓取网址
+DEFAULT_PROTOCOL = "http://"                                  # 默认协议
+IPS_PER_PAGE = 10                                             # 每页显示IP数
+MAX_PAGES = 6                                                 # 最大翻页数
+MAX_LINKS_PER_CHANNEL = 8                                     # 每个频道最多保留链接数
+MAX_IPS = 0                                                   # 最大处理IP数，0=不限制
+MAX_DETAIL_PAGES = 3                                          # 详情页最大翻页数
+DETAIL_PAGE_TIMEOUT = 30000                                   # 详情页加载超时(毫秒)
+DETAIL_IDLE_TIMEOUT = 5000                                    # 详情页网络空闲超时(毫秒)
+DETAIL_MAX_SECONDS = 45                                       # 单个详情页最大处理秒数
+DETAIL_PAGE_DELAY_MIN = 1.0                                   # 详情页翻页最小延迟(秒)
+DETAIL_PAGE_DELAY_MAX = 2.0                                   # 详情页翻页最大延迟(秒)
+IP_MAX_SECONDS = 10                                           # 单个IP最大处理秒数(预留)
 
-PAGE_DELAY_MIN = 3.0
-PAGE_DELAY_MAX = 5.0
-IP_DELAY_MIN = 1.0
-IP_DELAY_MAX = 2.0
-DETAIL_WAIT_MIN = 2.0
-DETAIL_WAIT_MAX = 3.0
+PAGE_DELAY_MIN = 3.0                                          # 列表页翻页最小延迟(秒)
+PAGE_DELAY_MAX = 5.0                                          # 列表页翻页最大延迟(秒)
+IP_DELAY_MIN = 1.0                                            # IP间最小延迟(秒)
+IP_DELAY_MAX = 2.0                                            # IP间最大延迟(秒)
+DETAIL_WAIT_MIN = 2.0                                         # 详情页初始等待最小时间(秒)
+DETAIL_WAIT_MAX = 3.0                                         # 详情页初始等待最大时间(秒)
 
-HEADLESS = True
-CHROME_PATH = ""
-PAGE_TIMEOUT = 60000
-IDLE_TIMEOUT = 15000
+HEADLESS = True                                                # 是否无头模式
+CHROME_PATH = ""                                               # Chrome可执行路径，空使用默认
+PAGE_TIMEOUT = 60000                                           # 页面导航超时(毫秒)
+IDLE_TIMEOUT = 15000                                           # 网络空闲超时(毫秒)
 
-SCRAPE_SOURCE_FILTER = "hotel"
+SCRAPE_SOURCE_FILTER = "hotel"                                 # 抓取来源类型过滤
 
 # ############################################################################
 #                          三层筛选测速配置 (GitHub Actions 优化)
 # ############################################################################
 
-ENABLE_FFMPEG = True
-FFMPEG_PATH = "ffmpeg"
+ENABLE_FFMPEG = True                                           # 是否启用FFmpeg测速
+FFMPEG_PATH = "ffmpeg"                                         # FFmpeg命令路径
 
 # 三层筛选参数
-CONN_TIMEOUT = 3.0
-CONN_CONCURRENCY = 100
-FAST_FFMPEG_DURATION = 6                              # 6秒，给慢启动源留余地
-STABLE_FFMPEG_DURATION = 20
-FAST_PROC_TIMEOUT = 12                                # 匹配6秒+余量
-STABLE_PROC_TIMEOUT = 30
-FAST_FFMPEG_CONCURRENCY = 30
-STABLE_FFMPEG_CONCURRENCY = 15
+CONN_TIMEOUT = 3.0                                             # 连通性测试超时(秒)
+CONN_CONCURRENCY = 100                                         # 连通性测试并发数
+FAST_FFMPEG_DURATION = 6                                      # 快速探测持续秒数
+STABLE_FFMPEG_DURATION = 20                                   # 稳定测试持续秒数
+FAST_PROC_TIMEOUT = 12                                        # 快速探测进程超时(秒)
+STABLE_PROC_TIMEOUT = 30                                      # 稳定测试进程超时(秒)
+FAST_FFMPEG_CONCURRENCY = 30                                  # 快速探测并发数
+STABLE_FFMPEG_CONCURRENCY = 15                                # 稳定测试并发数
 
-FFMPEG_RETRIES = 1
+FFMPEG_RETRIES = 1                                             # FFmpeg 重试次数(预留)
 
 # 稳定测试通过阈值 (20秒标准)
-MIN_AVG_FPS = 15
-MIN_FRAMES = 250
-MIN_REALTIME_FACTOR = 0.60
-MIN_NET_FEED_RATIO = 0.65
+MIN_AVG_FPS = 15                                               # 最小平均帧率
+MIN_FRAMES = 250                                               # 最小总帧数
+MIN_REALTIME_FACTOR = 0.60                                     # 最小实时因子
+MIN_NET_FEED_RATIO = 0.65                                      # 最小网络供给比
 
 # ############################################################################
 #                          简单连通性测试配置
 # ############################################################################
 
-ENABLE_CONNECTIVITY = True
-CONN_TEST_TIMEOUT = 3.0
+ENABLE_CONNECTIVITY = True                                     # 是否启用简单连通测试
+CONN_TEST_TIMEOUT = 2.0                                        # 连通测试超时(秒)
 
 # ############################################################################
 #                          缓存 相关配置
 # ############################################################################
 
-ENABLE_CACHE = True
-CACHE_FILE = Path(__file__).parent / "iptv_speed_cache.json"
-CACHE_EXPIRE_HOURS = 6
-CACHE_EXPIRE_SEC = CACHE_EXPIRE_HOURS * 3600
+ENABLE_CACHE = True                                            # 是否启用缓存
+CACHE_FILE = Path(__file__).parent / "iptv_speed_cache.json"  # 缓存文件路径
+CACHE_EXPIRE_HOURS = 72                                        # 缓存过期小时数
+CACHE_EXPIRE_SEC = CACHE_EXPIRE_HOURS * 3600                  # 缓存过期秒数
 
 # ############################################################################
 #                          GitHub 源配置
 # ############################################################################
 
-ENABLE_GITHUB = True
-GITHUB_URLS = [
+ENABLE_GITHUB = True                                           # 是否启用GitHub源
+GITHUB_URLS = [                                                # GitHub 源链接列表
     "https://gh-proxy.com/https://github.com/vbskycn/iptv/blob/master/tv/iptv4.txt",
     "https://gh-proxy.com/https://github.com/GSD-3726/TY/blob/main/iptv_channels.txt",
     "https://gh-proxy.com/https://github.com/GSD-3726/MMM/blob/main/iptv_channels.txt",
 ]
-GITHUB_TIMEOUT = 30
-GITHUB_RETRIES = 3
+GITHUB_TIMEOUT = 30                                            # GitHub下载超时(秒)
+GITHUB_RETRIES = 3                                             # GitHub下载重试次数
 
 # ############################################################################
 #                          输出配置
 # ############################################################################
 
-OUTPUT_DIR = Path(__file__).parent
-OUTPUT_M3U = OUTPUT_DIR / "iptv_channels.m3u"
-OUTPUT_TXT = OUTPUT_DIR / "iptv_channels.txt"
+OUTPUT_DIR = Path(__file__).parent                             # 输出目录
+OUTPUT_M3U = OUTPUT_DIR / "iptv_channels.m3u"                  # M3U输出文件
+OUTPUT_TXT = OUTPUT_DIR / "iptv_channels.txt"                  # TXT输出文件
 
 # ############################################################################
 #                          频道分类 相关配置
 # ############################################################################
 
-CATEGORY_RULES = [
+CATEGORY_RULES = [                                             # 频道分类规则
     {"name": "央视频道", "keywords": ["cctv", "cetv", "央视"]},
     {"name": "卫视频道", "keywords": ["卫视"]},
     {"name": "影视频道", "keywords": ["影视", "影院", "chc", "剧场", "电影"]},
     {"name": "体育频道", "keywords": ["体育", "体坛", "足球", "篮球"]},
     {"name": "少儿频道", "keywords": ["卡通", "动画", "少儿", "金鹰", "动漫"]},
 ]
-GROUP_ORDER = ["央视频道", "卫视频道", "影视频道", "少儿频道"]
+GROUP_ORDER = ["央视频道", "卫视频道", "影视频道", "少儿频道"]    # 分组输出顺序
 
-CCTV_MAP = {
+CCTV_MAP = {                                                    # CCTV频道号与名称映射
     "1": "综合", "2": "财经", "3": "综艺", "4": "中文国际", "5": "体育",
     "5+": "体育赛事", "6": "电影", "7": "国防军事", "8": "电视剧",
     "9": "纪录", "10": "科教", "11": "戏曲", "12": "社会与法",
@@ -132,15 +138,15 @@ CCTV_MAP = {
 }
 CCTV_ORDER = [f"CCTV-{k}{v}" for k, v in CCTV_MAP.items() if k != "5+"]
 CCTV_ORDER.insert(5, "CCTV-5+体育赛事")
-CCTV_ORDER.append("CCTV-4K")
+CCTV_ORDER.append("CCTV-4K")                                   # CCTV频道排序列表
 
-CCTV_RE = re.compile(r'(cctv)[-\s]?(5\+|\d{1,3})', re.IGNORECASE)
-CHINESE_ONLY = re.compile(r'[^\u4e00-\u9fff]')
-INTERNAL_IP = re.compile(r'^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|127\.0\.0\.1)')
+CCTV_RE = re.compile(r'(cctv)[-\s]?(5\+|\d{1,3})', re.IGNORECASE)  # CCTV台号正则
+CHINESE_ONLY = re.compile(r'[^\u4e00-\u9fff]')                     # 仅保留中文正则
+INTERNAL_IP = re.compile(r'^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|127\.0\.0\.1)')  # 内网IP正则
 
-CLEAR_SUFFIX_RE = re.compile(r'[\s\-_]*(高清|超清|4K|标清|流畅|HD|FHD|UHD|2K|蓝光|原画|画中画|720P|1080P|2160P)', re.IGNORECASE)
+CLEAR_SUFFIX_RE = re.compile(r'[\s\-_]*(高清|超清|4K|标清|流畅|HD|FHD|UHD|2K|蓝光|原画|画中画|720P|1080P|2160P)', re.IGNORECASE)  # 清理名称后缀正则
 
-STEALTH_JS = """
+STEALTH_JS = """                                                # 反检测注入脚本
 delete Navigator.prototype.webdriver;
 Object.defineProperty(Navigator.prototype, 'webdriver', {
     value: undefined, writable: false, configurable: true
@@ -159,12 +165,11 @@ const origQuery = window.navigator.permissions.query;
 window.navigator.permissions.query = (p) => p.name==='notifications' ? Promise.resolve({state:Notification.permission}) : origQuery(p);
 """
 
-RE_FRAME = re.compile(r'frame=\s*(\d+)')
-RE_SPEED = re.compile(r'speed=\s*([\d.]+)x')
-RE_VIDEO_RES = re.compile(r'Video:.*?(\d{3,})x(\d{3,})', re.IGNORECASE)
-RE_TIME = re.compile(r'time=(\d+):(\d+):([\d.]+)')
-# 匹配 FFmpeg 实际 stderr 中常见的错误/异常模式
-RE_ERROR = re.compile(
+RE_FRAME = re.compile(r'frame=\s*(\d+)')                            # 提取帧数正则
+RE_SPEED = re.compile(r'speed=\s*([\d.]+)x')                        # 提取处理速度正则
+RE_VIDEO_RES = re.compile(r'Video:.*?(\d{3,})x(\d{3,})', re.IGNORECASE)  # 提取视频分辨率正则
+RE_TIME = re.compile(r'time=(\d+):(\d+):([\d.]+)')                  # 提取时间戳正则
+RE_ERROR = re.compile(                                              # FFmpeg常见错误匹配正则
     r'(overrun|corrupt|missing|error while decoding|Invalid data found|'
     r'PES packet size mismatch|non-existing|timestamp|Connection reset|'
     r'Broken pipe|Server returned 403|404 Not Found|Connection timed out|'
@@ -177,6 +182,7 @@ RE_ERROR = re.compile(
 # ############################################################################
 
 class BJFormatter(logging.Formatter):
+    """北京时间格式化器"""
     def formatTime(self, record, datefmt=None):
         dt = datetime.datetime.fromtimestamp(
             record.created,
@@ -185,6 +191,7 @@ class BJFormatter(logging.Formatter):
         return dt.strftime("%Y-%m-%d %H:%M:%S")
 
 class FlushStreamHandler(logging.StreamHandler):
+    """自动刷新的流处理器，配合行缓冲解决Actions延迟"""
     def emit(self, record):
         super().emit(record)
         self.flush()
@@ -201,6 +208,7 @@ logger.addHandler(_h)
 # ############################################################################
 
 def build_classifier():
+    """构建频道分类器"""
     compiled = []
     for rule in CATEGORY_RULES:
         pat = re.compile("|".join(re.escape(k.lower()) for k in rule["keywords"]))
@@ -210,6 +218,7 @@ def build_classifier():
 classify = build_classifier()
 
 def norm_cctv(name: str) -> str:
+    """标准化 CCTV 频道名"""
     low = name.lower()
     if re.search(r'cctv[-\s]?4k', low):
         return "CCTV-4K"
@@ -224,15 +233,18 @@ def norm_cctv(name: str) -> str:
     return name
 
 def unify_channel_name(raw_name: str) -> str:
+    """统一频道名称"""
     std_name = norm_cctv(raw_name)
     std_name = CLEAR_SUFFIX_RE.sub("", std_name)
     std_name = re.sub(r'[\s\-_]+$', "", std_name).strip()
     return std_name
 
 def clean_cn(name: str) -> str:
+    """去除中文字符以外的内容"""
     return CHINESE_ONLY.sub('', name)
 
 def is_internal(url: str) -> bool:
+    """判断是否为内网地址"""
     try:
         host = urlparse(url).hostname
         return bool(host and INTERNAL_IP.match(host))
@@ -240,6 +252,7 @@ def is_internal(url: str) -> bool:
         return False
 
 def norm_type(t: str) -> str:
+    """归一化抓取类型"""
     m = {
         "all": "all", "全部": "all",
         "hotel": "hotel", "酒店": "hotel",
@@ -250,13 +263,14 @@ def norm_type(t: str) -> str:
     return m.get(t.strip().lower(), "all")
 
 def progress_bar(cur: int, total: int, ok: int, fail: int, last_pct: int) -> int:
+    """绘制进度条并返回最新百分比"""
     if total == 0:
         return 0
     pct = int(cur / total * 100)
     if pct == last_pct and cur != total:
         return last_pct
     bar = '█' * (pct // 5) + '?' * (20 - pct // 5)
-    logger.info(f"[{pct:3d}%] {bar} ({cur}/{total}) 成功:{ok} 失败:{fail}")
+    logger.info(f"[{pct:3d}%] {bar} ({cur}/{total}) 成功：{ok} 失败：{fail}")
     sys.stdout.flush()
     return pct
 
@@ -265,6 +279,7 @@ def progress_bar(cur: int, total: int, ok: int, fail: int, last_pct: int) -> int
 # ############################################################################
 
 async def human_scroll(page):
+    """模拟人类滚动"""
     d = random.randint(150, 400)
     for _ in range(random.randint(3, 6)):
         await page.evaluate(f'window.scrollBy(0, {d // 3})')
@@ -272,6 +287,7 @@ async def human_scroll(page):
     await asyncio.sleep(random.uniform(0.3, 0.8))
 
 async def random_mouse(page):
+    """随机移动鼠标"""
     await page.mouse.move(random.randint(100, 800), random.randint(100, 600))
     await asyncio.sleep(random.uniform(0.1, 0.3))
 
@@ -280,6 +296,7 @@ async def random_mouse(page):
 # ############################################################################
 
 def load_cache() -> dict:
+    """加载测速缓存"""
     if not ENABLE_CACHE or not CACHE_FILE.exists():
         return {}
     try:
@@ -298,6 +315,7 @@ def load_cache() -> dict:
         return {}
 
 def save_cache(cache: dict):
+    """保存测速缓存"""
     if not ENABLE_CACHE:
         return
     try:
@@ -311,6 +329,7 @@ def save_cache(cache: dict):
 # ############################################################################
 
 def parse_ffmpeg_time(time_str_h: str, time_str_m: str, time_str_s: str) -> float:
+    """将 FFmpeg 时间转为秒"""
     try:
         return int(time_str_h) * 3600 + int(time_str_m) * 60 + float(time_str_s)
     except (ValueError, TypeError):
@@ -318,6 +337,7 @@ def parse_ffmpeg_time(time_str_h: str, time_str_m: str, time_str_s: str) -> floa
 
 
 async def quick_connectivity_test(urls: List[str]) -> List[str]:
+    """第一层：简单连通性测试，返回可连接的URL列表"""
     semaphore = asyncio.Semaphore(CONN_CONCURRENCY)
     alive = []
     
@@ -349,7 +369,7 @@ async def quick_connectivity_test(urls: List[str]) -> List[str]:
 
 
 async def fast_ffmpeg_probe(url: str) -> Optional[Dict[str, Any]]:
-    """第二层：6秒快速探测。过滤首帧极慢、解码卡顿边缘的源，但保留慢启动优质源"""
+    """第二层：6秒快速探测，过滤首帧极慢或解码卡顿边缘的源"""
     if not shutil.which(FFMPEG_PATH):
         return None
     
@@ -375,7 +395,6 @@ async def fast_ffmpeg_probe(url: str) -> Optional[Dict[str, Any]]:
         speed_strs = RE_SPEED.findall(output)
         avg_speed = sum(float(s) for s in speed_strs[-3:]) / len(speed_strs[-3:]) if speed_strs else 0
         
-        # 门槛: 6秒至少45帧(~7.5fps)，且处理速度≥0.75x
         if frames >= 45 and avg_speed >= 0.75:
             w, h = 0, 0
             vm = RE_VIDEO_RES.search(output)
@@ -391,7 +410,7 @@ async def fast_ffmpeg_probe(url: str) -> Optional[Dict[str, Any]]:
 
 
 async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
-    """第三层：20秒稳定测试。精准过滤周期性抖动与后置限流源"""
+    """第三层：20秒稳定测试，精准过滤周期性抖动与后置限流源"""
     headers = (
         "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n"
         "Referer: https://www.miguvideo.com/\r\n"
@@ -448,9 +467,7 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
         
         stalled = actual_play_time < STABLE_FFMPEG_DURATION * 0.80
         
-        # 捕捉测速末尾(稳定播放期)的速度尖峰
         recent_speeds = all_speeds[-5:] if len(all_speeds) >= 5 else all_speeds
-        # 若记录不足3条，视为信息不足，不直接判死刑（返回False交由其他指标判断）
         has_stall_spikes = any(s < 0.6 for s in recent_speeds) if len(recent_speeds) >= 3 else False
         
         realtime_factor = actual_fps * avg_speed / 25.0
@@ -485,6 +502,7 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
 
 
 def stream_quality_score(item: tuple) -> float:
+    """综合流质量评分，用于同频道内排序"""
     _url, fps, w, _h, speed, elapsed = item
     fps_score = min(fps / 25.0, 1.0) if fps > 0 else 0.0
     speed_score = min(speed, 1.5) / 1.5 if speed > 0 else 0.0
@@ -502,6 +520,7 @@ def stream_quality_score(item: tuple) -> float:
 
 async def batch_test_pipeline(channel_map: Dict[Tuple[str, str], List[str]]
 ) -> Dict[Tuple[str, str], List[str]]:
+    """三层筛选流水线：连通性->快速FFmpeg->稳定测试"""
     if not channel_map:
         return {}
     
@@ -603,6 +622,7 @@ async def batch_test_pipeline(channel_map: Dict[Tuple[str, str], List[str]]
 
 
 def _finalize_result(result_map):
+    """最终整理结果：按评分排序并截断"""
     final = {}
     for k, vs in result_map.items():
         vs.sort(key=stream_quality_score, reverse=True)
@@ -615,6 +635,7 @@ def _finalize_result(result_map):
 # ############################################################################
 
 async def download_github(url: str, session: aiohttp.ClientSession) -> str:
+    """下载单个 GitHub 源内容"""
     for attempt in range(1, GITHUB_RETRIES + 1):
         try:
             async with session.get(url, headers={'User-Agent': 'Mozilla/5.0'}) as r:
@@ -636,6 +657,7 @@ async def download_github(url: str, session: aiohttp.ClientSession) -> str:
     return ""
 
 def parse_m3u_content(content: str) -> List[Tuple[str, str, str]]:
+    """解析 M3U 格式内容"""
     channels = []
     name = ""
     for line in content.splitlines():
@@ -658,6 +680,7 @@ def parse_m3u_content(content: str) -> List[Tuple[str, str, str]]:
     return channels
 
 def parse_txt_content(content: str) -> List[Tuple[str, str, str]]:
+    """解析 TXT 格式内容 (频道名,URL)"""
     channels = []
     for line in content.splitlines():
         line = line.strip()
@@ -679,9 +702,10 @@ def parse_txt_content(content: str) -> List[Tuple[str, str, str]]:
     return channels
 
 async def fetch_github_sources() -> List[Tuple[str, str, str]]:
+    """下载并解析所有 GitHub 源，返回频道列表"""
     if not ENABLE_GITHUB or not GITHUB_URLS:
         return []
-    logger.info(f"--- GitHub源下载 ({len(GITHUB_URLS)} 个) ---")
+    logger.info(f"--- GitHub 源下载 ({len(GITHUB_URLS)} 个) ---")
     all_channels = []
     timeout = aiohttp.ClientTimeout(total=GITHUB_TIMEOUT)
     async with aiohttp.ClientSession(timeout=timeout) as session:
@@ -698,7 +722,7 @@ async def fetch_github_sources() -> List[Tuple[str, str, str]]:
                 channels = parse_txt_content(content)
             logger.info(f"GitHub源{i+1}: 解析出 {len(channels)} 个频道")
             all_channels.extend(channels)
-    logger.info(f"GitHub源合计: {len(all_channels)} 个")
+    logger.info(f"GitHub 源合计: {len(all_channels)} 条原始链接")
     return all_channels
 
 # ############################################################################
@@ -727,7 +751,7 @@ async def _recover_page(ctx, old_page):
 
 async def scrape_ips_playwright(page, ctx, filter_type: str, max_pages: int) -> tuple:
     """
-    返回 (entries, page) — page 在恢复时可能被替换。
+    抓取 IP 列表页，返回 (entries, page)
     """
     entries = []
     seen = set()
@@ -903,6 +927,7 @@ async def scrape_ips_playwright(page, ctx, filter_type: str, max_pages: int) -> 
 
 
 async def extract_detail_channels_playwright(page, detail_url: str) -> list:
+    """提取单个 IP 详情页的频道列表"""
     channels = []
     start_time = time.perf_counter()
 
@@ -1020,6 +1045,7 @@ async def extract_detail_channels_playwright(page, detail_url: str) -> list:
 # ############################################################################
 
 def deduplicate_urls(ch_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str, str], List[str]]:
+    """去除重复 URL，同一 URL 只保留给一个频道"""
     url_to_ch = defaultdict(list)
     for (g, n), urls in ch_map.items():
         for u in urls:
@@ -1045,6 +1071,7 @@ def deduplicate_urls(ch_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str
 # ############################################################################
 
 def export(ch_map: Dict[Tuple[str, str], List[str]]):
+    """导出频道列表到 M3U 和 TXT 文件"""
     now = datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=8))
     ).strftime("%Y-%m-%d %H:%M:%S")
@@ -1131,7 +1158,7 @@ async def main():
 
     start_time = time.time()
     logger.info("=" * 60)
-    logger.info("IPTV源抓取器 v4 启动 (GitHub Actions 优化版)")
+    logger.info("IPTV 源抓取器 v4 启动 (三层筛选: 6s快速+20s稳定)")
     logger.info(f"  类型: {ft}")
     logger.info(f"  每页IP: {IPS_PER_PAGE}")
     logger.info(f"  最大页数: {max_pages}")
@@ -1142,13 +1169,21 @@ async def main():
     logger.info("=" * 60)
 
     all_channels = []
+    github_chs_count = 0        # GitHub 源原始链接数
+    scrape_chs_count = 0        # 网页爬取源原始链接数
+
+    # 用于区分来源的URL集合
+    github_urls_set = set()
+    scrape_urls_set = set()
 
     if ENABLE_GITHUB and not args.skip_github:
         github_chs = await fetch_github_sources()
         all_channels.extend(github_chs)
+        github_chs_count = len(github_chs)
+        github_urls_set = {u for _, _, u in github_chs}
 
     if do_scrape:
-        logger.info("--- 开始网页抓取 ---")
+        logger.info("--- 开始网页爬取 ---")
 
         entries = []
 
@@ -1248,7 +1283,11 @@ async def main():
         except Exception as e:
             logger.warning(f"Playwright启动失败: {e}")
 
-        logger.info(f"网页抓取完成: {len(all_channels)} 条原始记录")
+        # 统计网页爬取新增的原始链接
+        scrape_chs_count = len(all_channels) - github_chs_count
+        # 构建网页爬取URL集合（去重前，排除已在GitHub中的）
+        scrape_urls_set = {u for _, _, u in all_channels} - github_urls_set
+        logger.info(f"网页爬取完成: {scrape_chs_count} 条原始链接")
 
     before = len(all_channels)
     all_channels = [(g, n, u) for g, n, u in all_channels if not is_internal(u)]
@@ -1264,7 +1303,8 @@ async def main():
     allowed = set(GROUP_ORDER)
     ch_map = {k: v for k, v in ch_map.items() if k[0] in allowed}
 
-    logger.info(f"去重后: {len(ch_map)} 个频道, {sum(len(v) for v in ch_map.values())} 个链接")
+    total_links_before_test = sum(len(v) for v in ch_map.values())
+    logger.info(f"去重后: {len(ch_map)} 个频道, {total_links_before_test} 个链接")
 
     if do_ffmpeg and ch_map:
         logger.info("--- 三层筛选测速 (6s快速→20s稳定) ---")
@@ -1272,13 +1312,43 @@ async def main():
         ch_map = await batch_test_pipeline(ch_map)
         logger.info(f"测速总耗时: {time.time() - ff_start:.1f}s")
 
+    # ---------- 测速汇总 ----------
+    # 收集最终有效链接
+    final_urls = set()
+    for urls in ch_map.values():
+        final_urls.update(urls)
+
+    total_valid = len(final_urls)
+    # 区分来源的有效数（优先归GitHub）
+    valid_github = len(final_urls & github_urls_set)
+    valid_scrape = len(final_urls & scrape_urls_set - github_urls_set)  # 防止重叠
+    # 确保不重复
+    overlap = final_urls & github_urls_set & scrape_urls_set
+    if overlap:
+        # 实际已优先归入GitHub，valid_scrape中去除重叠部分，保持总和等于total_valid
+        valid_scrape = total_valid - valid_github
+
+    # 原始链接总数
+    raw_github = github_chs_count
+    raw_scrape = scrape_chs_count
+    total_raw = raw_github + raw_scrape
+
+    # 有效率计算
+    pct_scrape = (valid_scrape / raw_scrape * 100) if raw_scrape else 0
+    pct_github = (valid_github / raw_github * 100) if raw_github else 0
+    pct_total = (total_valid / total_raw * 100) if total_raw else 0
+
+    logger.info(f"【测速汇总】网页爬取源原始 {raw_scrape} 条，有效 {valid_scrape} 条，有效率：{pct_scrape:.2f}%")
+    logger.info(f"【测速汇总】GitHub 源原始 {raw_github} 条，有效 {valid_github} 条，有效率：{pct_github:.2f}%")
+    logger.info(f"【测速汇总】全局合计原始 {total_raw} 条，最终有效 {total_valid} 条，综合有效率：{pct_total:.2f}%")
+
     export(ch_map)
 
     total_time = time.time() - start_time
     logger.info("=" * 60)
     logger.info("全部完成!")
-    logger.info(f"  频道数量: {len(ch_map)}")
-    logger.info(f"  链接总数: {sum(len(v) for v in ch_map.values())}")
+    logger.info(f"  频道数: {len(ch_map)}")
+    logger.info(f"  最终有效链接总数: {total_valid}")
     logger.info(f"  总耗时: {total_time:.1f}s")
     logger.info("=" * 60)
 
