@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import asyncio
 import json
 import logging
@@ -255,7 +256,7 @@ def progress_bar(cur: int, total: int, ok: int, fail: int, last_pct: int) -> int
     pct = int(cur / total * 100)
     if pct == last_pct and cur != total:
         return last_pct
-    bar = '█' * (pct // 5) + '░' * (20 - pct // 5)
+    bar = '█' * (pct // 5) + '?' * (20 - pct // 5)
     logger.info(f"[{pct:3d}%] {bar} ({cur}/{total}) 成功:{ok} 失败:{fail}")
     sys.stdout.flush()
     return pct
@@ -705,7 +706,30 @@ async def fetch_github_sources() -> List[Tuple[str, str, str]]:
 #                          网页抓取逻辑 (Playwright)
 # ############################################################################
 
-async def scrape_ips_playwright(page, filter_type: str, max_pages: int) -> list:
+async def _is_page_alive(page) -> bool:
+    """检查页面对象是否仍然可用"""
+    try:
+        await page.evaluate("1")
+        return True
+    except Exception:
+        return False
+
+
+async def _recover_page(ctx, old_page):
+    """关闭失效页面，从同一上下文创建新页面"""
+    try:
+        await old_page.close()
+    except Exception:
+        pass
+    new_page = await ctx.new_page()
+    await new_page.add_init_script(STEALTH_JS)
+    return new_page
+
+
+async def scrape_ips_playwright(page, ctx, filter_type: str, max_pages: int) -> tuple:
+    """
+    返回 (entries, page) — page 在恢复时可能被替换。
+    """
     entries = []
     seen = set()
 
@@ -716,9 +740,18 @@ async def scrape_ips_playwright(page, filter_type: str, max_pages: int) -> list:
 
     filter_applied = False
     for _attempt in range(5):
+        if not await _is_page_alive(page):
+            logger.warning("[PW] 页面已失效，正在重建...")
+            page = await _recover_page(ctx, page)
         try:
             await page.goto(target_url, timeout=PAGE_TIMEOUT, wait_until="commit")
         except Exception as e:
+            err_str = str(e).lower()
+            if "closed" in err_str or "target" in err_str:
+                logger.warning(f"[PW] 页面关闭异常，尝试恢复... ({_attempt+1}/5)")
+                page = await _recover_page(ctx, page)
+                await asyncio.sleep(3)
+                continue
             logger.info(f"[PW] 页面加载超时，重试 {_attempt+1}/5...")
             await asyncio.sleep(3)
             continue
@@ -728,7 +761,11 @@ async def scrape_ips_playwright(page, filter_type: str, max_pages: int) -> list:
         except:
             pass
         if filter_type != "all":
-            current_filter = await page.evaluate("() => document.querySelector('#typeSelect')?.value")
+            try:
+                current_filter = await page.evaluate("() => document.querySelector('#typeSelect')?.value")
+            except Exception:
+                page = await _recover_page(ctx, page)
+                continue
             if current_filter == filter_type:
                 filter_applied = True
                 break
@@ -743,11 +780,26 @@ async def scrape_ips_playwright(page, filter_type: str, max_pages: int) -> list:
 
     current_page = 1
     while current_page <= max_pages:
+        if not await _is_page_alive(page):
+            logger.warning(f"[PW] 第{current_page}页前页面失效，正在恢复...")
+            page = await _recover_page(ctx, page)
+            try:
+                await page.goto(target_url, timeout=PAGE_TIMEOUT, wait_until="commit")
+                await asyncio.sleep(random.uniform(3, 5))
+                try:
+                    await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
+                except:
+                    pass
+            except Exception as e:
+                logger.warning(f"[PW] 恢复后重新加载失败: {e}")
+                break
+
         logger.info(f"[PW] 正在抓取第 {current_page} 页...")
         await human_scroll(page)
         await random_mouse(page)
 
-        page_entries = await page.evaluate(r"""
+        try:
+            page_entries = await page.evaluate(r"""
             () => {
                 const rows = document.querySelectorAll('table.iptv-table tbody tr');
                 return Array.from(rows).map(row => {
@@ -771,6 +823,25 @@ async def scrape_ips_playwright(page, filter_type: str, max_pages: int) -> list:
             }
         """)
 
+        except Exception as e:
+            err_str = str(e).lower()
+            if "closed" in err_str or "target" in err_str:
+                logger.warning(f"[PW] 第{current_page}页执行中页面关闭，尝试恢复...")
+                page = await _recover_page(ctx, page)
+                try:
+                    await page.goto(target_url, timeout=PAGE_TIMEOUT, wait_until="commit")
+                    await asyncio.sleep(random.uniform(3, 5))
+                    try:
+                        await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
+                    except:
+                        pass
+                except:
+                    pass
+                continue
+            else:
+                logger.warning(f"[PW] 第{current_page}页执行异常: {e}")
+                break
+
         new_count = 0
         for entry in page_entries:
             if filter_type != 'all' and entry['type'] != filter_type:
@@ -788,7 +859,11 @@ async def scrape_ips_playwright(page, filter_type: str, max_pages: int) -> list:
         if new_count == 0 and current_page > 1:
             break
 
-        nxt = await page.query_selector('a:has-text("下一页")')
+        try:
+            nxt = await page.query_selector('a:has-text("下一页")')
+        except Exception:
+            logger.warning("[PW] 查找翻页按钮时页面异常")
+            break
         if not nxt:
             break
         href = await nxt.get_attribute('href') or ''
@@ -798,7 +873,26 @@ async def scrape_ips_playwright(page, filter_type: str, max_pages: int) -> list:
         delay = random.uniform(PAGE_DELAY_MIN, PAGE_DELAY_MAX)
         logger.info(f"[PW] 等待 {delay:.1f}s 翻页...")
         await asyncio.sleep(delay)
-        await nxt.click()
+        try:
+            await nxt.click()
+        except Exception as e:
+            err_str = str(e).lower()
+            if "closed" in err_str or "target" in err_str:
+                logger.warning("[PW] 翻页点击时页面关闭，尝试恢复...")
+                page = await _recover_page(ctx, page)
+                try:
+                    await page.goto(target_url, timeout=PAGE_TIMEOUT, wait_until="commit")
+                    await asyncio.sleep(random.uniform(3, 5))
+                    try:
+                        await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
+                    except:
+                        pass
+                except:
+                    pass
+                continue
+            else:
+                logger.warning(f"[PW] 翻页点击异常: {e}")
+                break
         try:
             await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
         except:
@@ -806,7 +900,7 @@ async def scrape_ips_playwright(page, filter_type: str, max_pages: int) -> list:
         await asyncio.sleep(random.uniform(PAGE_DELAY_MIN, PAGE_DELAY_MAX))
         current_page += 1
 
-    return entries
+    return entries, page
 
 
 async def extract_detail_channels_playwright(page, detail_url: str) -> list:
@@ -1084,24 +1178,36 @@ async def main():
                     "args": [
                         "--no-sandbox", "--disable-setuid-sandbox",
                         "--disable-dev-shm-usage", "--disable-gpu",
-                        "--single-process", "--disable-blink-features=AutomationControlled"
+                        "--disable-blink-features=AutomationControlled"
                     ]
                 }
                 if chrome_path:
                     launch_opts["executable_path"] = chrome_path
-                browser = await p.chromium.launch(**launch_opts)
-                ctx = await browser.new_context(
-                    viewport={"width": 1920, "height": 1080},
-                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-                )
-                await ctx.add_init_script(STEALTH_JS)
-                page = await ctx.new_page()
+                try:
+                    browser = await p.chromium.launch(**launch_opts)
+                except Exception as e:
+                    logger.error(f"浏览器启动失败: {e}")
+                    raise
+                try:
+                    ctx = await browser.new_context(
+                        viewport={"width": 1920, "height": 1080},
+                        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                    )
+                    await ctx.add_init_script(STEALTH_JS)
+                    page = await ctx.new_page()
+                    logger.info("[PW] 浏览器初始化成功")
+                except Exception as e:
+                    logger.error(f"浏览器上下文/页面创建失败: {e}")
+                    try: await browser.close()
+                    except: pass
+                    raise
 
                 try:
-                    entries = await scrape_ips_playwright(page, ft, max_pages)
+                    entries, page = await scrape_ips_playwright(page, ctx, ft, max_pages)
                     logger.info(f"[PW] 共提取 {len(entries)} 个IP")
                 except Exception as e:
                     logger.warning(f"Playwright IP列表获取失败: {e}")
+                    entries = []
 
                 if max_ips > 0:
                     entries = entries[:max_ips]
@@ -1111,6 +1217,9 @@ async def main():
                     logger.info(f"开始获取 {len(entries)} 个IP的详情页频道...")
                     for i, entry in enumerate(entries):
                         try:
+                            if not await _is_page_alive(page):
+                                logger.warning("[PW] 详情页抓取前页面失效，正在恢复...")
+                                page = await _recover_page(ctx, page)
                             detail_url = f"{TARGET_URL}?p={entry['hash']}&t={entry['type']}"
                             logger.info(f"[{i + 1}/{len(entries)}] {entry['ip']}")
                             chs = await extract_detail_channels_playwright(page, detail_url)
@@ -1124,7 +1233,12 @@ async def main():
                                     all_channels.append((g, fn, url))
                             await asyncio.sleep(random.uniform(IP_DELAY_MIN, IP_DELAY_MAX))
                         except Exception as e:
-                            logger.warning(f"IP {entry['ip']} 失败: {e}")
+                            err_str = str(e).lower()
+                            if "closed" in err_str or "target" in err_str:
+                                logger.warning(f"[PW] IP {entry['ip']} 详情页抓取时页面关闭，正在恢复...")
+                                page = await _recover_page(ctx, page)
+                            else:
+                                logger.warning(f"IP {entry['ip']} 失败: {e}")
 
                 try: await page.close()
                 except: pass
