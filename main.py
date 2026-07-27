@@ -80,7 +80,7 @@ ENABLE_GITHUB = True  # 是否启用GitHub源下载
 GITHUB_URLS = [  # GitHub源地址列表
     "https://gh-proxy.com/https://github.com/vbskycn/iptv/blob/master/tv/iptv4.txt",
     "https://gh-proxy.com/https://github.com/GSD-3726/TY/blob/main/iptv_channels.txt",
-    "http://iptv.cqshushu.com/jiekou.php?jk=m3u&token=e0800cd11bc712331f49030e5cce0920",
+    "https://gh.927223.xyz/https://raw.githubusercontent.com/develop202/migu_video/refs/heads/main/interface.txt",
     "https://gh-proxy.com/https://github.com/GSD-3726/MMM/blob/main/iptv_channels.txt",
 ]
 GITHUB_TIMEOUT = 30  # GitHub下载超时（秒）
