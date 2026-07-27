@@ -18,6 +18,15 @@ import aiohttp
 from playwright.async_api import async_playwright
 
 # ############################################################################
+# 强制 stdout 无缓冲，确保 GitHub Actions 等环境中日志实时刷新
+# ############################################################################
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(line_buffering=True)  # Python 3.7+
+elif hasattr(sys.stdout, 'fileno'):
+    # 回退方案：按行缓冲打开
+    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 1)
+
+# ############################################################################
 # 网页爬取 配置区域 (可根据需要调整)
 # ############################################################################
 TARGET_URL = "https://iptv.cqshushu.com/index.php"  # 爬取的目标网站
@@ -235,7 +244,7 @@ def progress_bar(cur: int, total: int, ok: int, fail: int, last_pct: int) -> int
     # 使用黑色方框 █ 表示完成，- 表示未完成
     bar = '█' * (pct // 5) + '-' * (20 - pct // 5)
     logger.info(f"({pct}%) {bar} ({cur}/{total}) 成功：{ok} 失败：{fail}")
-    sys.stdout.flush()
+    sys.stdout.flush()  # 额外的flush确保进度条立即显示
     return pct
 
 # ############################################################################
