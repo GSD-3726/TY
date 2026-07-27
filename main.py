@@ -120,30 +120,7 @@ CHINESE_ONLY = re.compile(r'[^\u4e00-\u9fff]')
 INTERNAL_IP = re.compile(r'^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|127\.0\.0\.1)')
 CLEAR_SUFFIX_RE = re.compile(r'[\s\-_]*(高清|超清|4K|超高清|标清|HD|FHD|UHD|2K|蓝光|原画|流畅|720P|1080P|2160P)', re.IGNORECASE)
 
-STEALTH_JS = """
-// Step 1: Delete webdriver getter from prototype, redefine as data property
-// paer.js checks Object.getOwnPropertyDescriptor(Navigator.prototype, 'webdriver')
-// If there's a getter -> flags webdriver_spoof. Data property (no getter) passes.
-delete Navigator.prototype.webdriver;
-Object.defineProperty(Navigator.prototype, 'webdriver', {
-    value: undefined, writable: false, configurable: true
-});
-// Step 2: Real chrome.runtime (paer.js checks chrome_runtime_missing)
-if (!window.chrome) window.chrome = {};
-window.chrome.runtime = {
-    connect: function() { return { onMessage: {addListener:function(){}}, postMessage:function(){}, onDisconnect: {addListener:function(){}} }; },
-    sendMessage: function() {},
-    onConnect: {addListener:function(){}, removeListener:function(){}, hasListener:function(){return false;}},
-    onMessage: {addListener:function(){}, removeListener:function(){}, hasListener:function(){return false;}},
-    getURL: function(p) { return 'chrome-extension://invalid/'+p; },
-    id: undefined
-};
-// Step 3: Clean automation traces
-for (let k in window) { if (k.startsWith('cdc_') || k.startsWith('__webdriver') || k.startsWith('__driver') || k.startsWith('__selenium')) delete window[k]; }
-// Step 4: Permissions
-const origQuery = window.navigator.permissions.query;
-window.navigator.permissions.query = (p) => p.name==='notifications' ? Promise.resolve({state:Notification.permission}) : origQuery(p);
-"""
+STEALTH_JS = """ // Step 1: Delete webdriver getter from prototype, redefine as data property // paer.js checks Object.getOwnPropertyDescriptor(Navigator.prototype, 'webdriver') // If there's a getter -> flags webdriver_spoof. Data property (no getter) passes. delete Navigator.prototype.webdriver; Object.defineProperty(Navigator.prototype, 'webdriver', { value: undefined, writable: false, configurable: true }); // Step 2: Real chrome.runtime (paer.js checks chrome_runtime_missing) if (!window.chrome) window.chrome = {}; window.chrome.runtime = { connect: function() { return { onMessage: {addListener:function(){}}, postMessage:function(){}, onDisconnect: {addListener:function(){}} }; }, sendMessage: function() {}, onConnect: {addListener:function(){}, removeListener:function(){}, hasListener:function(){return false;}}, onMessage: {addListener:function(){}, removeListener:function(){}, hasListener:function(){return false;}}, getURL: function(p) { return 'chrome-extension://invalid/'+p; }, id: undefined }; // Step 3: Clean automation traces for (let k in window) { if (k.startsWith('cdc_') || k.startsWith('__webdriver') || k.startsWith('__driver') || k.startsWith('__selenium')) delete window[k]; } // Step 4: Permissions const origQuery = window.navigator.permissions.query; window.navigator.permissions.query = (p) => p.name==='notifications' ? Promise.resolve({state:Notification.permission}) : origQuery(p); """
 
 RE_FRAME = re.compile(r'frame=\s*(\d+)')
 RE_SPEED = re.compile(r'speed=\s*([\d.]+)x')
@@ -446,9 +423,7 @@ def get_adaptive_concurrency() -> int:
     except:
         return FFMPEG_CONCURRENCY
 
-async def ffmpeg_batch_test(
-    channel_map: Dict[Tuple[str, str], List[str]]
-) -> Dict[Tuple[str, str], List[str]]:
+async def ffmpeg_batch_test( channel_map: Dict[Tuple[str, str], List[str]] ) -> Dict[Tuple[str, str], List[str]]:
     if not channel_map:
         return {}
 
@@ -616,206 +591,34 @@ def parse_txt_content(content: str) -> List[Tuple[str, str, str]]:
 async def fetch_github_sources() -> List[Tuple[str, str, str]]:
     if not ENABLE_GITHUB or not GITHUB_URLS:
         return []
-    logger.info(f"--- GitHub 源下载 ({len(GITHUB_URLS)} 个) ---")
     all_channels = []
     timeout = aiohttp.ClientTimeout(total=GITHUB_TIMEOUT)
+
+    urls = list(GITHUB_URLS)
+    if len(urls) >= 3:
+        urls[2] = urls[2].replace('jk=m3u', 'jk=txt')
+        logger.info("GitHub-3: 已自动解析为txt格式")
+
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        tasks = [download_github(url, session) for url in GITHUB_URLS]
+        tasks = [download_github(url, session) for url in urls]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         for i, result in enumerate(results):
+            source_name = f"GitHub-{i+1}"
             if isinstance(result, Exception) or not result:
-                logger.warning(f"GitHub源{i+1} 下载失败")
+                logger.warning(f"{source_name}: 下载失败")
                 continue
             content = result.strip()
             if content.startswith('#EXTM3U') or '#EXTINF' in content:
                 channels = parse_m3u_content(content)
             else:
                 channels = parse_txt_content(content)
-            logger.info(f"GitHub源{i+1}: 解析到 {len(channels)} 个频道")
+            logger.info(f"{source_name}: 获取 {len(channels)} 个频道")
             all_channels.extend(channels)
     logger.info(f"GitHub 源合计: {len(all_channels)} 条原始链接")
     return all_channels
 
-# ############################################################################
-# 网页爬取逻辑 (HTTP回退方案)
-# ############################################################################
-# 网站请求头，模拟真实浏览器
-SITE_HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-}
-
-def _strip_html(text: str) -> str:
-    """去除HTML标签，只保留文本内容"""
-    return re.sub(r'<[^>]+>', '', text).strip()
-
-def _parse_ip_entries_from_html(html: str, filter_type: str) -> list:
-    """从HTML中解析IP列表（正则方式，不依赖JS执行）"""
-    entries = []
-    seen = set()
-    # 简化匹配：逐行查找 gotoIP（修正了括号不匹配的bug）
-    gotoip_re = re.compile(r"gotoIP\('([^']+)',\s*'([^']+)'\)")
-    # 匹配表格行
-    tr_re = re.compile(r'<tr>(.*?)</tr>', re.DOTALL)
-    td_re = re.compile(r'<td[^>]*>(.*?)</td>', re.DOTALL)
-    a_text_re = re.compile(r'<a[^>]*>([^<]+)</a>')
-
-    for tr_match in tr_re.finditer(html):
-        tr_html = tr_match.group(1)
-        goto_match = gotoip_re.search(tr_html)
-        if not goto_match:
-            continue
-        hash_val = goto_match.group(1)
-        entry_type = goto_match.group(2)
-
-        if filter_type != 'all' and entry_type != filter_type:
-            continue
-
-        tds = td_re.findall(tr_html)
-        if len(tds) < 6:
-            continue
-
-        # 从第一个 <td> 中提取 <a> 标签的文本作为 IP
-        ip_text = a_text_re.search(tds[0])
-        ip = ip_text.group(1).strip() if ip_text else ''
-        if not ip or ip in seen:
-            continue
-
-        # 用 _strip_html 去除嵌套标签（如 <strong>、<span> 等）获取纯文本
-        status_raw = _strip_html(tds[5])
-        if '失效' in status_raw:
-            continue
-
-        seen.add(ip)
-        entries.append({
-            'ip': ip,
-            'hash': hash_val,
-            'type': entry_type,
-            'channel_count': _strip_html(tds[1]),
-            'type_info': _strip_html(tds[2]),
-            'online_time': _strip_html(tds[3]),
-            'update_time': _strip_html(tds[4]),
-            'status': status_raw,
-        })
-
-    return entries
-
-def _parse_next_page_url(html: str, current_url: str) -> Optional[str]:
-    """从HTML中解析下一页链接"""
-    m = re.search(r'<a[^>]*href="([^"]+)"[^>]*>\s*下一页\s*</a>', html)
-    if not m:
-        return None
-    href = m.group(1)
-    if 'page=' not in href:
-        return None
-    # 补全为完整URL
-    if href.startswith('?'):
-        from urllib.parse import urlsplit, urlunsplit
-        parts = urlsplit(current_url)
-        return urlunsplit((parts.scheme, parts.netloc, parts.path, href[1:], ''))
-    if href.startswith('/'):
-        from urllib.parse import urlsplit, urlunsplit
-        parts = urlsplit(current_url)
-        return urlunsplit((parts.scheme, parts.netloc, href, '', ''))
-    return href
-
-def _parse_detail_channels_from_html(html: str) -> list:
-    """从详情页HTML解析频道列表"""
-    channels = []
-    tr_re = re.compile(r'<tr>(.*?)</tr>', re.DOTALL)
-    td_re = re.compile(r'<td[^>]*>(.*?)</td>', re.DOTALL)
-    a_href_re = re.compile(r'<a[^>]*href="([^"]+)"[^>]*>')
-
-    for tr_match in tr_re.finditer(html):
-        tds = td_re.findall(tr_match.group(1))
-        if len(tds) < 3:
-            continue
-        name = re.sub(r'<[^>]+>', '', tds[1]).strip()
-        # 优先从 <a> 标签取 href
-        a_match = a_href_re.search(tds[2])
-        if a_match:
-            url = a_match.group(1).strip()
-        else:
-            url = re.sub(r'<[^>]+>', '', tds[2]).strip()
-        if name and url:
-            url = url.replace('&amp;', '&')
-            if not url.startswith(('http://', 'https://')):
-                url = DEFAULT_PROTOCOL + url
-            channels.append((name, url))
-    return channels
-
-async def scrape_ips_http(filter_type: str, max_pages: int) -> list:
-    """使用 aiohttp 直接 HTTP 请求爬取IP列表（不依赖 Playwright/JS执行）"""
-    entries = []
-    seen = set()
-    timeout = aiohttp.ClientTimeout(total=30, connect=15)
-
-    async with aiohttp.ClientSession(timeout=timeout, headers=SITE_HEADERS) as session:
-        # 构造初始URL
-        if filter_type != 'all':
-            url = f"{TARGET_URL}?t={filter_type}&province=all&limit={IPS_PER_PAGE}"
-        else:
-            url = f"{TARGET_URL}?province=all&limit={IPS_PER_PAGE}"
-
-        current_page = 1
-        while current_page <= max_pages:
-            logger.info(f"[HTTP] 正在抓取第 {current_page} 页: {url[:80]}")
-            try:
-                async with session.get(url) as resp:
-                    if resp.status != 200:
-                        logger.warning(f"[HTTP] 第{current_page}页 HTTP {resp.status}")
-                        break
-                    html = await resp.text()
-            except Exception as e:
-                logger.warning(f"[HTTP] 第{current_page}页请求失败: {e}")
-                break
-
-            page_entries = _parse_ip_entries_from_html(html, filter_type)
-            new_count = 0
-            for entry in page_entries:
-                if entry['ip'] in seen:
-                    continue
-                seen.add(entry['ip'])
-                entries.append(entry)
-                new_count += 1
-
-            logger.info(f"[HTTP] 本页新增 {new_count} 个 (累计 {len(entries)} 个)")
-
-            if new_count == 0 and current_page > 1:
-                break
-
-            # 解析下一页
-            next_url = _parse_next_page_url(html, url)
-            if not next_url:
-                break
-
-            delay = random.uniform(PAGE_DELAY_MIN, PAGE_DELAY_MAX)
-            logger.info(f"[HTTP] 等待 {delay:.1f}s 后翻页...")
-            await asyncio.sleep(delay)
-            url = next_url
-            current_page += 1
-
-    return entries
-
-async def extract_detail_channels_http(detail_url: str) -> list:
-    """使用 aiohttp 从详情页提取频道列表"""
-    timeout = aiohttp.ClientTimeout(total=15, connect=10)
-    try:
-        async with aiohttp.ClientSession(timeout=timeout, headers=SITE_HEADERS) as session:
-            async with session.get(detail_url) as resp:
-                if resp.status != 200:
-                    return []
-                html = await resp.text()
-                # 检测JS反爬挑战页面（返回"安全验证"而非实际数据）
-                if '安全验证' in html or 'paer.js' in html:
-                    return []  # 需要Playwright来处理
-                return _parse_detail_channels_from_html(html)
-    except Exception as e:
-        logger.debug(f"[HTTP] 详情页提取失败: {e}")
-        return []
-
-# ---- Playwright 版本（保留作为备选） ----
+# 网页爬取逻辑 (Playwright)
+# 网页爬取逻辑 (Playwright)
 async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
     """使用 Playwright 爬取IP列表（增强容错版，接受 browser context）"""
     entries = []
@@ -845,13 +648,12 @@ async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
                     filter_applied = True
                     break
                 else:
-                    logger.info(f"[PW] 过滤未生效(下拉框={current_filter})，重试 {attempt+1}/5...")
                     await asyncio.sleep(random.uniform(2, 4))
             else:
                 filter_applied = True
                 break
         except Exception as e:
-            logger.warning(f"[PW] 页面初始化失败，重试 {attempt+1}/5: {e}")
+            logger.warning(f"[PW] 页面初始化失败，重试 {attempt+1}/5")
             page = None  # 强制下次循环重新创建页面
             await asyncio.sleep(3)
 
@@ -861,34 +663,12 @@ async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
 
     current_page = 1
     while current_page <= max_pages:
-        logger.info(f"[PW] 正在抓取第 {current_page} 页...")
+        # 抓取第 current_page 页
         await human_scroll(page)
         await random_mouse(page)
 
         try:
-            page_entries = await page.evaluate(r"""
-            () => {
-                const rows = document.querySelectorAll('table.iptv-table tbody tr');
-                return Array.from(rows).map(row => {
-                    const cells = row.querySelectorAll('td');
-                    if (cells.length < 6) return null;
-                    const a = cells[0].querySelector('a');
-                    if (!a) return null;
-                    const onclick = a.getAttribute('onclick') || '';
-                    const m = onclick.match(/gotoIP\('([^']+)',\s*'([^']+)'\)/);
-                    return {
-                        ip: a.innerText.trim(),
-                        hash: m ? m[1] : '',
-                        type: m ? m[2] : '',
-                        channel_count: cells[1].innerText.trim(),
-                        type_info: cells[2].innerText.trim(),
-                        online_time: cells[3].innerText.trim(),
-                        update_time: cells[4].innerText.trim(),
-                        status: cells[5].innerText.trim()
-                    };
-                }).filter(x => x && x.ip && x.hash);
-            }
-            """)
+            page_entries = await page.evaluate(r""" () => { const rows = document.querySelectorAll('table.iptv-table tbody tr'); return Array.from(rows).map(row => { const cells = row.querySelectorAll('td'); if (cells.length < 6) return null; const a = cells[0].querySelector('a'); if (!a) return null; const onclick = a.getAttribute('onclick') || ''; const m = onclick.match(/gotoIP\('([^']+)',\s*'([^']+)'\)/); return { ip: a.innerText.trim(), hash: m ? m[1] : '', type: m ? m[2] : '', channel_count: cells[1].innerText.trim(), type_info: cells[2].innerText.trim(), online_time: cells[3].innerText.trim(), update_time: cells[4].innerText.trim(), status: cells[5].innerText.trim() }; }).filter(x => x && x.ip && x.hash); } """)
         except Exception as e:
             logger.warning(f"[PW] 第{current_page}页数据提取失败: {e}")
             break
@@ -905,7 +685,8 @@ async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
             entries.append(entry)
             new_count += 1
 
-        logger.info(f"[PW] 本页新增 {new_count} 个 (累计 {len(entries)} 个)")
+        if new_count > 0:
+            logger.info(f"[PW] 第{current_page}页: +{new_count} (累计{len(entries)})")
 
         if new_count == 0 and current_page > 1:
             break
@@ -1003,7 +784,7 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
             try:
                 rows = await page.query_selector_all("table tbody tr")
             except Exception as e:
-                logger.debug(f"[PW] 查询表格行失败: {e}")
+                pass
                 break
 
             page_channels = []
@@ -1051,7 +832,7 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
                 if "page=" not in href:
                     break
             except Exception as e:
-                logger.debug(f"[PW] 查找下一页按钮失败: {e}")
+                pass
                 break
 
             await asyncio.sleep(random.uniform(DETAIL_PAGE_DELAY_MIN, DETAIL_PAGE_DELAY_MAX))
@@ -1066,7 +847,7 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
                 break
 
     except Exception as e:
-        logger.debug(f"详情页提取失败: {e}")
+        pass
     finally:
         if page and not page.is_closed():
             try:
@@ -1159,14 +940,14 @@ def export(ch_map: Dict[Tuple[str, str], List[str]]):
 # 主流程
 # ############################################################################
 async def main():
-    parser = argparse.ArgumentParser(description="IPTV源抓取器 v4 (极速准确测速优化版)")
+    parser = argparse.ArgumentParser(description="IPTV源抓取器 v5 (精简版)")
     parser.add_argument("--type", default="all", help="抓取类型: all/hotel/multicast/migu/other")
-    parser.add_argument("--max-pages", type=int, default=MAX_PAGES, help="最多爬几页")
-    parser.add_argument("--max-ips", type=int, default=MAX_IPS, help="最多处理几个IP, 0不限")
+    parser.add_argument("--max-pages", type=int, default=MAX_PAGES, help="最大翻页数")
+    parser.add_argument("--max-ips", type=int, default=MAX_IPS, help="最大IP数, 0=不限")
     parser.add_argument("--headless", default="true", help="无头模式: true/false")
     parser.add_argument("--skip-ffmpeg", action="store_true", help="跳过FFmpeg测速")
-    parser.add_argument("--chrome-path", default="", help="Chrome/Chromium 可执行文件路径（留空自动检测）")
-    parser.add_argument("--skip-scrape", action="store_true", help="跳过网页爬取")
+    parser.add_argument("--chrome-path", default="", help="Chrome路径")
+    parser.add_argument("--skip-scrape", action="store_true", help="跳过网页抓取")
     parser.add_argument("--skip-github", action="store_true", help="跳过GitHub源")
     args = parser.parse_args()
 
@@ -1174,10 +955,10 @@ async def main():
     cmd_raw_type = args.type
     if cmd_raw_type and cmd_raw_type.strip().lower() != "all":
         ft = norm_type(cmd_raw_type)
-        logger.info(f"已使用命令行指定类型: {ft}（覆盖配置 SCRAPE_SOURCE_FILTER={config_raw_type}）")
+        logger.info(f"使用命令行指定类型: {ft}")
     else:
         ft = norm_type(config_raw_type)
-        logger.info(f"使用配置文件指定爬取类型: {ft}")
+        logger.info(f"使用配置文件指定类型: {ft}")
 
     max_pages = args.max_pages
     max_ips = args.max_ips
@@ -1187,38 +968,27 @@ async def main():
 
     start_time = time.time()
     logger.info("=" * 60)
-    logger.info("IPTV 源抓取器 v4 启动 (优化版: 10s 测速，重试，丢包检测)")
-    logger.info("=" * 60)
-    logger.info(f"  类型: {ft}")
-    logger.info(f"  每页IP: {IPS_PER_PAGE}")
-    logger.info(f"  最大页: {max_pages}")
-    logger.info(f"  网页爬取: {'是' if do_scrape else '否'}")
-    logger.info(f"  GitHub源: {'是' if ENABLE_GITHUB and not args.skip_github else '否'}")
-    logger.info(f"  FFmpeg测速: {'是' if do_ffmpeg else '否'}")
-    logger.info(f"  缓存有效期: {CACHE_EXPIRE_HOURS}h")
+    logger.info("IPTV 源抓取器 v5 启动")
+    logger.info(f" 类型: {ft} | 网页抓取: {'开' if do_scrape else '关'} | GitHub: {'开' if ENABLE_GITHUB and not args.skip_github else '关'} | FFmpeg: {'开' if do_ffmpeg else '关'}")
     logger.info("=" * 60)
 
-    all_channels = []
+    all_channels = []  # (group, name, url)
+    github_count = 0
+    site_count = 0
 
-    # 记录各来源的原始数量，用于最终汇总
-    github_raw_count = 0
-    scrape_raw_count = 0
-
+    # GitHub源
     if ENABLE_GITHUB and not args.skip_github:
         github_chs = await fetch_github_sources()
-        github_raw_count = len(github_chs)
+        github_count = len(github_chs)
         all_channels.extend(github_chs)
 
+    # 网页抓取 (Playwright)
     if do_scrape:
-        logger.info("--- 开始网页爬取 ---")
-
+        logger.info("--- 开始网页抓取 ---")
         entries = []
-
         try:
-            # 自动检测 Chrome 路径
             chrome_path = args.chrome_path or CHROME_PATH
             if not chrome_path:
-                # 按优先级查找
                 candidates = [
                     str(Path(__file__).parent / ".openclaw/tmp/browser/chrome-linux64/chrome"),
                     "/usr/bin/google-chrome-stable",
@@ -1231,9 +1001,9 @@ async def main():
                         chrome_path = c
                         break
             if chrome_path:
-                logger.info(f"  Chrome路径: {chrome_path}")
+                logger.info(f"Chrome路径: {chrome_path}")
             else:
-                logger.info("  Chrome路径: Playwright默认")
+                logger.info("Chrome路径: Playwright默认")
 
             async with async_playwright() as p:
                 launch_opts = {
@@ -1258,36 +1028,32 @@ async def main():
                 await ctx.add_init_script(STEALTH_JS)
 
                 try:
-                    # 第一阶段：用 Playwright 爬取 IP 列表（支持翻页）
                     entries = await scrape_ips_playwright(ctx, ft, max_pages)
-                    logger.info(f"[PW] 共获取 {len(entries)} 个IP")
+                    logger.info(f"[PW] 共抓取 {len(entries)} 个IP")
                 except Exception as e:
-                    logger.warning(f"Playwright IP列表爬取失败: {e}")
+                    logger.warning(f"Playwright IP列表抓取失败: {e}")
 
-                # 限制IP数量
                 if max_ips > 0:
                     entries = entries[:max_ips]
-                    logger.info(f"限制为前 {max_ips} 个IP")
 
-                # 第二阶段：用同一个浏览器实例提取详情页频道
                 if entries:
-                    logger.info(f"开始提取 {len(entries)} 个IP的详情页频道...")
+                    logger.info(f"开始获取 {len(entries)} 个IP的详情页频道...")
                     for i, entry in enumerate(entries):
                         try:
                             detail_url = f"{TARGET_URL}?p={entry['hash']}&t={entry['type']}"
-                            logger.info(f"[{i + 1}/{len(entries)}] {entry['ip']}")
                             chs = await extract_detail_channels_playwright(ctx, detail_url)
-                            if not chs:
-                                logger.debug(f"[PW] {entry['ip']} 详情页无频道，跳过")
+                            if chs:
+                                logger.info(f"[{i+1}/{len(entries)}] {entry['ip']}: {len(chs)} 个频道")
                             for name, url in chs:
                                 std_ch = unify_channel_name(name)
                                 g = classify(std_ch)
                                 if g:
                                     fn = std_ch if g == "央视频道" else clean_cn(std_ch)
                                     all_channels.append((g, fn, url))
+                                    site_count += 1
                             await asyncio.sleep(random.uniform(IP_DELAY_MIN, IP_DELAY_MAX))
                         except Exception as e:
-                            logger.warning(f"IP {entry['ip']} 失败: {e}")
+                            logger.warning(f"IP {entry['ip']} 处理失败")
 
                 try: await ctx.close()
                 except: pass
@@ -1296,17 +1062,13 @@ async def main():
 
         except Exception as e:
             logger.warning(f"Playwright启动失败: {e}")
-            # 如果 Playwright 也失败了，尝试 HTTP 获取第一页数据作为兜底
-            logger.info("尝试 HTTP 兜底（仅第一页）...")
-            try:
-                entries = await scrape_ips_http(ft, 1)
-                logger.info(f"[HTTP兜底] 获取 {len(entries)} 个IP")
-            except Exception as e2:
-                logger.warning(f"HTTP兜底也失败: {e2}")
 
-        scrape_raw_count = len(all_channels) - github_raw_count
-        logger.info(f"网页爬取完成: {scrape_raw_count} 条原始链接")
+    # 汇总统计
+    logger.info("=" * 60)
+    logger.info(f"爬取汇总: GitHub={github_count} 条, 网站={site_count} 条, 合计={github_count + site_count} 条")
+    logger.info("=" * 60)
 
+    # 构建频道映射
     before = len(all_channels)
     all_channels = [(g, n, u) for g, n, u in all_channels if not is_internal(u)]
     if before != len(all_channels):
@@ -1321,39 +1083,25 @@ async def main():
     allowed = set(GROUP_ORDER)
     ch_map = {k: v for k, v in ch_map.items() if k[0] in allowed}
 
-    logger.info(f"清洗后: {len(ch_map)} 个频道, {sum(len(v) for v in ch_map.values())} 条链接")
+    total_raw = sum(len(v) for v in ch_map.values())
+    logger.info(f"去重后: {len(ch_map)} 个频道, {total_raw} 条链接")
 
-    # 记录测速前的链接数用于汇总
-    total_before_ffmpeg = sum(len(v) for v in ch_map.values())
-
+    # FFmpeg测速
     if do_ffmpeg and ch_map:
-        logger.info("--- FFmpeg 极速测速 (10s) ---")
+        logger.info("--- FFmpeg 测速 ---")
         ff_start = time.time()
         ch_map = await ffmpeg_batch_test(ch_map)
         logger.info(f"FFmpeg 耗时: {time.time() - ff_start:.1f}s")
 
-    # 测速汇总统计
-    total_valid = sum(len(v) for v in ch_map.values())
-    total_raw = github_raw_count + scrape_raw_count
-    if scrape_raw_count > 0:
-        # 估算网页爬取源的有效数（按比例分配）
-        scrape_valid = int(total_valid * scrape_raw_count / total_raw) if total_raw > 0 else 0
-        github_valid = total_valid - scrape_valid
-        scrape_rate = (scrape_valid / scrape_raw_count * 100) if scrape_raw_count > 0 else 0
-        github_rate = (github_valid / github_raw_count * 100) if github_raw_count > 0 else 0
-        logger.info(f"【测速汇总】网页爬取源原始 {scrape_raw_count} 条，有效 {scrape_valid} 条，有效率：{scrape_rate:.2f}%")
-        logger.info(f"【测速汇总】GitHub 源原始 {github_raw_count} 条，有效 {github_valid} 条，有效率：{github_rate:.2f}%")
-    overall_rate = (total_valid / total_raw * 100) if total_raw > 0 else 0
-    logger.info(f"【测速汇总】全局合计原始 {total_raw} 条，最终有效 {total_valid} 条，综合有效率：{overall_rate:.2f}%")
-
     export(ch_map)
 
     total_time = time.time() - start_time
+    total_valid = sum(len(v) for v in ch_map.values())
     logger.info("=" * 60)
-    logger.info("全部完成！")
-    logger.info(f"  频道数: {len(ch_map)}")
-    logger.info(f"  最终有效链接总数: {total_valid}")
-    logger.info(f"  总耗时: {total_time:.1f}s")
+    logger.info("全部完成:")
+    logger.info(f" 频道数: {len(ch_map)}")
+    logger.info(f" 有效链接: {total_valid}")
+    logger.info(f" 总耗时: {total_time:.1f}s")
     logger.info("=" * 60)
 
 if __name__ == "__main__":
