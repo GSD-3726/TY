@@ -18,21 +18,12 @@ import aiohttp
 from playwright.async_api import async_playwright
 
 # ############################################################################
-# 强制 stdout 无缓冲，确保 GitHub Actions 等环境中日志实时刷新
-# ############################################################################
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(line_buffering=True)  # Python 3.7+
-elif hasattr(sys.stdout, 'fileno'):
-    # 回退方案：按行缓冲打开
-    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 1)
-
-# ############################################################################
 # 网页爬取 配置区域 (可根据需要调整)
 # ############################################################################
 TARGET_URL = "https://iptv.cqshushu.com/index.php"  # 爬取的目标网站
 DEFAULT_PROTOCOL = "http://"  # 默认协议头，用于补全不完整的URL
 IPS_PER_PAGE = 10  # 网站每页显示的IP数量（需与网站实际一致）
-MAX_PAGES = 10  # 最大爬取页数
+MAX_PAGES = 6  # 最大爬取页数
 MAX_LINKS_PER_CHANNEL = 8  # 每个频道最多保留的链接数（测速后取前N条）
 MAX_IPS = 0  # 最多处理的IP数量，0表示不限制
 MAX_DETAIL_PAGES = 5  # 每个IP详情页最多翻页数
@@ -244,7 +235,7 @@ def progress_bar(cur: int, total: int, ok: int, fail: int, last_pct: int) -> int
     # 使用黑色方框 █ 表示完成，- 表示未完成
     bar = '█' * (pct // 5) + '-' * (20 - pct // 5)
     logger.info(f"({pct}%) {bar} ({cur}/{total}) 成功：{ok} 失败：{fail}")
-    sys.stdout.flush()  # 额外的flush确保进度条立即显示
+    sys.stdout.flush()
     return pct
 
 # ############################################################################
