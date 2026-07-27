@@ -1,48 +1,69 @@
-name: 自动更新
+name: 自动更新 IPTV 源
 
 on:
   schedule:
-    - cron: '0 9,21 * * *'   # UTC时间9:00和21:00运行（北京时间17:00和次日5:00）
-  workflow_dispatch:          # 手动触发
+    - cron: '0 9,21 * * *'   # UTC 09:00/21:00 = 北京时间 17:00/05:00
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: '抓取类型 (all/hotel/multicast/migu/other)'
+        required: false
+        default: 'all'
 
 jobs:
   update-iptv:
     runs-on: ubuntu-latest
+    timeout-minutes: 300      # 5小时上限，防止异常占用免费额度
+    
     steps:
-      - name: 检出代码
+      - name: 检出代码 (使用 PAT 确保推送权限)
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.PAT_TOKEN }}   # 关键：检出时就配置 PAT，后续 push 无需再认证
           fetch-depth: 0
 
-      - name: 安装Python
+      - name: 安装 Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
-      - name: 安装依赖
+      - name: 缓存 pip 与 Playwright 浏览器
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-iptv-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-iptv-
+
+      - name: 安装系统依赖与 Python 包
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           playwright install chromium
-          sudo apt update && sudo apt install -y ffmpeg
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
 
-      - name: 运行IPTV提取脚本
-        run: python main.py
-
-      - name: 配置Git用户信息
+      - name: 运行 IPTV 提取脚本
+        env:
+          PYTHONUNBUFFERED: "1"   # 确保日志实时输出，方便调试
         run: |
-          git config --local user.name "GitHub Action"
-          git config --local user.email "action@github.com"
+          python main3.py --type ${{ github.event.inputs.test_type || 'all' }}
+
+      - name: 配置 Git 用户信息
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: 提交并推送更改
         run: |
-          git add .
+          git add -A
           if git diff --cached --quiet; then
-              echo "无文件更改，无需提交"
-              exit 0
+            echo "无文件更改，无需提交"
+            exit 0
           fi
-          git commit -m "chore: 自动更新"
-          git pull --rebase origin main
-          git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          git commit -m "chore: 自动更新 IPTV 源 $(date +'%Y-%m-%d %H:%M')"
+          # 使用动态分支名，兼容 main/master 等
+          git pull --rebase origin ${{ github.ref_name }}
+          git push origin ${{ github.ref_name }}
