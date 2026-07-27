@@ -6,21 +6,31 @@ http://60.177.92.165:4022/rtp/233.50.200.143:5140
 #EXTINF:-1 group-title="央视频道",CCTV-1综合
 http://183.130.244.201:8188/rtp/233.50.200.99:5140
 #EXTINF:-1 group-title="央视频道",CCTV-1综合
+http://183.130.244.201:8188/rtp/233.50.200.99:5140
+#EXTINF:-1 group-title="央视频道",CCTV-1综合
+http://183.130.244.201:8188/rtp/233.50.200.143:5140
+#EXTINF:-1 group-title="央视频道",CCTV-1综合
 http://183.130.244.201:8188/rtp/233.50.200.143:5140
 #EXTINF:-1 group-title="央视频道",CCTV-1综合
 http://60.163.24.0:8188/rtp/233.50.200.99:5140
 #EXTINF:-1 group-title="央视频道",CCTV-1综合
 http://183.130.244.202:8188/rtp/233.50.200.99:5140
-#EXTINF:-1 group-title="央视频道",CCTV-1综合
-http://60.177.92.165:4022/rtp/233.50.200.99:5140
 #EXTINF:-1 group-title="央视频道",CCTV-2财经
 http://115.216.76.205:85/tsfile/live/0002_1.m3u8?key=txiptv&playlive=1&authid=0
 #EXTINF:-1 group-title="央视频道",CCTV-2财经
 http://60.177.92.165:4022/rtp/233.50.201.119:5140
 #EXTINF:-1 group-title="央视频道",CCTV-2财经
 http://60.163.24.0:8188/rtp/233.50.200.100:5140
+#EXTINF:-1 group-title="央视频道",CCTV-2财经
+http://60.163.24.0:8188/rtp/233.50.200.100:5140
+#EXTINF:-1 group-title="央视频道",CCTV-2财经
+http://60.163.24.0:8188/rtp/233.50.200.100:5140
 #EXTINF:-1 group-title="央视频道",CCTV-3综艺
 http://74.91.26.218:82/live/cctv3hd.m3u8
+#EXTINF:-1 group-title="央视频道",CCTV-3综艺
+http://74.91.26.218:82/live/cctv3hd.m3u8
+#EXTINF:-1 group-title="央视频道",CCTV-3综艺
+http://183.130.244.201:8188/rtp/233.50.200.107:5140
 #EXTINF:-1 group-title="央视频道",CCTV-3综艺
 http://183.130.244.201:8188/rtp/233.50.200.107:5140
 #EXTINF:-1 group-title="央视频道",CCTV-3综艺
@@ -93,6 +103,8 @@ http://61.216.67.119:1935/bltvhd/bltv1/chunklist_w1266569526.m3u
 http://61.216.67.119:1935/bltvhd/bltv1/chunklist_w1266569526.m3u
 #EXTINF:-1 group-title="卫视频道",人间卫视
 http://61.216.67.119:1935/bltvhd/bltv1/chunklist_w1266569526.m3u
+#EXTINF:-1 group-title="卫视频道",人间卫视
+http://61.216.67.119:1935/bltvhd/bltv1/chunklist_w1266569526.m3u
 #EXTINF:-1 group-title="卫视频道",北京卫视
 http://180.113.58.78:60001/tsfile/live/0122_1.m3u8?key=txiptv&playlive=1&authid=0
 #EXTINF:-1 group-title="卫视频道",北京卫视
@@ -114,5 +126,5 @@ http://180.113.58.78:60001/tsfile/live/0127_2.m3u8?key=txiptv&playlive=1&authid=
 #EXTINF:-1 group-title="卫视频道",湖南卫视
 http://60.2.173.162:85/tsfile/live/120/2033_1.m3u8?key=txiptv
 
-#EXTINF:-1 group-title="更新时间",2026-07-27 20:30:32
+#EXTINF:-1 group-title="更新时间",2026-07-27 20:49:43
 https://example.com
