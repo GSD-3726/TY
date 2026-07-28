@@ -42,7 +42,7 @@ HEADLESS = True  # 是否使用无头模式（不显示浏览器窗口）
 CHROME_PATH = ""  # Chrome/Chromium 可执行文件路径（留空则自动检测）
 PAGE_TIMEOUT = 60000  # 页面加载超时（毫秒）
 IDLE_TIMEOUT = 15000  # 网络空闲等待超时（毫秒）
-SCRAPE_SOURCE_FILTER = "multicast"  # 默认抓取的类型：all/hotel/multicast/migu/other
+SCRAPE_SOURCE_FILTER = "hotel"  # 默认抓取的类型：all/hotel/multicast/migu/other
 
 # ############################################################################
 # 三层筛选测速配置 (从 main3.py 移植)
@@ -85,10 +85,10 @@ CACHE_EXPIRE_SEC = CACHE_EXPIRE_HOURS * 3600  # 缓存有效秒数（自动换�
 # ############################################################################
 ENABLE_GITHUB = True
 GITHUB_URLS = [
-      "https://gh-proxy.com/https://github.com/vbskycn/iptv/blob/master/tv/iptv4.txt",
+    "https://gh-proxy.com/https://github.com/vbskycn/iptv/blob/master/tv/iptv4.txt",
     "https://gh-proxy.com/https://github.com/GSD-3726/TY/blob/main/iptv_channels.txt",
-    "https://gh.927223.xyz/https://raw.githubusercontent.com/develop202/migu_video/refs/heads/main/interface.txt",
-   ]
+    "https://gh-proxy.com/https://github.com/GSD-3726/MMM/blob/main/iptv_channels.txt",
+]
 GITHUB_TIMEOUT = 30
 GITHUB_RETRIES = 3
 
@@ -563,7 +563,7 @@ async def batch_test_pipeline(channel_map: Dict[Tuple[str, str], List[str]]
     return _finalize_result(result_map)
 
 # ############################################################################
-# GitHub源下载与解析 (与main.py相同)
+# GitHub源下载与解析 (修改：返回每个源的URL集合)
 # ############################################################################
 async def download_github(url: str, session: aiohttp.ClientSession) -> str:
     for attempt in range(1, GITHUB_RETRIES + 1):
@@ -577,7 +577,7 @@ async def download_github(url: str, session: aiohttp.ClientSession) -> str:
                     if '<html' in text[:500].lower() and '#EXTINF' not in text and ',' not in text[:1000]:
                         logger.warning(f"GitHub返回HTML而非文本数据: {url[:80]}")
                         continue
-                    logger.debug(f"GitHub下载成功: {url[:80]} ({len(text)}字符)")  # 改为debug
+                    logger.debug(f"GitHub下载成功: {url[:80]} ({len(text)}字符)")
                     return text
                 logger.warning(f"GitHub HTTP {r.status}: {url[:80]}")
         except Exception as e:
@@ -629,10 +629,15 @@ def parse_txt_content(content: str) -> List[Tuple[str, str, str]]:
                         channels.append((g, fn, url))
     return channels
 
-async def fetch_github_sources() -> List[Tuple[str, str, str]]:
+async def fetch_github_sources() -> Tuple[List[Tuple[str, str, str]], List[set]]:
+    """
+    下载并解析所有 GitHub 源
+    返回：(频道列表, 每个源的URL集合列表)
+    """
     if not ENABLE_GITHUB or not GITHUB_URLS:
-        return []
+        return [], []
     all_channels = []
+    source_urls_list = []  # 每个元素是一个 set，存储该源的所有 URL
     timeout = aiohttp.ClientTimeout(total=GITHUB_TIMEOUT)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         tasks = [download_github(url, session) for url in GITHUB_URLS]
@@ -641,16 +646,20 @@ async def fetch_github_sources() -> List[Tuple[str, str, str]]:
             source_name = f"GitHub-{i+1}"
             if isinstance(result, Exception) or not result:
                 logger.warning(f"{source_name}: 下载失败")
+                source_urls_list.append(set())  # 空集合占位
                 continue
             content = result.strip()
             if content.startswith('#EXTM3U') or '#EXTINF' in content:
                 channels = parse_m3u_content(content)
             else:
                 channels = parse_txt_content(content)
-            logger.debug(f"{source_name}: 获取 {len(channels)} 个频道")  # 改为debug
+            logger.debug(f"{source_name}: 获取 {len(channels)} 个频道")
+            # 收集该源的 URL 集合
+            url_set = {url for _, _, url in channels}
+            source_urls_list.append(url_set)
             all_channels.extend(channels)
     logger.info(f"GitHub 源合计: {len(all_channels)} 条原始链接")
-    return all_channels
+    return all_channels, source_urls_list
 
 # ############################################################################
 # 网页抓取逻辑 (Playwright) — 精简日志
@@ -1075,7 +1084,7 @@ def export(ch_map: Dict[Tuple[str, str], List[str]]):
     logger.info(f"导出完成: {len(ch_map)} 个频道")
 
 # ############################################################################
-# 主流程 (修改：记录来源URL集合 + 精简汇总)
+# 主流程 (修改：记录每个来源的URL集合 + 分别统计)
 # ############################################################################
 async def main():
     parser = argparse.ArgumentParser(description="IPTV源抓取器 v5 (三层筛选测速版)")
@@ -1111,15 +1120,14 @@ async def main():
     logger.info("=" * 60)
 
     all_channels = []  # (group, name, url)
-    github_urls_set = set()   # 用于统计
-    scrape_urls_set = set()   # 用于统计
+    github_sources_urls = []  # 每个 GitHub 源的 URL 集合列表
+    scrape_urls_set = set()   # 网页爬取源的 URL 集合
 
     # GitHub源
     if ENABLE_GITHUB and not args.skip_github:
-        github_chs = await fetch_github_sources()
+        github_chs, github_sources_urls = await fetch_github_sources()
         for g, n, u in github_chs:
             all_channels.append((g, n, u))
-            github_urls_set.add(u)
 
     # 网页抓取 (Playwright)
     if do_scrape:
@@ -1175,12 +1183,10 @@ async def main():
                     entries = entries[:max_ips]
 
                 if entries:
-                    # 不再输出“开始获取 X 个IP的详情页频道...” （改为debug）
                     for i, entry in enumerate(entries):
                         try:
                             detail_url = f"{TARGET_URL}?p={entry['hash']}&t={entry['type']}"
                             chs = await extract_detail_channels_playwright(ctx, detail_url)
-                            # 不再输出每个IP的频道数日志
                             for name, url in chs:
                                 std_ch = unify_channel_name(name)
                                 g = classify(std_ch)
@@ -1200,12 +1206,6 @@ async def main():
         except Exception as e:
             logger.warning(f"Playwright启动失败: {e}")
 
-    # 汇总原始链接数
-    raw_github = len(github_urls_set)
-    raw_scrape = len(scrape_urls_set)
-    raw_total = raw_github + raw_scrape
-    # 不再输出“爬取汇总”详细，仅在最终统计中显示
-
     # 构建频道映射
     before = len(all_channels)
     all_channels = [(g, n, u) for g, n, u in all_channels if not is_internal(u)]
@@ -1224,27 +1224,35 @@ async def main():
     total_links_before_test = sum(len(v) for v in ch_map.values())
     logger.info(f"去重后: {len(ch_map)} 个频道, {total_links_before_test} 条链接")
 
-    # === 替换原有 ffmpeg_batch_test 为 batch_test_pipeline ===
+    # === 测速 ===
     if do_ffmpeg and ch_map:
         logger.info("--- 三层筛选测速 ---")
         ff_start = time.time()
-        ch_map = await batch_test_pipeline(ch_map)   # 调用新测速流水线
+        ch_map = await batch_test_pipeline(ch_map)
         logger.info(f"测速总耗时: {time.time() - ff_start:.1f}s")
 
     # 导出
     export(ch_map)
 
-    # === 精简最终统计 ===
+    # === 最终统计（按来源分别统计） ===
     final_urls = set()
     for urls in ch_map.values():
         final_urls.update(urls)
-    final_valid = len(final_urls)
 
     logger.info("=" * 60)
     logger.info("【最终统计】")
-    logger.info(f"  GitHub 源原始链接: {raw_github}")
-    logger.info(f"  网页爬取原始链接: {raw_scrape}")
-    logger.info(f"  测速后最终有效链接: {final_valid}")
+    # 遍历每个 GitHub 源
+    for i, url_set in enumerate(github_sources_urls, start=1):
+        raw = len(url_set)
+        effective = len(url_set & final_urls)
+        pct = (effective / raw * 100) if raw else 0
+        logger.info(f"  GitHub 源{i}原始链接: 共{raw}输出{effective}有效{pct:.1f}%")
+
+    # 网页爬取源
+    raw_scrape = len(scrape_urls_set)
+    effective_scrape = len(scrape_urls_set & final_urls)
+    pct_scrape = (effective_scrape / raw_scrape * 100) if raw_scrape else 0
+    logger.info(f"  网页爬取原始链接: 共{raw_scrape}输出{effective_scrape}有效{pct_scrape:.1f}%")
     logger.info("=" * 60)
 
     total_time = time.time() - start_time
