@@ -42,7 +42,7 @@ HEADLESS = True  # 是否使用无头模式（不显示浏览器窗口）
 CHROME_PATH = ""  # Chrome/Chromium 可执行文件路径（留空则自动检测）
 PAGE_TIMEOUT = 60000  # 页面加载超时（毫秒）
 IDLE_TIMEOUT = 15000  # 网络空闲等待超时（毫秒）
-SCRAPE_SOURCE_FILTER = "hotel"  # 默认抓取的类型：all/hotel/multicast/migu/other
+SCRAPE_SOURCE_FILTER = "multicast"  # 默认抓取的类型：all/hotel/multicast/migu/other
 
 # ############################################################################
 # 三层筛选测速配置 (针对GitHub Actions免费版优化)
