@@ -1115,7 +1115,7 @@ async def main():
 
     start_time = time.time()
     logger.info("=" * 60)
-    logger.info("IPTV 源抓取器 v5 启动 (三层筛选: 连通性→6s快速→20s稳定)")
+    logger.info("IPTV 源抓取器启动")
     logger.info(f" 类型: {ft} | 网页抓取: {'开' if do_scrape else '关'} | GitHub: {'开' if ENABLE_GITHUB and not args.skip_github else '关'} | FFmpeg: {'开' if do_ffmpeg else '关'}")
     logger.info("=" * 60)
 
