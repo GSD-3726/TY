@@ -52,7 +52,7 @@ FFMPEG_PATH = "ffmpeg"                   # FFmpeg命令路径
 
 # 第一层：连通性预检
 CONN_TIMEOUT = 2.0                       # 缩短至2秒（原3.0）
-CONN_CONCURRENCY = 100                   # 不变
+CONN_CONCURRENCY = 80                   # 不变
 
 # 第二层：快速探测 (已舍弃，但保留参数以防回退)
 FAST_FFMPEG_DURATION = 4                 # 已不使用
