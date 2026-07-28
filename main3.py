@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import json
 import logging
 import random
@@ -42,7 +42,7 @@ HEADLESS = True  # 是否使用无头模式（不显示浏览器窗口）
 CHROME_PATH = ""  # Chrome/Chromium 可执行文件路径（留空则自动检测）
 PAGE_TIMEOUT = 60000  # 页面加载超时（毫秒）
 IDLE_TIMEOUT = 15000  # 网络空闲等待超时（毫秒）
-SCRAPE_SOURCE_FILTER = "multicast"  # 默认抓取的类型：all/hotel/multicast/migu/other
+SCRAPE_SOURCE_FILTER = "hotel"  # 默认抓取的类型：all/hotel/multicast/migu/other
 
 # ############################################################################
 # 三层筛选测速配置 (针对GitHub Actions免费版优化)
@@ -54,19 +54,19 @@ FFMPEG_PATH = "ffmpeg"                   # FFmpeg命令路径
 CONN_TIMEOUT = 2.0                       # 缩短至2秒（原3.0）
 CONN_CONCURRENCY = 100                   # 不变
 
-# 第二层：快速探测 (4秒)
-FAST_FFMPEG_DURATION = 4                 # 6→4秒
-FAST_PROC_TIMEOUT = 8                    # 12→8秒
-FAST_FFMPEG_CONCURRENCY = 40             # 30→40
-FAST_MIN_FRAMES = 30                     # 45→30 (4秒×7.5fps)
-FAST_MIN_SPEED = 0.75                    # 不变
+# 第二层：快速探测 (已舍弃，但保留参数以防回退)
+FAST_FFMPEG_DURATION = 4                 # 已不使用
+FAST_PROC_TIMEOUT = 8                    # 已不使用
+FAST_FFMPEG_CONCURRENCY = 40             # 已不使用
+FAST_MIN_FRAMES = 30                     # 已不使用
+FAST_MIN_SPEED = 0.75                    # 已不使用
 
-# 第三层：稳定测试 (10秒)
-STABLE_FFMPEG_DURATION = 10              # 20→10秒
-STABLE_PROC_TIMEOUT = 15                 # 30→15秒
-STABLE_FFMPEG_CONCURRENCY = 20           # 15→20
+# 第三层：稳定测试 (优化超时)
+STABLE_FFMPEG_DURATION = 10              # 保持10秒
+STABLE_PROC_TIMEOUT = 12                 # 从15秒缩短至12秒，避免卡死
+STABLE_FFMPEG_CONCURRENCY = 20           # 并发数不变
 MIN_AVG_FPS = 15                         # 不变
-MIN_FRAMES = 150                         # 250→150 (10秒×15fps)
+MIN_FRAMES = 150                         # 不变
 MIN_REALTIME_FACTOR = 0.60               # 不变
 MIN_NET_FEED_RATIO = 0.65                # 不变
 
@@ -303,45 +303,9 @@ async def quick_connectivity_test(urls: List[str]) -> List[str]:
     logger.info(f"连通性预检: {len(urls)} -> {len(alive)} 存活")
     return alive
 
-async def fast_ffmpeg_probe(url: str) -> Optional[Dict[str, Any]]:
-    """第二层：4秒快速探测，过滤首帧极慢或解码卡顿的源"""
-    if not shutil.which(FFMPEG_PATH):
-        return None
-    
-    cmd = [
-        FFMPEG_PATH, "-hide_banner", "-y",
-        "-fflags", "+genpts+nobuffer+discardcorrupt",
-        "-rw_timeout", "5000000",
-        "-analyzeduration", "500000",   # 优化：降低分析时长
-        "-probesize", "500000",         # 优化：降低探测大小
-        "-i", url,
-        "-t", str(FAST_FFMPEG_DURATION),
-        "-f", "null", "-"
-    ]
-    
-    try:
-        proc = await asyncio.create_subprocess_exec(
-            *cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
-        )
-        _, stderr = await asyncio.wait_for(proc.communicate(), timeout=FAST_PROC_TIMEOUT)
-        output = stderr.decode('utf-8', errors='ignore')
-        
-        frames = int(RE_FRAME.findall(output)[-1]) if RE_FRAME.findall(output) else 0
-        speed_strs = RE_SPEED.findall(output)
-        avg_speed = sum(float(s) for s in speed_strs[-3:]) / len(speed_strs[-3:]) if speed_strs else 0
-        
-        if frames >= FAST_MIN_FRAMES and avg_speed >= FAST_MIN_SPEED:
-            w, h = 0, 0
-            vm = RE_VIDEO_RES.search(output)
-            if vm:
-                w, h = int(vm.group(1)), int(vm.group(2))
-            return {
-                "pass": True, "frames": frames, "speed": avg_speed,
-                "width": w, "height": h, "output": output
-            }
-    except Exception:
-        pass
-    return None
+# ========= 第二层已舍弃，以下函数保留但不使用 =========
+# async def fast_ffmpeg_probe(url: str) -> Optional[Dict[str, Any]]:
+#     ... (已注释)
 
 async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
     """第三层：10秒稳定测试，精准过滤周期性抖动与后置限流源"""
@@ -356,9 +320,9 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
         "-fflags", "+genpts+nobuffer+discardcorrupt+ignidx",
         "-flags", "low_delay",
         "-max_delay", "1000000",
-        "-analyzeduration", "500000",   # 优化：降低分析时长
-        "-probesize", "500000",         # 优化：降低探测大小
-        "-rw_timeout", "8000000",
+        "-analyzeduration", "500000",
+        "-probesize", "500000",
+        "-rw_timeout", "5000000",   # 优化：从8秒降至5秒，更快超时
         "-i", url,
         "-t", str(STABLE_FFMPEG_DURATION),
         "-f", "null", "-"
@@ -370,7 +334,7 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
             *cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
         )
         _, stderr = await asyncio.wait_for(
-            proc.communicate(), timeout=STABLE_PROC_TIMEOUT
+            proc.communicate(), timeout=STABLE_PROC_TIMEOUT  # 已从15秒改为12秒
         )
         elapsed = time.perf_counter() - start_time
         output = stderr.decode('utf-8', errors='ignore')
@@ -458,9 +422,12 @@ def _finalize_result(result_map):
         final[k] = [u for u, _, _, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]
     return final
 
+# ############################################################################
+# 修改：batch_test_pipeline 舍弃第二层，直接进入第三层
+# ############################################################################
 async def batch_test_pipeline(channel_map: Dict[Tuple[str, str], List[str]]
 ) -> Dict[Tuple[str, str], List[str]]:
-    """三层筛选流水线：连通性->快速FFmpeg->稳定测试 (替换原有的ffmpeg_batch_test)"""
+    """三层筛选流水线（跳过第二层快速探测，直接进入第三层稳定测试）"""
     if not channel_map:
         return {}
     
@@ -499,26 +466,10 @@ async def batch_test_pipeline(channel_map: Dict[Tuple[str, str], List[str]]
     for u in dead_urls:
         new_cache[u] = {"ok": False, "ts": time.time()}
     
-    logger.info(f"=== 第二层：快速 FFmpeg 探测 ({len(alive_urls)} 个, 并发:{FAST_FFMPEG_CONCURRENCY}) ===")
-    fast_sem = asyncio.Semaphore(FAST_FFMPEG_CONCURRENCY)
-    fast_passed = []
-    
-    async def _fast_test(url: str):
-        async with fast_sem:
-            res = await fast_ffmpeg_probe(url)
-            return url, res
-    
-    fast_tasks = [asyncio.ensure_future(_fast_test(u)) for u in alive_urls]
-    fast_ok = 0
-    for coro in asyncio.as_completed(fast_tasks):
-        url, res = await coro
-        if res and res["pass"]:
-            fast_passed.append((url, res))
-            fast_ok += 1
-        else:
-            new_cache[url] = {"ok": False, "ts": time.time()}
-    
-    logger.info(f"快速探测通过: {fast_ok}/{len(alive_urls)}")
+    # ===== 舍弃第二层，直接进入第三层 =====
+    # 构造 fast_passed 列表，每个元素为 (url, None) ，第三层函数会忽略 fast_res
+    fast_passed = [(url, None) for url in alive_urls]
+    logger.info(f"跳过第二层快速探测，直接进行第三层稳定测试，共 {len(fast_passed)} 个链接")
     
     logger.info(f"=== 第三层：10秒稳定测试 ({len(fast_passed)} 个, 并发:{STABLE_FFMPEG_CONCURRENCY}) ===")
     stable_sem = asyncio.Semaphore(STABLE_FFMPEG_CONCURRENCY)
@@ -1226,7 +1177,7 @@ async def main():
     if do_ffmpeg and ch_map:
         logger.info("--- 三层筛选测速 ---")
         ff_start = time.time()
-        ch_map = await batch_test_pipeline(ch_map)
+        ch_map = await batch_test_pipeline(ch_map)   # 内部已舍弃第二层
         logger.info(f"测速总耗时: {time.time() - ff_start:.1f}s")
 
     # 导出
