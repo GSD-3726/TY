@@ -13,20 +13,19 @@ from collections import defaultdict
 from pathlib import Path
 from urllib.parse import urlparse
 from typing import Dict, List, Tuple, Optional, Any
-import functools
 import aiohttp
 from playwright.async_api import async_playwright
 
 # ############################################################################
-# 网页爬取 配置区域 (可根据需要调整)
+# 网页抓取 配置区域 (可根据需要调整)
 # ############################################################################
-TARGET_URL = "https://iptv.cqshushu.com/index.php"  # 爬取的目标网站
+TARGET_URL = "https://iptv.cqshushu.com/index.php"  # 抓取的目标网站
 DEFAULT_PROTOCOL = "http://"  # 默认协议头，用于补全不完整的URL
 IPS_PER_PAGE = 10  # 网站每页显示的IP数量（需与网站实际一致）
 MAX_PAGES = 6  # 最大爬取页数
 MAX_LINKS_PER_CHANNEL = 8  # 每个频道最多保留的链接数（测速后取前N条）
 MAX_IPS = 0  # 最多处理的IP数量，0表示不限制
-MAX_DETAIL_PAGES = 5  # 每个IP详情页最多翻页数
+MAX_DETAIL_PAGES = 30  # 每个IP详情页最多翻页数（增至30页，可获取300+频道）
 DETAIL_PAGE_TIMEOUT = 30000  # 详情页加载超时（毫秒）
 DETAIL_IDLE_TIMEOUT = 5000  # 详情页网络空闲等待超时（毫秒）
 DETAIL_MAX_SECONDS = 60  # 单个详情页总处理时间上限（秒）
@@ -578,7 +577,7 @@ async def download_github(url: str, session: aiohttp.ClientSession) -> str:
                     if '<html' in text[:500].lower() and '#EXTINF' not in text and ',' not in text[:1000]:
                         logger.warning(f"GitHub返回HTML而非文本数据: {url[:80]}")
                         continue
-                    logger.info(f"GitHub下载成功: {url[:80]} ({len(text)}字符)")
+                    logger.debug(f"GitHub下载成功: {url[:80]} ({len(text)}字符)")  # 改为debug
                     return text
                 logger.warning(f"GitHub HTTP {r.status}: {url[:80]}")
         except Exception as e:
@@ -648,13 +647,13 @@ async def fetch_github_sources() -> List[Tuple[str, str, str]]:
                 channels = parse_m3u_content(content)
             else:
                 channels = parse_txt_content(content)
-            logger.info(f"{source_name}: 获取 {len(channels)} 个频道")
+            logger.debug(f"{source_name}: 获取 {len(channels)} 个频道")  # 改为debug
             all_channels.extend(channels)
     logger.info(f"GitHub 源合计: {len(all_channels)} 条原始链接")
     return all_channels
 
 # ############################################################################
-# 网页爬取逻辑 (Playwright) — 与main.py完全一致
+# 网页抓取逻辑 (Playwright) — 精简日志
 # ############################################################################
 async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
     """使用 Playwright 爬取IP列表（增强容错版，接受 browser context）"""
@@ -720,8 +719,7 @@ async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
             entries.append(entry)
             new_count += 1
 
-        if new_count > 0:
-            logger.info(f"[PW] 第{current_page}页: +{new_count} (累计{len(entries)})")
+        # 不再输出每页新增日志
 
         if new_count == 0 and current_page > 1:
             break
@@ -738,7 +736,7 @@ async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
             break
 
         delay = random.uniform(PAGE_DELAY_MIN, PAGE_DELAY_MAX)
-        logger.info(f"[PW] 等待 {delay:.1f}s 后翻页...")
+        # 不再输出翻页等待日志
         await asyncio.sleep(delay)
 
         try:
@@ -754,10 +752,18 @@ async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
 
         current_page += 1
 
+    logger.info(f"[PW] 共抓取 {len(entries)} 个IP")
     return entries
 
 async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
-    """使用 Playwright 从详情页提取频道列表（增强容错版）"""
+    """
+    从详情页获取频道列表（完整流程）：
+    1. 首先进入 detail page (?p=HASH&t=TYPE)
+    2. 提取 "📺 查看频道列表" 链接的 ?s=HASH&t=TYPE
+    3. 跳转到频道列表页 ?s=HASH&t=TYPE&page_size=100
+    4. 提取 iptv-table 中的频道
+    5. 如果有多页，自动翻页获取
+    """
     channels = []
     page = None
     start_time = time.perf_counter()
@@ -768,106 +774,196 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
     try:
         page = await ctx.new_page()
         await page.add_init_script(STEALTH_JS)
-        await page.goto(detail_url, timeout=DETAIL_PAGE_TIMEOUT, wait_until="commit")
+
+        # === 1. 首先进入 detail page ===
+        await page.goto(detail_url, timeout=DETAIL_PAGE_TIMEOUT, wait_until="domcontentloaded")
         await asyncio.sleep(random.uniform(DETAIL_WAIT_MIN, DETAIL_WAIT_MAX))
         try:
             await page.wait_for_load_state("networkidle", timeout=DETAIL_IDLE_TIMEOUT)
         except:
             pass
-        await asyncio.sleep(random.uniform(2, 4))
 
         page_title = await page.title()
         page_text = ""
         try:
-            page_text = (await page.inner_text("body"))[:200]
+            page_text = (await page.inner_text("body"))[:500]
         except:
             pass
-        if "安全验证" in page_title or "访问被拒绝" in page_text or "安全验证" in page_text:
-            logger.debug(f"[PW] 详情页被反爬拦截: {detail_url[:60]}")
+        if "安全验证" in page_title or "暂时被拒绝" in page_text or "安全验证" in page_text:
+            logger.debug(f"[PW] 详情页触发安全验证: {detail_url[:60]}")
             return channels
 
-        for sel in ['a:has-text("查看频道列表")', 'a:has-text("频道")']:
-            try:
-                btn = await page.query_selector(sel)
-                if btn:
-                    await btn.click()
-                    await asyncio.sleep(random.uniform(2, 3))
-                    break
-            except:
-                pass
+        # === 2. 提取 "查看频道列表" 链接的 ?s=HASH ===
+        s_hash = None
+        channel_list_url = None
 
-        last_url = ""
-        last_count = 0
-        same_count_times = 0
+        # 通过 JS 提取所有包含 ?s= 的 <a> 标签
+        s_link = await page.evaluate(r"""
+            () => {
+                const links = document.querySelectorAll('a[href*="?s="]');
+                for (const a of links) {
+                    const href = a.getAttribute('href') || '';
+                    if (href.includes('?s=')) {
+                        return href;
+                    }
+                }
+                return null;
+            }
+        """)
+
+        if s_link:
+            m = re.search(r'[?&]s=([^&]+)', s_link)
+            if m:
+                s_hash = m.group(1)
+                t_match = re.search(r'[?&]t=([^&]+)', detail_url)
+                t_type = t_match.group(1) if t_match else 'hotel'
+                channel_list_url = f"{TARGET_URL}?s={s_hash}&t={t_type}&page_size=100"
+                logger.debug(f"[PW] 获取频道列表URL: {channel_list_url[:80]}")
+
+        if not channel_list_url:
+            # 备用：点击按钮获取
+            for sel in ['a:has-text("查看频道列表")', 'a.btn-play', '.btn-play']:
+                try:
+                    btn = await page.query_selector(sel)
+                    if btn:
+                        href = await btn.get_attribute("href") or ""
+                        if '?s=' in href:
+                            m = re.search(r'[?&]s=([^&]+)', href)
+                            if m:
+                                s_hash = m.group(1)
+                                t_match = re.search(r'[?&]t=([^&]+)', detail_url)
+                                t_type = t_match.group(1) if t_match else 'hotel'
+                                channel_list_url = f"{TARGET_URL}?s={s_hash}&t={t_type}&page_size=100"
+                                break
+                except:
+                    continue
+
+        if not channel_list_url:
+            logger.debug(f"[PW] 未找到频道列表链接: {detail_url[:60]}")
+            return channels
+
+        # === 3. 跳转到频道列表页 ===
+        await page.goto(channel_list_url, timeout=DETAIL_PAGE_TIMEOUT, wait_until="domcontentloaded")
+        await asyncio.sleep(random.uniform(3, 5))
+        try:
+            await page.wait_for_load_state("networkidle", timeout=DETAIL_IDLE_TIMEOUT)
+        except:
+            pass
+        await asyncio.sleep(random.uniform(1, 2))
+
+        # === 4. 提取频道 ===
+        seen_page_urls = set()  # 用于检测是否真的翻页了
 
         for page_num in range(1, MAX_DETAIL_PAGES + 1):
             if is_overtime():
-                logger.warning(f"详情页超时(>{DETAIL_MAX_SECONDS}s)，强制结束: {detail_url[:60]}")
+                logger.debug(f"详情页超时(>{DETAIL_MAX_SECONDS}s)，强制结束: {detail_url[:60]}")
                 break
 
-            current_url = page.url
-            if page_num > 1 and current_url == last_url:
-                break
-            last_url = current_url
-
+            # 等待表格加载
+            table_loaded = False
             try:
-                await page.wait_for_selector("table tbody tr", timeout=DETAIL_IDLE_TIMEOUT)
+                await page.wait_for_selector('table.iptv-table tbody tr', timeout=10000)
+                table_loaded = True
             except:
-                pass
-
-            try:
-                rows = await page.query_selector_all("table tbody tr")
-            except Exception as e:
-                pass
-                break
-
-            page_channels = []
-            for row in rows:
                 try:
-                    cells = await row.query_selector_all("td")
-                    if len(cells) >= 3:
-                        name = (await cells[1].inner_text()).strip()
-                        url_el = await cells[2].query_selector("a")
-                        if url_el:
-                            url = await url_el.get_attribute("href") or (await cells[2].inner_text()).strip()
-                        else:
-                            url = (await cells[2].inner_text()).strip()
-                        if name and url:
-                            url = url.replace('&amp;', '&')
-                            if not url.startswith(("http://", "https://")):
-                                url = DEFAULT_PROTOCOL + url
-                            page_channels.append((name, url))
-                except Exception:
-                    continue
+                    await page.wait_for_selector('table tbody tr', timeout=5000)
+                    table_loaded = True
+                except:
+                    pass
 
-            if len(page_channels) == 0:
+            if not table_loaded:
+                if page_num == 1:
+                    logger.debug(f"[PW] 未找到频道表格: {detail_url[:60]}")
                 break
-            if len(page_channels) == last_count:
-                same_count_times += 1
-                if same_count_times >= 2:
-                    break
-            else:
-                same_count_times = 0
-            last_count = len(page_channels)
-            channels.extend(page_channels)
+
+            # 通过 JS 提取频道数据（效率高）
+            page_channels = await page.evaluate(r"""
+                () => {
+                    const results = [];
+                    const rows = document.querySelectorAll('table.iptv-table tbody tr, table tbody tr');
+                    for (const row of rows) {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length < 3) continue;
+                        const name = cells[1] ? cells[1].innerText.trim() : '';
+                        let url = '';
+                        const a = cells[2] ? cells[2].querySelector('a') : null;
+                        if (a) {
+                            url = a.getAttribute('href') || a.innerText.trim();
+                        } else if (cells[2]) {
+                            url = cells[2].innerText.trim();
+                        }
+                        if (name && url) {
+                            results.push({name: name, url: url});
+                        }
+                    }
+                    return results;
+                }
+            """)
+
+            if not page_channels:
+                break
+
+            for ch in page_channels:
+                name = ch.get('name', '').strip()
+                url = ch.get('url', '').strip()
+                if name and url:
+                    url = url.replace('&amp;', '&')
+                    if not url.startswith(('http://', 'https://')):
+                        url = DEFAULT_PROTOCOL + url
+                    channels.append((name, url))
+
+            # 不输出每页频道数（debug可保留，但这里默认不输出）
+
+            # 检测是否真的翻页了（通过URL去重）
+            current_page_url = page.url
+            if current_page_url in seen_page_urls:
+                logger.debug(f"[PW] URL重复，停止翻页")
+                break
+            seen_page_urls.add(current_page_url)
 
             if page_num >= MAX_DETAIL_PAGES:
                 break
 
+            # === 5. 翻页 ===
+            nxt = None
             try:
-                nxt = await page.query_selector('a:has-text("下一页")')
-                if not nxt:
-                    break
+                pagination_btns = await page.query_selector_all('.pagination-btn')
+                for btn in pagination_btns:
+                    btn_text = (await btn.inner_text()).strip()
+                    btn_href = await btn.get_attribute('href') or ''
+                    if btn_text == '下一页' and btn_href:
+                        nxt = btn
+                        break
+            except:
+                pass
+
+            if not nxt:
+                # 通过 URL 拼接翻页
+                try:
+                    current_url = page.url
+                    if 'page=' in current_url:
+                        m = re.search(r'page=(\d+)', current_url)
+                        if m:
+                            next_page = int(m.group(1)) + 1
+                            next_url = re.sub(r'page=\d+', f'page={next_page}', current_url)
+                            await page.goto(next_url, timeout=DETAIL_PAGE_TIMEOUT, wait_until="domcontentloaded")
+                            await asyncio.sleep(random.uniform(DETAIL_WAIT_MIN, DETAIL_WAIT_MAX))
+                            try:
+                                await page.wait_for_load_state("networkidle", timeout=DETAIL_IDLE_TIMEOUT)
+                            except:
+                                pass
+                            continue
+                except:
+                    pass
+                break
+
+            try:
                 disabled = await nxt.get_attribute("disabled") or ""
                 cls = await nxt.get_attribute("class") or ""
                 if disabled or "disabled" in cls:
                     break
-                href = await nxt.get_attribute("href") or ""
-                if "page=" not in href:
-                    break
-            except Exception as e:
+            except:
                 pass
-                break
 
             await asyncio.sleep(random.uniform(DETAIL_PAGE_DELAY_MIN, DETAIL_PAGE_DELAY_MAX))
             try:
@@ -876,12 +972,13 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
                     await page.wait_for_load_state("networkidle", timeout=DETAIL_IDLE_TIMEOUT)
                 except:
                     pass
+                await asyncio.sleep(random.uniform(1, 2))
             except Exception as e:
                 logger.debug(f"翻页点击失败: {e}")
                 break
 
     except Exception as e:
-        pass
+        logger.debug(f"[PW] 提取频道异常: {e}")
     finally:
         if page and not page.is_closed():
             try:
@@ -889,7 +986,14 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
             except:
                 pass
 
-    return channels
+    # 去重
+    seen = set()
+    unique = []
+    for name, url in channels:
+        if url not in seen:
+            seen.add(url)
+            unique.append((name, url))
+    return unique
 
 # ############################################################################
 # URL去重处理 (与main.py相同)
@@ -1064,7 +1168,6 @@ async def main():
 
                 try:
                     entries = await scrape_ips_playwright(ctx, ft, max_pages)
-                    logger.info(f"[PW] 共抓取 {len(entries)} 个IP")
                 except Exception as e:
                     logger.warning(f"Playwright IP列表抓取失败: {e}")
 
@@ -1072,20 +1175,19 @@ async def main():
                     entries = entries[:max_ips]
 
                 if entries:
-                    logger.info(f"开始获取 {len(entries)} 个IP的详情页频道...")
+                    # 不再输出“开始获取 X 个IP的详情页频道...” （改为debug）
                     for i, entry in enumerate(entries):
                         try:
                             detail_url = f"{TARGET_URL}?p={entry['hash']}&t={entry['type']}"
                             chs = await extract_detail_channels_playwright(ctx, detail_url)
-                            if chs:
-                                logger.info(f"[{i+1}/{len(entries)}] {entry['ip']}: {len(chs)} 个频道")
+                            # 不再输出每个IP的频道数日志
                             for name, url in chs:
                                 std_ch = unify_channel_name(name)
                                 g = classify(std_ch)
                                 if g:
                                     fn = std_ch if g == "央视频道" else clean_cn(std_ch)
                                     all_channels.append((g, fn, url))
-                                    scrape_urls_set.add(url)   # 记录网页爬取来源URL
+                                    scrape_urls_set.add(url)
                             await asyncio.sleep(random.uniform(IP_DELAY_MIN, IP_DELAY_MAX))
                         except Exception as e:
                             logger.warning(f"IP {entry['ip']} 处理失败")
@@ -1102,9 +1204,7 @@ async def main():
     raw_github = len(github_urls_set)
     raw_scrape = len(scrape_urls_set)
     raw_total = raw_github + raw_scrape
-    logger.info("=" * 60)
-    logger.info(f"爬取汇总: GitHub={raw_github} 条, 网站={raw_scrape} 条, 合计={raw_total} 条")
-    logger.info("=" * 60)
+    # 不再输出“爬取汇总”详细，仅在最终统计中显示
 
     # 构建频道映射
     before = len(all_channels)
