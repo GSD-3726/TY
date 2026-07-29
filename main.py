@@ -51,10 +51,10 @@ SCRAPE_SOURCE_FILTER = "hotel"  # 默认抓取的类型：all/hotel/multicast/mi
 ENABLE_FFMPEG = True  # 是否启用FFmpeg测速
 FFMPEG_PATH = "ffmpeg"  # FFmpeg可执行文件路径或命令名
 FFMPEG_DURATION = 10  # 测速时长（秒），建议6-10秒，更长更准确
-FFMPEG_CONCURRENCY = 10  # 基础并发测速数
+FFMPEG_CONCURRENCY = 15  # 基础并发测速数
 FFMPEG_CONCURRENCY_ADAPTIVE = True  # 是否根据CPU核心数自动调整并发（建议开启）
 FFMPEG_PROC_TIMEOUT = 16  # 单个测速进程超时时间（秒），应大于测速时长+缓冲时间
-FFMPEG_RETRIES = 1  # 测速失败后重试次数
+FFMPEG_RETRIES = 0  # 测速失败后重试次数
 
 # 配套: 严苛防卡顿阈值 (10秒版)
 MIN_AVG_FPS = 18  # 最低平均帧率（低于此值视为不合格）
