@@ -23,7 +23,7 @@ from playwright.async_api import async_playwright
 TARGET_URL = "https://iptv.cqshushu.com/index.php"  # 爬取的目标网站
 DEFAULT_PROTOCOL = "http://"  # 默认协议头，用于补全不完整的URL
 IPS_PER_PAGE = 10  # 网站每页显示的IP数量（需与网站实际一致）
-MAX_PAGES = 10  # 最大爬取页数
+MAX_PAGES = 6  # 最大爬取页数
 MAX_LINKS_PER_CHANNEL = 8  # 每个频道最多保留的链接数（测速后取前N条）
 MAX_IPS = 0  # 最多处理的IP数量，0表示不限制
 MAX_DETAIL_PAGES = 30  # 每个IP详情页最多翻页数
@@ -43,7 +43,7 @@ HEADLESS = True  # 是否使用无头模式（不显示浏览器窗口）
 CHROME_PATH = ""  # Chrome/Chromium 可执行文件路径（留空则自动检测）
 PAGE_TIMEOUT = 60000  # 页面加载超时（毫秒）
 IDLE_TIMEOUT = 15000  # 网络空闲等待超时（毫秒）
-SCRAPE_SOURCE_FILTER = "hotel"  # 默认抓取的类型：all/hotel/multicast/migu/other
+SCRAPE_SOURCE_FILTER = "multicast"  # 默认抓取的类型：all/hotel/multicast/migu/other
 
 # ############################################################################
 # FFmpeg测速 配置区域 (60分钟优化版 - 基于v5代码调整)
