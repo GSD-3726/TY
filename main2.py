@@ -1,3 +1,18 @@
+#!/usr/bin/env python3
+"""
+IPTV 精简爬虫 - 仅保留爬取功能
+目标: 最快速度爬取所有频道地址，按分类输出为 txt
+优化策略: 并发详情页提取 + 智能延迟 + 反检测
+
+用法:
+  python3 iptv_crawler.py                    # 按配置区域 SCRAPE_TYPE 爬取
+  python3 iptv_crawler.py --type migu        # 只爬咪咕源
+  python3 iptv_crawler.py --type migu,hotel  # 同时爬咪咕和酒店
+  python3 iptv_crawler.py --max-pages 5      # 限制页数
+  python3 iptv_crawler.py --fast             # 快速模式(减少延迟)
+  python3 iptv_crawler.py --concurrency 10   # 详情页并发数
+"""
+
 import asyncio
 import random
 import re
@@ -51,7 +66,7 @@ DETAIL_IDLE_TIMEOUT = 5000
 DETAIL_MAX_SECONDS = 120
 
 # 并发
-DETAIL_CONCURRENCY = 1
+DETAIL_CONCURRENCY = 5
 
 # 反检测 Stealth JS
 STEALTH_JS = """
@@ -529,19 +544,29 @@ async def extract_channels_from_detail(ctx, detail_url: str, delays: dict) -> li
 # ############################################################################
 # 并发详情页爬取
 # ############################################################################
-async def crawl_all_details(ctx, entries: list, concurrency: int, delays: dict) -> list:
+async def crawl_all_details(browser, entries: list, concurrency: int, delays: dict) -> list:
     all_channels = []
     sem = asyncio.Semaphore(concurrency)
 
     async def _extract(i, entry):
         async with sem:
-            detail_url = f"{TARGET_URL}?p={entry['hash']}&t={entry['type']}"
-            chs = await extract_channels_from_detail(ctx, detail_url, delays)
-            if chs:
-                log(f"[{i+1}/{len(entries)}] {entry['ip']}: {len(chs)} 个频道")
-            else:
-                log(f"[{i+1}/{len(entries)}] {entry['ip']}: 无频道")
-            return chs
+            # 每个任务创建独立 context，避免JS函数互相干扰
+            ctx = await browser.new_context(
+                viewport={"width": 1920, "height": 1080},
+                user_agent=random.choice(UA_POOL),
+            )
+            await ctx.add_init_script(STEALTH_JS)
+            try:
+                detail_url = f"{TARGET_URL}?p={entry['hash']}&t={entry['type']}"
+                chs = await extract_channels_from_detail(ctx, detail_url, delays)
+                if chs:
+                    log(f"[{i+1}/{len(entries)}] {entry['ip']}: {len(chs)} 个频道")
+                else:
+                    log(f"[{i+1}/{len(entries)}] {entry['ip']}: 无频道")
+                return chs
+            finally:
+                try: await ctx.close()
+                except: pass
 
     tasks = [asyncio.ensure_future(_extract(i, e)) for i, e in enumerate(entries)]
 
@@ -734,7 +759,7 @@ async def main():
             if entries:
                 # 阶段2: 并发爬取详情页
                 log(f"--- 阶段2: 并发爬取 {len(entries)} 个IP详情页 (并发={concurrency}) ---")
-                all_channels = await crawl_all_details(ctx, entries, concurrency, delays)
+                all_channels = await crawl_all_details(browser, entries, concurrency, delays)
 
                 for name, url in all_channels:
                     if is_internal(url):
