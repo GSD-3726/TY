@@ -34,7 +34,7 @@ jobs:
       - name: Run IPTV scraper
         # 输出文件路径可自定义，这里直接放在仓库根目录
         run: |
-          python iptv_scraper.py \
+          python main2.py \
             --type migu,hotel \
             --max-pages 10 \
             --concurrency 5 \
