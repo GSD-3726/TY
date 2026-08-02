@@ -28,6 +28,9 @@ OUTPUT_TXT = OUTPUT_DIR / "iptv_channels.txt"
 # 多个类型用逗号分隔，依次爬取: "migu,hotel"
 SCRAPE_TYPE = "migu,hotel"
 
+# 每个频道最多保留的链接数（0=不限制，保留全部）
+MAX_LINKS_PER_CHANNEL = 0
+
 # 延迟配置 (正常模式)
 PAGE_DELAY = (5.0, 8.0)
 IP_DELAY = (2.0, 4.0)
@@ -45,7 +48,7 @@ PAGE_TIMEOUT = 60000
 IDLE_TIMEOUT = 15000
 DETAIL_PAGE_TIMEOUT = 60000
 DETAIL_IDLE_TIMEOUT = 5000
-DETAIL_MAX_SECONDS = 60
+DETAIL_MAX_SECONDS = 120
 
 # 并发
 DETAIL_CONCURRENCY = 5
@@ -321,6 +324,7 @@ async def scrape_ip_list(ctx, filter_type: str, max_pages: int, delays: dict) ->
 # 核心爬取: 详情页频道提取
 # ############################################################################
 async def extract_channels_from_detail(ctx, detail_url: str, delays: dict) -> list:
+    """从IP详情页提取全部频道URL"""
     channels = []
     page = None
     start_time = time.perf_counter()
@@ -332,71 +336,62 @@ async def extract_channels_from_detail(ctx, detail_url: str, delays: dict) -> li
         page = await ctx.new_page()
         await page.add_init_script(STEALTH_JS)
 
-        # 1. 进入详情页
-        await page.goto(detail_url, timeout=DETAIL_PAGE_TIMEOUT, wait_until="commit")
-        await asyncio.sleep(random.uniform(*delays['detail_wait']))
+        # 1. 先访问首页（必须，否则后续JS跳转不生效）
+        await page.goto(TARGET_URL, timeout=PAGE_TIMEOUT, wait_until="commit")
+        await asyncio.sleep(random.uniform(3, 5))
         try:
-            await page.wait_for_load_state("domcontentloaded", timeout=DETAIL_IDLE_TIMEOUT)
+            await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
         except:
             pass
+
+        # 2. 用 gotoIP() 跳转到详情页（客户端路由，不能用 page.goto）
+        p_match = re.search(r'[?&]p=([^&]+)', detail_url)
+        t_match = re.search(r'[?&]t=([^&]+)', detail_url)
+        if not p_match:
+            log_warn(f"无法解析detail_url: {detail_url[:60]}")
+            return channels
+
+        p_hash = p_match.group(1)
+        t_type = t_match.group(1) if t_match else 'hotel'
+
+        # 等待 gotoIP 函数定义
+        for wait_i in range(10):
+            has_func = await page.evaluate("typeof gotoIP === 'function'")
+            if has_func:
+                break
+            await asyncio.sleep(1)
+
         try:
-            await page.wait_for_load_state("networkidle", timeout=DETAIL_IDLE_TIMEOUT)
-        except:
-            pass
+            await page.evaluate(f"gotoIP('{p_hash}', '{t_type}')")
+            await asyncio.sleep(random.uniform(*delays['detail_wait']))
+            try:
+                await page.wait_for_load_state("networkidle", timeout=DETAIL_IDLE_TIMEOUT)
+            except:
+                pass
+        except Exception as e:
+            log_warn(f"gotoIP失败: {e}")
+            return channels
 
         # 安全验证检测
         page_title = await page.title()
-        page_text = ""
-        try:
-            page_text = (await page.inner_text("body"))[:500]
-        except:
-            pass
-        if "安全验证" in page_title or "暂时被拒绝" in page_text or "安全验证" in page_text:
+        if "安全验证" in page_title or "暂时被拒绝" in (await page.inner_text("body"))[:300]:
             log_warn(f"触发安全验证: {detail_url[:60]}")
             return channels
 
-        # 2. 提取频道列表链接 ?s=HASH
-        s_link = await page.evaluate("""
+        # 3. 找到 ?s= 链接的 href
+        s_href = await page.evaluate("""
             () => {
-                const links = document.querySelectorAll('a[href*="?s="]');
-                for (const a of links) {
-                    const href = a.getAttribute('href') || '';
-                    if (href.includes('?s=')) return href;
-                }
-                return null;
+                const a = document.querySelector('a[href*="?s="]');
+                return a ? a.getAttribute('href') : null;
             }
         """)
 
-        channel_list_url = None
-        if s_link:
-            m = re.search(r'[?&]s=([^&]+)', s_link)
-            if m:
-                s_hash = m.group(1)
-                t_match = re.search(r'[?&]t=([^&]+)', detail_url)
-                t_type = t_match.group(1) if t_match else 'hotel'
-                channel_list_url = f"{TARGET_URL}?s={s_hash}&t={t_type}&page_size=100"
-
-        if not channel_list_url:
-            for sel in ['a:has-text("查看频道列表")', 'a.btn-play', '.btn-play']:
-                try:
-                    btn = await page.query_selector(sel)
-                    if btn:
-                        href = await btn.get_attribute("href") or ""
-                        if '?s=' in href:
-                            m = re.search(r'[?&]s=([^&]+)', href)
-                            if m:
-                                s_hash = m.group(1)
-                                t_match = re.search(r'[?&]t=([^&]+)', detail_url)
-                                t_type = t_match.group(1) if t_match else 'hotel'
-                                channel_list_url = f"{TARGET_URL}?s={s_hash}&t={t_type}&page_size=100"
-                                break
-                except:
-                    continue
-
-        if not channel_list_url:
+        if not s_href:
+            log_warn(f"未找到?s=链接: {p_hash[:20]}")
             return channels
 
-        # 3. 跳转频道列表页
+        # 4. goto ?s= URL（从详情页跳转才能正常加载频道列表）
+        channel_list_url = TARGET_URL + s_href if s_href.startswith('?') else s_href
         await page.goto(channel_list_url, timeout=DETAIL_PAGE_TIMEOUT, wait_until="commit")
         await asyncio.sleep(random.uniform(3, 5))
         try:
@@ -404,7 +399,13 @@ async def extract_channels_from_detail(ctx, detail_url: str, delays: dict) -> li
         except:
             pass
 
-        # 4. 提取频道 (含翻页)
+        # 检查是否成功
+        page_title = await page.title()
+        if "频道列表" not in page_title:
+            log_warn(f"未跳转到频道列表: {page_title[:40]}")
+            return channels
+
+        # 5. 提取全部频道（含翻页）
         seen_page_urls = set()
         for page_num in range(1, MAX_DETAIL_PAGES + 1):
             if is_overtime():
@@ -414,7 +415,7 @@ async def extract_channels_from_detail(ctx, detail_url: str, delays: dict) -> li
                 await page.wait_for_selector('table.iptv-table tbody tr, table tbody tr', timeout=10000)
             except:
                 if page_num == 1:
-                    log_warn(f"未找到频道表格: {detail_url[:60]}")
+                    log_warn(f"未找到频道表格: {p_hash[:20]}")
                 break
 
             page_channels = await page.evaluate("""
@@ -452,24 +453,32 @@ async def extract_channels_from_detail(ctx, detail_url: str, delays: dict) -> li
 
             current_url = page.url
             if current_url in seen_page_urls:
+                log_warn(f"  URL重复，停止翻页")
                 break
             seen_page_urls.add(current_url)
 
             if page_num >= MAX_DETAIL_PAGES:
                 break
 
-            # 翻页
+            # 翻页: 找下一页链接
             nxt = None
             try:
-                btns = await page.query_selector_all('.pagination-btn')
-                for btn in btns:
-                    text = (await btn.inner_text()).strip()
-                    href = await btn.get_attribute('href') or ''
-                    if text == '下一页' and href:
-                        nxt = btn
+                all_links = await page.evaluate("""
+                    () => {
+                        const results = [];
+                        document.querySelectorAll('a').forEach(a => {
+                            results.push({text: a.innerText.trim(), href: a.getAttribute('href') || ''});
+                        });
+                        return results;
+                    }
+                """)
+                for link in all_links:
+                    if '下一页' in link['text'] and link['href']:
+                        nxt = link['href']
                         break
             except:
                 pass
+
 
             if not nxt:
                 try:
@@ -478,34 +487,24 @@ async def extract_channels_from_detail(ctx, detail_url: str, delays: dict) -> li
                         m = re.search(r'page=(\d+)', cur)
                         if m:
                             next_page = int(m.group(1)) + 1
-                            next_url = re.sub(r'page=\d+', f'page={next_page}', cur)
-                            await page.goto(next_url, timeout=DETAIL_PAGE_TIMEOUT, wait_until="commit")
-                            await asyncio.sleep(random.uniform(*delays['detail_wait']))
-                            try:
-                                await page.wait_for_load_state("networkidle", timeout=DETAIL_IDLE_TIMEOUT)
-                            except:
-                                pass
-                            continue
+                            nxt = re.sub(r'page=\d+', f'page={next_page}', cur)
                 except:
                     pass
-                break
 
-            try:
-                disabled = await nxt.get_attribute("disabled") or ""
-                cls = await nxt.get_attribute("class") or ""
-                if disabled or "disabled" in cls:
-                    break
-            except:
-                pass
+            if not nxt:
+                break
 
             await asyncio.sleep(random.uniform(*delays['detail_page']))
             try:
-                await nxt.click()
+                # 确保用完整URL（相对路径会重定向）
+                if nxt.startswith('?'):
+                    nxt = TARGET_URL + nxt
+                await page.goto(nxt, timeout=DETAIL_PAGE_TIMEOUT, wait_until="commit")
+                await asyncio.sleep(random.uniform(2, 3))
                 try:
                     await page.wait_for_load_state("networkidle", timeout=DETAIL_IDLE_TIMEOUT)
                 except:
                     pass
-                await asyncio.sleep(random.uniform(1, 2))
             except:
                 break
 
@@ -610,6 +609,8 @@ def export_txt(ch_map: dict, output_path: Path):
                 chs_sorted = sorted(chs, key=cctv_sort_key)
             else:
                 chs_sorted = sorted(chs, key=lambda x: x[0])
+            if MAX_LINKS_PER_CHANNEL > 0:
+                chs_sorted = chs_sorted[:MAX_LINKS_PER_CHANNEL]
             for n, u in chs_sorted:
                 if n.strip():
                     f.write(f"{n},{u}\n")
