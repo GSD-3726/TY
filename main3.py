@@ -45,32 +45,35 @@ IDLE_TIMEOUT = 15000  # 网络空闲等待超时（毫秒）
 SCRAPE_SOURCE_FILTER = "hotel"  # 默认抓取的类型：all/hotel/multicast/migu/other
 
 # ############################################################################
-# 三层筛选测速配置 (针对GitHub Actions免费版优化)
+# 三层筛选测速配置 (GitHub Actions优化版：防后期卡顿+提速)
 # ############################################################################
 ENABLE_FFMPEG = True                     # 是否启用FFmpeg测速
 FFMPEG_PATH = "ffmpeg"                   # FFmpeg命令路径
 
 # 第一层：连通性预检
-CONN_TIMEOUT = 2.0                       # 缩短至2秒（原3.0）
-CONN_CONCURRENCY = 80                   # 不变
+CONN_TIMEOUT = 2.0                       # 缩短至2秒
+CONN_CONCURRENCY = 80                    # HTTP轻量请求，高并发无压力
 
-# 第二层：快速探测 (已舍弃，但保留参数以防回退)
-FAST_FFMPEG_DURATION = 4                 # 已不使用
-FAST_PROC_TIMEOUT = 8                    # 已不使用
-FAST_FFMPEG_CONCURRENCY = 40             # 已不使用
-FAST_MIN_FRAMES = 30                     # 已不使用
-FAST_MIN_SPEED = 0.75                    # 已不使用
+# 第二层：已舍弃，保留参数兼容
+FAST_FFMPEG_DURATION = 4
+FAST_PROC_TIMEOUT = 8
+FAST_FFMPEG_CONCURRENCY = 40
+FAST_MIN_FRAMES = 30
+FAST_MIN_SPEED = 0.75
 
-# 第三层：稳定测试 (优化超时)
-STABLE_FFMPEG_DURATION = 10              # 保持10秒
-STABLE_PROC_TIMEOUT = 12                 # 从15秒缩短至12秒，避免卡死
-STABLE_FFMPEG_CONCURRENCY = 20           # 并发数不变
-MIN_AVG_FPS = 15                         # 不变
-MIN_FRAMES = 150                         # 不变
-MIN_REALTIME_FACTOR = 0.60               # 不变
-MIN_NET_FEED_RATIO = 0.65                # 不变
-
-FFMPEG_RETRIES = 1                       # 预留，暂未使用
+# 第三层：稳定测试（分段测速+提前终止优化）
+STABLE_FFMPEG_DURATION = 10              # 测速总时长保持10秒
+STABLE_PROC_TIMEOUT = 13                 # 进程总超时，留1秒余量
+STABLE_FFMPEG_CONCURRENCY = 16           # 适配GitHub 2核，避免CPU抢占失真
+MIN_AVG_FPS = 15                         # 最低平均帧率
+MIN_FRAMES = 150                         # 最低总帧数
+MIN_REALTIME_FACTOR = 0.65               # 实时因子阈值上调
+MIN_NET_FEED_RATIO = 0.70                # 净进给比阈值上调，防缓冲耗尽
+# 新增稳定性判定阈值
+MIN_LATE_SPEED = 0.70                    # 后半段最低平均速度，杜绝前快后慢
+MIN_SPEED_MIN = 0.50                     # 全程最低速度，防断崖式卡顿
+MAX_FPS_JITTER = 0.4                     # 帧率最大波动系数，防周期性卡顿
+FFMPEG_RETRIES = 1                       # 预留重试
 
 # ############################################################################
 # 缓存 配置区域 (可根据需要调整)
@@ -110,7 +113,6 @@ CATEGORY_RULES = [
     {"name": "地方频道", "keywords": ["地方", "都市", "综合", "新闻", "公共"]},
 ]
 GROUP_ORDER = ["央视频道", "卫视频道", "影视频道", "少儿频道"]
-
 CCTV_MAP = {
     "1": "综合", "2": "财经", "3": "综艺", "4": "中文国际", "5": "体育",
     "5+": "体育赛事", "6": "电影", "7": "国防军事", "8": "电视剧",
@@ -120,19 +122,22 @@ CCTV_MAP = {
 CCTV_ORDER = [f"CCTV-{k}{v}" for k, v in CCTV_MAP.items() if k != "5+"]
 CCTV_ORDER.insert(5, "CCTV-5+体育赛事")
 CCTV_ORDER.append("CCTV-4K")
-
 CCTV_RE = re.compile(r'(cctv)[-\s]?(5\+|\d{1,3})', re.IGNORECASE)
 CHINESE_ONLY = re.compile(r'[^\u4e00-\u9fff]')
 INTERNAL_IP = re.compile(r'^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|127\.0\.0\.1)')
 CLEAR_SUFFIX_RE = re.compile(r'[\s\-_]*(高清|超清|4K|超高清|标清|HD|FHD|UHD|2K|蓝光|原画|流畅|720P|1080P|2160P)', re.IGNORECASE)
-
 STEALTH_JS = """ // Step 1: Delete webdriver getter from prototype, redefine as data property // paer.js checks Object.getOwnPropertyDescriptor(Navigator.prototype, 'webdriver') // If there's a getter -> flags webdriver_spoof. Data property (no getter) passes. delete Navigator.prototype.webdriver; Object.defineProperty(Navigator.prototype, 'webdriver', { value: undefined, writable: false, configurable: true }); // Step 2: Real chrome.runtime (paer.js checks chrome_runtime_missing) if (!window.chrome) window.chrome = {}; window.chrome.runtime = { connect: function() { return { onMessage: {addListener:function(){}}, postMessage:function(){}, onDisconnect: {addListener:function(){}} }; }, sendMessage: function() {}, onConnect: {addListener:function(){}, removeListener:function(){}, hasListener:function(){return false;}}, onMessage: {addListener:function(){}, removeListener:function(){}, hasListener:function(){return false;}}, getURL: function(p) { return 'chrome-extension://invalid/'+p; }, id: undefined }; // Step 3: Clean automation traces for (let k in window) { if (k.startsWith('cdc_') || k.startsWith('__webdriver') || k.startsWith('__driver') || k.startsWith('__selenium')) delete window[k]; } // Step 4: Permissions const origQuery = window.navigator.permissions.query; window.navigator.permissions.query = (p) => p.name==='notifications' ? Promise.resolve({state:Notification.permission}) : origQuery(p); """
-
 RE_FRAME = re.compile(r'frame=\s*(\d+)')
 RE_SPEED = re.compile(r'speed=\s*([\d.]+)x')
 RE_VIDEO_RES = re.compile(r'Video:.*?(\d{3,})x(\d{3,})', re.IGNORECASE)
 RE_TIME = re.compile(r'time=(\d+):(\d+):([\d.]+)')
-RE_ERROR = re.compile(r'(overrun|corrupt|missing|error while decoding|Invalid data found|PES packet size mismatch|non-existing|timestamp|Connection reset|Broken pipe|Server returned 403|404 Not Found|Connection timed out|HTTP error|timeout)', re.IGNORECASE)
+RE_ERROR = re.compile(
+    r'(overrun|corrupt|missing|error while decoding|Invalid data found|PES packet size mismatch'
+    r'|non-existing|timestamp|Connection reset|Broken pipe|Server returned 40[34]|404 Not Found'
+    r'|Connection timed out|HTTP error|timeout|Input/output error|Connection refused'
+    r'|buffer underflow|End of file|could not find codec parameters|Unable to open URL)',
+    re.IGNORECASE
+)
 
 # ############################################################################
 # 日志 (使用立即刷新的Handler确保实时输出)
@@ -277,7 +282,6 @@ def parse_ffmpeg_time(time_str_h: str, time_str_m: str, time_str_s: str) -> floa
 async def quick_connectivity_test(urls: List[str]) -> List[str]:
     """第一层：快速连通性测试，仅检查HTTP状态码（不再读取body）"""
     semaphore = asyncio.Semaphore(CONN_CONCURRENCY)
-    alive = []
     
     async def _check_one(url: str):
         async with semaphore:
@@ -295,6 +299,7 @@ async def quick_connectivity_test(urls: List[str]) -> List[str]:
             return None
     
     tasks = [asyncio.ensure_future(_check_one(u)) for u in urls]
+    alive = []
     for coro in asyncio.as_completed(tasks):
         result = await coro
         if result:
@@ -308,7 +313,11 @@ async def quick_connectivity_test(urls: List[str]) -> List[str]:
 #     ... (已注释)
 
 async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
-    """第三层：10秒稳定测试，精准过滤周期性抖动与后置限流源"""
+    """
+    第三层：10秒稳定测试（优化版）
+    新增：分段速度检测、实时错误监控、提前终止、帧率波动检测
+    解决：前快后慢的限速源、周期性卡顿源误判问题
+    """
     headers = (
         "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n"
         "Referer: https://www.miguvideo.com/\r\n"
@@ -320,9 +329,10 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
         "-fflags", "+genpts+nobuffer+discardcorrupt+ignidx",
         "-flags", "low_delay",
         "-max_delay", "1000000",
-        "-analyzeduration", "500000",
-        "-probesize", "500000",
-        "-rw_timeout", "5000000",   # 优化：从8秒降至5秒，更快超时
+        "-analyzeduration", "800000",
+        "-probesize", "800000",
+        "-rw_timeout", "5000000",
+        "-err_detect", "bitstream",
         "-i", url,
         "-t", str(STABLE_FFMPEG_DURATION),
         "-f", "null", "-"
@@ -331,79 +341,167 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
     start_time = time.perf_counter()
     try:
         proc = await asyncio.create_subprocess_exec(
-            *cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
+            *cmd,
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.PIPE
         )
-        _, stderr = await asyncio.wait_for(
-            proc.communicate(), timeout=STABLE_PROC_TIMEOUT  # 已从15秒改为12秒
-        )
-        elapsed = time.perf_counter() - start_time
-        output = stderr.decode('utf-8', errors='ignore')
-        
-        has_errors = bool(RE_ERROR.search(output))
-        frame_matches = RE_FRAME.findall(output)
-        frames = int(frame_matches[-1]) if frame_matches else 0
-        
+
+        # 实时统计变量
+        all_speeds = []
+        all_frames = []
+        time_points = []
+        has_errors = False
+        low_speed_duration = 0.0
+        last_check_time = start_time
         w, h = 0, 0
-        vm = RE_VIDEO_RES.search(output)
-        if vm:
-            w, h = int(vm.group(1)), int(vm.group(2))
-        
-        speed_strs = RE_SPEED.findall(output)
-        all_speeds = [float(s) for s in speed_strs]
-        avg_speed = sum(all_speeds[-3:]) / len(all_speeds[-3:]) if all_speeds else 0
-        
-        time_matches = RE_TIME.findall(output)
-        actual_play_time = STABLE_FFMPEG_DURATION
-        if len(time_matches) >= 2:
-            first = parse_ffmpeg_time(*time_matches[0])
-            last = parse_ffmpeg_time(*time_matches[-1])
-            actual_play_time = max(last - first, 0.1)
-        
-        actual_fps = frames / actual_play_time if actual_play_time > 0 else 0
-        startup_offset = 1.5 if elapsed > 3.0 else 0.8
-        net_feed_ratio = actual_play_time / (elapsed - startup_offset) if (elapsed - startup_offset) > 0 else 0
-        
-        stalled = actual_play_time < STABLE_FFMPEG_DURATION * 0.80
-        
-        recent_speeds = all_speeds[-5:] if len(all_speeds) >= 5 else all_speeds
-        has_stall_spikes = any(s < 0.6 for s in recent_speeds) if len(recent_speeds) >= 3 else False
-        
-        realtime_factor = actual_fps * avg_speed / 25.0
-        
+        resolution_parsed = False
+
+        # 异步逐行读取输出，实时监控+提前终止
+        try:
+            async for raw_line in proc.stderr:
+                line = raw_line.decode('utf-8', errors='ignore').strip()
+                elapsed = time.perf_counter() - start_time
+
+                # 1. 命中致命错误，立即终止
+                if RE_ERROR.search(line):
+                    has_errors = True
+                    proc.kill()
+                    break
+
+                # 2. 解析分辨率（仅一次）
+                if not resolution_parsed:
+                    res_match = RE_VIDEO_RES.search(line)
+                    if res_match:
+                        w, h = int(res_match.group(1)), int(res_match.group(2))
+                        resolution_parsed = True
+
+                # 3. 解析速度 + 提前终止逻辑
+                speed_match = RE_SPEED.search(line)
+                if speed_match:
+                    speed = float(speed_match.group(1))
+                    all_speeds.append(speed)
+                    # 启动3秒后，连续2秒低于最低速度阈值，直接判死
+                    if elapsed > 3.0:
+                        if speed < MIN_SPEED_MIN:
+                            low_speed_duration += elapsed - last_check_time
+                            if low_speed_duration >= 2.0:
+                                proc.kill()
+                                break
+                        else:
+                            low_speed_duration = 0.0
+                    last_check_time = time.perf_counter()
+
+                # 4. 解析帧数
+                frame_match = RE_FRAME.search(line)
+                if frame_match:
+                    all_frames.append(int(frame_match.group(1)))
+
+                # 5. 解析播放时间
+                time_match = RE_TIME.search(line)
+                if time_match:
+                    play_sec = parse_ffmpeg_time(*time_match.groups())
+                    time_points.append((elapsed, play_sec))
+
+                # 硬超时保护
+                if elapsed >= STABLE_PROC_TIMEOUT:
+                    proc.kill()
+                    break
+
+        except Exception as e:
+            logger.debug(f"流读取异常 {url[:60]}: {e}")
+            try: proc.kill()
+            except: pass
+
+        # 等待进程回收
+        try:
+            await asyncio.wait_for(proc.wait(), timeout=2.0)
+        except asyncio.TimeoutError:
+            try: proc.kill()
+            except: pass
+
+        elapsed_total = time.perf_counter() - start_time
+
+        # ===== 指标统计 =====
+        frames = all_frames[-1] if all_frames else 0
+        avg_speed = sum(all_speeds[-3:]) / len(all_speeds[-3:]) if all_speeds else 0.0
+
+        # 分段速度：后半段平均速度（防前快后慢）
+        if len(all_speeds) >= 5:
+            split_idx = int(len(all_speeds) * 0.4)
+            late_speeds = all_speeds[split_idx:]
+            late_avg_speed = sum(late_speeds) / len(late_speeds)
+            min_speed = min(all_speeds)
+        else:
+            late_avg_speed = avg_speed
+            min_speed = avg_speed if all_speeds else 0.0
+
+        # 实际播放时长
+        actual_play_time = 0.0
+        if len(time_points) >= 2:
+            actual_play_time = max(time_points[-1][1] - time_points[0][1], 0.1)
+        else:
+            actual_play_time = STABLE_FFMPEG_DURATION if frames > MIN_FRAMES else 0.0
+
+        # 净进给比：播放时长 / (总耗时-启动耗时)，排除前1秒启动期
+        effective_test_time = max(elapsed_total - 1.0, 0.1)
+        net_feed_ratio = actual_play_time / effective_test_time if effective_test_time > 0 else 0.0
+
+        # 帧率与波动
+        actual_fps = frames / actual_play_time if actual_play_time > 0 else 0.0
+        fps_jitter = 0.0
+        if len(all_frames) >= 4:
+            frame_deltas = [all_frames[i] - all_frames[i-1] for i in range(1, len(all_frames))]
+            if frame_deltas and max(frame_deltas) > 0:
+                fps_jitter = (max(frame_deltas) - min(frame_deltas)) / max(frame_deltas)
+
+        # 实时因子
+        realtime_factor = actual_fps * avg_speed / 25.0 if avg_speed > 0 else 0.0
+
+        # ===== 最终判定 =====
         is_ok = (
             frames >= MIN_FRAMES
             and actual_fps >= MIN_AVG_FPS
             and avg_speed >= 0.75
-            and not stalled
+            and late_avg_speed >= MIN_LATE_SPEED
+            and min_speed >= MIN_SPEED_MIN
             and net_feed_ratio >= MIN_NET_FEED_RATIO
-            and elapsed < STABLE_FFMPEG_DURATION * 2.5
+            and elapsed_total < STABLE_FFMPEG_DURATION * 2.5
             and not has_errors
-            and not has_stall_spikes
+            and fps_jitter <= MAX_FPS_JITTER
             and realtime_factor >= MIN_REALTIME_FACTOR
         )
-        
+
         return {
-            "ok": is_ok, "fps": round(actual_fps, 2), "frames": frames,
-            "width": w, "height": h, "speed": round(avg_speed, 2),
-            "elapsed": round(elapsed, 2), "realtime": round(realtime_factor, 3),
-            "has_errors": has_errors
+            "ok": is_ok,
+            "fps": round(actual_fps, 2),
+            "frames": frames,
+            "width": w,
+            "height": h,
+            "speed": round(avg_speed, 2),
+            "late_speed": round(late_avg_speed, 2),
+            "elapsed": round(elapsed_total, 2),
+            "realtime": round(realtime_factor, 3),
+            "has_errors": has_errors,
+            "fps_jitter": round(fps_jitter, 3)
         }
-    except asyncio.TimeoutError:
-        try: proc.kill()
-        except: pass
-        return {"ok": False, "fps": 0, "frames": 0, "width": 0, "height": 0,
-                "speed": 0, "elapsed": 0, "realtime": 0, "has_errors": False}
+
     except Exception as e:
         logger.debug(f"稳定测试异常 {url[:60]}: {e}")
-        return {"ok": False, "fps": 0, "frames": 0, "width": 0, "height": 0,
-                "speed": 0, "elapsed": 0, "realtime": 0, "has_errors": True}
+        return {
+            "ok": False, "fps": 0, "frames": 0, "width": 0, "height": 0,
+            "speed": 0, "elapsed": 0, "realtime": 0, "has_errors": True
+        }
 
 def stream_quality_score(item: tuple) -> float:
-    """综合流质量评分，用于同频道内排序"""
+    """
+    综合流质量评分（优化版）
+    提升流畅度与分辨率权重，优先排序全程平稳、后期不掉速的源
+    """
     _url, fps, w, _h, speed, elapsed = item
     fps_score = min(fps / 25.0, 1.0) if fps > 0 else 0.0
     speed_score = min(speed, 1.5) / 1.5 if speed > 0 else 0.0
     time_score = max(0.0, 1.0 - (max(elapsed - 3.0, 0) / 5.0))
+    
     if w >= 1920:
         res_score = 1.0
     elif w >= 1280:
@@ -412,7 +510,9 @@ def stream_quality_score(item: tuple) -> float:
         res_score = 0.4
     else:
         res_score = 0.1
-    return fps_score * 0.35 + speed_score * 0.35 + time_score * 0.15 + res_score * 0.15
+    
+    # 权重：速度35% + 帧率30% + 分辨率25% + 启动速度10%
+    return fps_score * 0.30 + speed_score * 0.35 + time_score * 0.10 + res_score * 0.25
 
 def _finalize_result(result_map):
     """最终整理结果：按评分排序并截断"""
@@ -467,7 +567,6 @@ async def batch_test_pipeline(channel_map: Dict[Tuple[str, str], List[str]]
         new_cache[u] = {"ok": False, "ts": time.time()}
     
     # ===== 舍弃第二层，直接进入第三层 =====
-    # 构造 fast_passed 列表，每个元素为 (url, None) ，第三层函数会忽略 fast_res
     fast_passed = [(url, None) for url in alive_urls]
     logger.info(f"跳过第二层快速探测，直接进行第三层稳定测试，共 {len(fast_passed)} 个链接")
     
@@ -526,7 +625,7 @@ async def download_github(url: str, session: aiohttp.ClientSession) -> str:
                     if '<html' in text[:500].lower() and '#EXTINF' not in text and ',' not in text[:1000]:
                         logger.warning(f"GitHub返回HTML而非文本数据: {url[:80]}")
                         continue
-                    logger.debug(f"GitHub下载成功: {url[:80]} ({len(text)}字符)")
+                    logger.debug(f"GitHub下载成功: {url[:80]}")
                     return text
                 logger.warning(f"GitHub HTTP {r.status}: {url[:80]}")
         except Exception as e:
@@ -586,7 +685,7 @@ async def fetch_github_sources() -> Tuple[List[Tuple[str, str, str]], List[set]]
     if not ENABLE_GITHUB or not GITHUB_URLS:
         return [], []
     all_channels = []
-    source_urls_list = []  # 每个元素是一个 set，存储该源的所有 URL
+    source_urls_list = []
     timeout = aiohttp.ClientTimeout(total=GITHUB_TIMEOUT)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         tasks = [download_github(url, session) for url in GITHUB_URLS]
@@ -595,7 +694,7 @@ async def fetch_github_sources() -> Tuple[List[Tuple[str, str, str]], List[set]]
             source_name = f"GitHub-{i+1}"
             if isinstance(result, Exception) or not result:
                 logger.warning(f"{source_name}: 下载失败")
-                source_urls_list.append(set())  # 空集合占位
+                source_urls_list.append(set())
                 continue
             content = result.strip()
             if content.startswith('#EXTM3U') or '#EXTINF' in content:
@@ -603,7 +702,6 @@ async def fetch_github_sources() -> Tuple[List[Tuple[str, str, str]], List[set]]
             else:
                 channels = parse_txt_content(content)
             logger.debug(f"{source_name}: 获取 {len(channels)} 个频道")
-            # 收集该源的 URL 集合
             url_set = {url for _, _, url in channels}
             source_urls_list.append(url_set)
             all_channels.extend(channels)
@@ -617,9 +715,7 @@ async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
     """使用 Playwright 爬取IP列表（增强容错版，接受 browser context）"""
     entries = []
     seen = set()
-
     target_url = f"{TARGET_URL}?t={filter_type}&province=all&limit={IPS_PER_PAGE}" if filter_type != "all" else f"{TARGET_URL}?province=all&limit={IPS_PER_PAGE}"
-
     page = None
     filter_applied = False
     for attempt in range(5):
@@ -627,14 +723,12 @@ async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
             if page is None or page.is_closed():
                 page = await ctx.new_page()
                 await page.add_init_script(STEALTH_JS)
-
             await page.goto(target_url, timeout=PAGE_TIMEOUT, wait_until="commit")
             await asyncio.sleep(random.uniform(5, 8))
             try:
                 await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
             except:
                 pass
-
             if filter_type != "all":
                 current_filter = await page.evaluate("() => document.querySelector('#typeSelect')?.value")
                 if current_filter == filter_type:
@@ -649,7 +743,6 @@ async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
             logger.warning(f"[PW] 页面初始化失败，重试 {attempt+1}/5")
             page = None
             await asyncio.sleep(3)
-
     if page is None or page.is_closed():
         logger.error("[PW] 浏览器页面无法保持打开，放弃爬取")
         return entries
@@ -658,7 +751,6 @@ async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
     while current_page <= max_pages:
         await human_scroll(page)
         await random_mouse(page)
-
         try:
             page_entries = await page.evaluate(r""" () => { const rows = document.querySelectorAll('table.iptv-table tbody tr'); return Array.from(rows).map(row => { const cells = row.querySelectorAll('td'); if (cells.length < 6) return null; const a = cells[0].querySelector('a'); if (!a) return null; const onclick = a.getAttribute('onclick') || ''; const m = onclick.match(/gotoIP\('([^']+)',\s*'([^']+)'\)/); return { ip: a.innerText.trim(), hash: m ? m[1] : '', type: m ? m[2] : '', channel_count: cells[1].innerText.trim(), type_info: cells[2].innerText.trim(), online_time: cells[3].innerText.trim(), update_time: cells[4].innerText.trim(), status: cells[5].innerText.trim() }; }).filter(x => x && x.ip && x.hash); } """)
         except Exception as e:
@@ -677,8 +769,6 @@ async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
             entries.append(entry)
             new_count += 1
 
-        # 不再输出每页新增日志
-
         if new_count == 0 and current_page > 1:
             break
 
@@ -694,9 +784,7 @@ async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
             break
 
         delay = random.uniform(PAGE_DELAY_MIN, PAGE_DELAY_MAX)
-        # 不再输出翻页等待日志
         await asyncio.sleep(delay)
-
         try:
             await nxt.click()
             try:
@@ -707,7 +795,6 @@ async def scrape_ips_playwright(ctx, filter_type: str, max_pages: int) -> list:
         except Exception as e:
             logger.warning(f"[PW] 翻页点击失败: {e}")
             break
-
         current_page += 1
 
     logger.info(f"[PW] 共抓取 {len(entries)} 个IP")
@@ -725,10 +812,8 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
     channels = []
     page = None
     start_time = time.perf_counter()
-
     def is_overtime():
         return time.perf_counter() - start_time > DETAIL_MAX_SECONDS
-
     try:
         page = await ctx.new_page()
         await page.add_init_script(STEALTH_JS)
@@ -740,7 +825,6 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
             await page.wait_for_load_state("networkidle", timeout=DETAIL_IDLE_TIMEOUT)
         except:
             pass
-
         page_title = await page.title()
         page_text = ""
         try:
@@ -754,8 +838,6 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
         # === 2. 提取 "查看频道列表" 链接的 ?s=HASH ===
         s_hash = None
         channel_list_url = None
-
-        # 通过 JS 提取所有包含 ?s= 的 <a> 标签
         s_link = await page.evaluate(r"""
             () => {
                 const links = document.querySelectorAll('a[href*="?s="]');
@@ -768,7 +850,6 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
                 return null;
             }
         """)
-
         if s_link:
             m = re.search(r'[?&]s=([^&]+)', s_link)
             if m:
@@ -779,7 +860,6 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
                 logger.debug(f"[PW] 获取频道列表URL: {channel_list_url[:80]}")
 
         if not channel_list_url:
-            # 备用：点击按钮获取
             for sel in ['a:has-text("查看频道列表")', 'a.btn-play', '.btn-play']:
                 try:
                     btn = await page.query_selector(sel)
@@ -810,14 +890,12 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
         await asyncio.sleep(random.uniform(1, 2))
 
         # === 4. 提取频道 ===
-        seen_page_urls = set()  # 用于检测是否真的翻页了
-
+        seen_page_urls = set()
         for page_num in range(1, MAX_DETAIL_PAGES + 1):
             if is_overtime():
                 logger.debug(f"详情页超时(>{DETAIL_MAX_SECONDS}s)，强制结束: {detail_url[:60]}")
                 break
 
-            # 等待表格加载
             table_loaded = False
             try:
                 await page.wait_for_selector('table.iptv-table tbody tr', timeout=10000)
@@ -828,13 +906,11 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
                     table_loaded = True
                 except:
                     pass
-
             if not table_loaded:
                 if page_num == 1:
                     logger.debug(f"[PW] 未找到频道表格: {detail_url[:60]}")
                 break
 
-            # 通过 JS 提取频道数据（效率高）
             page_channels = await page.evaluate(r"""
                 () => {
                     const results = [];
@@ -857,7 +933,6 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
                     return results;
                 }
             """)
-
             if not page_channels:
                 break
 
@@ -870,9 +945,6 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
                         url = DEFAULT_PROTOCOL + url
                     channels.append((name, url))
 
-            # 不输出每页频道数（debug可保留，但这里默认不输出）
-
-            # 检测是否真的翻页了（通过URL去重）
             current_page_url = page.url
             if current_page_url in seen_page_urls:
                 logger.debug(f"[PW] URL重复，停止翻页")
@@ -896,7 +968,6 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
                 pass
 
             if not nxt:
-                # 通过 URL 拼接翻页
                 try:
                     current_url = page.url
                     if 'page=' in current_url:
@@ -934,7 +1005,6 @@ async def extract_detail_channels_playwright(ctx, detail_url: str) -> list:
             except Exception as e:
                 logger.debug(f"翻页点击失败: {e}")
                 break
-
     except Exception as e:
         logger.debug(f"[PW] 提取频道异常: {e}")
     finally:
@@ -961,7 +1031,6 @@ def deduplicate_urls(ch_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str
     for (g, n), urls in ch_map.items():
         for u in urls:
             url_to_ch[u].append((g, n))
-
     url_chosen = {}
     for url, chs in url_to_ch.items():
         if len(chs) == 1:
@@ -969,7 +1038,6 @@ def deduplicate_urls(ch_map: Dict[Tuple[str, str], List[str]]) -> Dict[Tuple[str
         else:
             plus = [c for c in chs if '+' in c[1].lower()]
             url_chosen[url] = plus[0] if plus else max(chs, key=lambda c: len(c[1]))
-
     new_map = defaultdict(list)
     for (g, n), urls in ch_map.items():
         for u in urls:
@@ -984,7 +1052,6 @@ def export(ch_map: Dict[Tuple[str, str], List[str]]):
     now = datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=8))
     ).strftime("%Y-%m-%d %H:%M:%S")
-
     groups = defaultdict(list)
     for (g, n), urls in ch_map.items():
         for u in urls:
@@ -999,10 +1066,7 @@ def export(ch_map: Dict[Tuple[str, str], List[str]]):
                 continue
             chs = groups[grp]
             if grp == "央视频道":
-                def cctv_sort_key(item):
-                    ch_name = item[0]
-                    return cctv_weight.get(ch_name, 9999)
-                chs_sorted = sorted(chs, key=cctv_sort_key)
+                chs_sorted = sorted(chs, key=lambda x: cctv_weight.get(x[0], 9999))
             else:
                 chs_sorted = sorted(chs, key=lambda x: x[0])
             for n, u in chs_sorted:
@@ -1018,10 +1082,7 @@ def export(ch_map: Dict[Tuple[str, str], List[str]]):
             f.write(f"{grp},#genre#\n")
             chs = groups[grp]
             if grp == "央视频道":
-                def cctv_sort_key(item):
-                    ch_name = item[0]
-                    return cctv_weight.get(ch_name, 9999)
-                chs_sorted = sorted(chs, key=cctv_sort_key)
+                chs_sorted = sorted(chs, key=lambda x: cctv_weight.get(x[0], 9999))
             else:
                 chs_sorted = sorted(chs, key=lambda x: x[0])
             for n, u in chs_sorted:
@@ -1068,9 +1129,9 @@ async def main():
     logger.info(f" 类型: {ft} | 网页抓取: {'开' if do_scrape else '关'} | GitHub: {'开' if ENABLE_GITHUB and not args.skip_github else '关'} | FFmpeg: {'开' if do_ffmpeg else '关'}")
     logger.info("=" * 60)
 
-    all_channels = []  # (group, name, url)
-    github_sources_urls = []  # 每个 GitHub 源的 URL 集合列表
-    scrape_urls_set = set()   # 网页爬取源的 URL 集合
+    all_channels = []
+    github_sources_urls = []
+    scrape_urls_set = set()
 
     # GitHub源
     if ENABLE_GITHUB and not args.skip_github:
@@ -1151,7 +1212,6 @@ async def main():
                 except: pass
                 try: await browser.close()
                 except: pass
-
         except Exception as e:
             logger.warning(f"Playwright启动失败: {e}")
 
@@ -1164,7 +1224,6 @@ async def main():
     ch_map = defaultdict(list)
     for g, n, u in all_channels:
         ch_map[(g, n)].append(u)
-
     ch_map = deduplicate_urls(ch_map)
 
     allowed = set(GROUP_ORDER)
@@ -1177,27 +1236,25 @@ async def main():
     if do_ffmpeg and ch_map:
         logger.info("--- 三层筛选测速 ---")
         ff_start = time.time()
-        ch_map = await batch_test_pipeline(ch_map)   # 内部已舍弃第二层
+        ch_map = await batch_test_pipeline(ch_map)
         logger.info(f"测速总耗时: {time.time() - ff_start:.1f}s")
 
     # 导出
     export(ch_map)
 
-    # === 最终统计（按来源分别统计） ===
+    # === 最终统计 ===
     final_urls = set()
     for urls in ch_map.values():
         final_urls.update(urls)
 
     logger.info("=" * 60)
     logger.info("【最终统计】")
-    # 遍历每个 GitHub 源
     for i, url_set in enumerate(github_sources_urls, start=1):
         raw = len(url_set)
         effective = len(url_set & final_urls)
         pct = (effective / raw * 100) if raw else 0
         logger.info(f"  GitHub 源{i}原始链接: 共{raw}输出{effective}有效{pct:.1f}%")
 
-    # 网页爬取源
     raw_scrape = len(scrape_urls_set)
     effective_scrape = len(scrape_urls_set & final_urls)
     pct_scrape = (effective_scrape / raw_scrape * 100) if raw_scrape else 0
