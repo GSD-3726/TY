@@ -1,0 +1,52 @@
+# .github/workflows/iptv-scraper.yml
+name: IPTV Scraper
+
+on:
+  schedule:
+    # UTC 时间 21:00 和 9:00 分别对应北京时间 5:00 和 17:00
+    - cron: '0 21,9 * * *'
+  # 允许手动触发（方便测试）
+  workflow_dispatch:
+
+# 授予写入仓库的权限
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        # 确保有权限推送（默认 GITHUB_TOKEN 已自动配置）
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install playwright
+          playwright install chromium
+          playwright install-deps
+
+      - name: Run IPTV scraper
+        # 输出文件路径可自定义，这里直接放在仓库根目录
+        run: |
+          python iptv_scraper.py \
+            --type migu,hotel \
+            --max-pages 10 \
+            --concurrency 5 \
+            --fast \
+            --headless true \
+            --output iptv_channels.txt
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add iptv_channels.txt
+          # 若文件无变化则跳过提交，提交信息添加 [skip ci] 避免触发新的工作流
+          git commit -m "Update IPTV channels [skip ci]" || echo "No changes to commit"
+          git push
