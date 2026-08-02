@@ -66,7 +66,7 @@ DETAIL_IDLE_TIMEOUT = 5000
 DETAIL_MAX_SECONDS = 120
 
 # 并发
-DETAIL_CONCURRENCY = 5
+DETAIL_CONCURRENCY = 2
 
 # 反检测 Stealth JS
 STEALTH_JS = """
@@ -352,12 +352,26 @@ async def extract_channels_from_detail(ctx, detail_url: str, delays: dict) -> li
         await page.add_init_script(STEALTH_JS)
 
         # 1. 先访问首页（必须，否则后续JS跳转不生效）
-        await page.goto(TARGET_URL, timeout=PAGE_TIMEOUT, wait_until="commit")
-        await asyncio.sleep(random.uniform(3, 5))
-        try:
-            await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
-        except:
-            pass
+        for retry in range(3):
+            await page.goto(TARGET_URL, timeout=PAGE_TIMEOUT, wait_until="commit")
+            await asyncio.sleep(random.uniform(3, 5))
+            try:
+                await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
+            except:
+                pass
+
+            # 403/安全验证检测
+            page_text = ""
+            try:
+                page_text = (await page.inner_text("body"))[:500]
+            except:
+                pass
+            if "403" in page_text or "安全验证" in page_text or "暂时被拒绝" in page_text:
+                wait_sec = random.uniform(15, 30)
+                log_warn(f"触发防护(403/验证)，等待 {wait_sec:.0f}s 后重试 ({retry+1}/3)")
+                await asyncio.sleep(wait_sec)
+                continue
+            break
 
         # 2. 用 gotoIP() 跳转到详情页（客户端路由，不能用 page.goto）
         p_match = re.search(r'[?&]p=([^&]+)', detail_url)
@@ -369,12 +383,32 @@ async def extract_channels_from_detail(ctx, detail_url: str, delays: dict) -> li
         p_hash = p_match.group(1)
         t_type = t_match.group(1) if t_match else 'hotel'
 
-        # 等待 gotoIP 函数定义
-        for wait_i in range(10):
-            has_func = await page.evaluate("typeof gotoIP === 'function'")
+        # 等待 gotoIP 函数定义（403页面不会有这个函数）
+        has_func = False
+        for wait_i in range(15):
+            try:
+                has_func = await page.evaluate("typeof gotoIP === 'function'")
+            except:
+                pass
             if has_func:
                 break
             await asyncio.sleep(1)
+
+        if not has_func:
+            # 可能触发了403，等待后重试一次
+            await asyncio.sleep(random.uniform(5, 10))
+            try:
+                await page.goto(TARGET_URL, timeout=PAGE_TIMEOUT, wait_until="commit")
+                await asyncio.sleep(5)
+                try:
+                    await page.wait_for_load_state("networkidle", timeout=IDLE_TIMEOUT)
+                except: pass
+                has_func = await page.evaluate("typeof gotoIP === 'function'")
+            except: pass
+
+        if not has_func:
+            log_warn(f"gotoIP未加载(可能403): {p_hash[:20]}")
+            return channels
 
         try:
             await page.evaluate(f"gotoIP('{p_hash}', '{t_type}')")
@@ -546,29 +580,36 @@ async def extract_channels_from_detail(ctx, detail_url: str, delays: dict) -> li
 # ############################################################################
 async def crawl_all_details(browser, entries: list, concurrency: int, delays: dict) -> list:
     all_channels = []
-    sem = asyncio.Semaphore(concurrency)
 
     async def _extract(i, entry):
-        async with sem:
-            # 每个任务创建独立 context，避免JS函数互相干扰
-            ctx = await browser.new_context(
-                viewport={"width": 1920, "height": 1080},
-                user_agent=random.choice(UA_POOL),
-            )
-            await ctx.add_init_script(STEALTH_JS)
-            try:
-                detail_url = f"{TARGET_URL}?p={entry['hash']}&t={entry['type']}"
-                chs = await extract_channels_from_detail(ctx, detail_url, delays)
-                if chs:
-                    log(f"[{i+1}/{len(entries)}] {entry['ip']}: {len(chs)} 个频道")
-                else:
-                    log(f"[{i+1}/{len(entries)}] {entry['ip']}: 无频道")
-                return chs
-            finally:
-                try: await ctx.close()
-                except: pass
+        # 创建独立 context
+        ctx = await browser.new_context(
+            viewport={"width": 1920, "height": 1080},
+            user_agent=random.choice(UA_POOL),
+        )
+        await ctx.add_init_script(STEALTH_JS)
+        try:
+            detail_url = f"{TARGET_URL}?p={entry['hash']}&t={entry['type']}"
+            chs = await extract_channels_from_detail(ctx, detail_url, delays)
+            if chs:
+                log(f"[{i+1}/{len(entries)}] {entry['ip']}: {len(chs)} 个频道")
+            else:
+                log(f"[{i+1}/{len(entries)}] {entry['ip']}: 无频道")
+            return chs
+        finally:
+            try: await ctx.close()
+            except: pass
 
-    tasks = [asyncio.ensure_future(_extract(i, e)) for i, e in enumerate(entries)]
+    # 用 asyncio.Semaphore 限制并发，任务启动错开避免同时请求
+    sem = asyncio.Semaphore(concurrency)
+
+    async def _throttled_extract(i, entry):
+        async with sem:
+            # 错开启动：每个任务间隔 3-5 秒
+            await asyncio.sleep(random.uniform(3.0, 5.0) * (i % concurrency))
+            return await _extract(i, entry)
+
+    tasks = [asyncio.ensure_future(_throttled_extract(i, e)) for i, e in enumerate(entries)]
 
     done = 0
     for coro in asyncio.as_completed(tasks):
