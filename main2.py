@@ -62,16 +62,16 @@ FAST_MIN_FRAMES = 30
 FAST_MIN_SPEED = 0.75
 
 # 第三层：稳定测试（30秒基底 + 20秒提前通过机制）
-STABLE_FFMPEG_DURATION = 30              # 测速总时长30秒，覆盖延迟降速
-STABLE_PROC_TIMEOUT = 35                 # 进程总超时，留5秒余量
+STABLE_FFMPEG_DURATION = 40              # 测速总时长30秒，覆盖延迟降速
+STABLE_PROC_TIMEOUT = 45                 # 进程总超时，留5秒余量
 STABLE_FFMPEG_CONCURRENCY = 20           # 提高到20，利用IO等待时间
-MIN_AVG_FPS = 15                         # 最低平均帧率
-MIN_FRAMES = 450                         # 30秒×15fps = 450
-MIN_REALTIME_FACTOR = 0.65               # 实时因子阈值
+MIN_AVG_FPS = 20                         # 最低平均帧率
+MIN_FRAMES = 800                         # 30秒×15fps = 450
+MIN_REALTIME_FACTOR = 0.75               # 实时因子阈值
 MIN_NET_FEED_RATIO = 0.70                # 净进给比阈值，防缓冲耗尽
 # 原有稳定性判定阈值
-MIN_LATE_SPEED = 0.70                    # 后半段最低平均速度
-MIN_SPEED_MIN = 0.50                     # 全程最低速度，防断崖式卡顿
+MIN_LATE_SPEED = 0.80                    # 后半段最低平均速度
+MIN_SPEED_MIN = 0.80                     # 全程最低速度，防断崖式卡顿
 MAX_FPS_JITTER = 0.4                     # 帧率最大波动系数
 FFMPEG_RETRIES = 1                       # 预留重试
 # 新增分段衰减检测阈值
@@ -81,7 +81,7 @@ LATE_SEGMENT_MIN_SPEED = 0.60            # 末段绝对最低速度倍数
 # 提前通过优质源的条件（20秒时检查）
 EARLY_PASS_TIME = 20                     # 20秒时可提前判定
 EARLY_PASS_MIN_SPEED = 1.0               # 最近5秒平均速度需≥1.0x
-EARLY_PASS_LATE_SPEED = 0.8              # 后半段平均速度需≥0.8x
+EARLY_PASS_LATE_SPEED = 0.9              # 后半段平均速度需≥0.8x
 
 # ############################################################################
 # 缓存 配置区域 (可根据需要调整)
