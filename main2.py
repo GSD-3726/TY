@@ -22,7 +22,7 @@ from playwright.async_api import async_playwright
 TARGET_URL = "https://iptv.cqshushu.com/index.php"  # 抓取的目标网站
 DEFAULT_PROTOCOL = "http://"  # 默认协议头，用于补全不完整的URL
 IPS_PER_PAGE = 10  # 网站每页显示的IP数量（需与网站实际一致）
-MAX_PAGES = 10  # 最大爬取页数
+MAX_PAGES = 5  # 最大爬取页数
 MAX_LINKS_PER_CHANNEL = 8  # 每个频道最多保留的链接数（测速后取前N条）
 MAX_IPS = 0  # 最多处理的IP数量，0表示不限制
 MAX_DETAIL_PAGES = 40  # 每个IP详情页最多翻页数（增至30页，可获取300+频道）
