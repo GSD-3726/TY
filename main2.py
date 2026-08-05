@@ -1,5 +1,4 @@
 import asyncio
-import time
 import json
 import logging
 import random
@@ -9,6 +8,7 @@ import argparse
 import shutil
 import datetime
 import os
+import time  # 新增导入 time
 from collections import defaultdict
 from pathlib import Path
 from urllib.parse import urlparse
@@ -45,14 +45,14 @@ IDLE_TIMEOUT = 15000  # 网络空闲等待超时（毫秒）
 SCRAPE_SOURCE_FILTER = "hotel"  # 默认抓取的类型：all/hotel/multicast/migu/other
 
 # ############################################################################
-# 三层筛选测速配置 (山东地区优化版：严格阈值 + 稳定性检测 + 网络参数调优)
+# 三层筛选测速配置 (GitHub Actions 优化版：放宽阈值 + 降低并发 + 缓冲调优)
 # ############################################################################
 ENABLE_FFMPEG = True                     # 是否启用FFmpeg测速
 FFMPEG_PATH = "ffmpeg"                   # FFmpeg命令路径
 
 # 第一层：连通性预检
 CONN_TIMEOUT = 2.0                       # HTTP请求超时
-CONN_CONCURRENCY = 80                    # 高并发，轻量请求无压力
+CONN_CONCURRENCY = 40                    # 降低并发，避免端口耗尽和带宽冲击
 
 # 第二层：已舍弃，保留参数兼容
 FAST_FFMPEG_DURATION = 4
@@ -61,32 +61,36 @@ FAST_FFMPEG_CONCURRENCY = 40
 FAST_MIN_FRAMES = 30
 FAST_MIN_SPEED = 0.75
 
-# 第三层：稳定测试（山东优化：40秒基底 + 严格阈值 + 速度方差检测）
+# 第三层：稳定测试（GitHub Actions 优化：放宽各项阈值 + 增大缓冲区）
 STABLE_FFMPEG_DURATION = 40              # 测速总时长
-STABLE_PROC_TIMEOUT = 50                 # 进程总超时，留10秒余量（山东源握手慢）
-STABLE_FFMPEG_CONCURRENCY = 16           # 降低并发，减少山东地区带宽争抢
-MIN_AVG_FPS = 22                         # 提高最低平均帧率（山东源不能低于22fps）
-MIN_FRAMES = 900                         # 40秒×22.5fps ≈ 900
-MIN_REALTIME_FACTOR = 0.80               # 提高实时因子
-MIN_NET_FEED_RATIO = 0.78                # 提高净进给比，减少缓冲等待
-MIN_LATE_SPEED = 0.85                    # 后半段最低平均速度提高到0.85
-MIN_SPEED_MIN = 0.85                     # 全程最低速度提高到0.85，过滤卡顿源
-MAX_FPS_JITTER = 0.25                    # 帧率最大波动系数收紧到0.25
-FFMPEG_RETRIES = 1                       # 预留重试
+STABLE_PROC_TIMEOUT = 50                 # 进程总超时
+STABLE_FFMPEG_CONCURRENCY = 4            # 大幅降低并发，防止共享带宽打架
 
-# 新增：速度稳定性检测（山东地区关键）
-MAX_SPEED_STD = 0.20                     # 全程速度标准差上限（过滤波动大的源）
-MIN_SPEED_PERCENTILE_20 = 0.80           # 20%分位速度不低于0.80x（防偶发峰值拉高平均）
+MIN_AVG_FPS = 20                         # 放宽最低帧率到 20fps
+MIN_FRAMES = 800                         # 40s × 20fps
+MIN_REALTIME_FACTOR = 0.60               # 放宽实时因子
+MIN_NET_FEED_RATIO = 0.60                # 放宽净进给比
+MIN_LATE_SPEED = 0.70                    # 后半段最低平均速度
+MIN_SPEED_MIN = 0.60                     # 全程最低速度放宽，由标准差把关
+MAX_FPS_JITTER = 0.30                    # 帧率抖动略微放宽
+FFMPEG_RETRIES = 1
 
-# 分段衰减检测阈值（收紧）
-SPEED_DECAY_THRESHOLD = 0.20             # 末段相对首段速度最大衰减比例收紧到20%
-LATE_SEGMENT_MIN_SPEED = 0.75            # 末段绝对最低速度倍数提高到0.75
+# 速度稳定性检测（放宽标准差和分位数）
+MAX_SPEED_STD = 0.40                     # 原 0.20 过于严苛
+MIN_SPEED_PERCENTILE_20 = 0.60           # 放宽 20% 分位速度
 
-# 提前通过优质源的条件（20秒时检查，更保守）
+# 分段衰减检测阈值（放宽）
+SPEED_DECAY_THRESHOLD = 0.35             # 末段相对首段最大衰减比例
+LATE_SEGMENT_MIN_SPEED = 0.65            # 末段绝对最低速度倍数
+
+# 提前通过优质源的条件（略微放宽）
 EARLY_PASS_TIME = 20
-EARLY_PASS_MIN_SPEED = 1.15              # 最近5秒平均速度需≥1.15x（山东源必须有余量）
-EARLY_PASS_LATE_SPEED = 1.0              # 后半段平均速度需≥1.0x（不允许提前通过时掉速）
-EARLY_PASS_MAX_STD = 0.15                # 提前通过时要求速度标准差≤0.15
+EARLY_PASS_MIN_SPEED = 1.05              # 最近5秒平均速度（原 1.15）
+EARLY_PASS_LATE_SPEED = 0.90             # 后半段平均速度（原 1.0）
+EARLY_PASS_MAX_STD = 0.20                # 提前通过标准差（原 0.15）
+
+# 低速判死持续时间（增加到 5 秒，减少瞬时波动误杀）
+LOW_SPEED_KILL_DURATION = 5.0
 
 # ############################################################################
 # 缓存 配置区域 (可根据需要调整)
@@ -284,7 +288,7 @@ def save_cache(cache: dict):
         logger.warning(f"缓存保存失败: {e}")
 
 # ############################################################################
-# 三层筛选测速核心逻辑 (山东地区优化版)
+# 三层筛选测速核心逻辑 (GitHub Actions 优化版)
 # ############################################################################
 def parse_ffmpeg_time(time_str_h: str, time_str_m: str, time_str_s: str) -> float:
     try:
@@ -334,36 +338,31 @@ async def quick_connectivity_test(urls: List[str]) -> List[str]:
     logger.info(f"连通性预检: {len(urls)} -> {len(alive)} 存活")
     return alive
 
-# ========= 第二层已舍弃，以下函数保留但不使用 =========
-# async def fast_ffmpeg_probe(url: str) -> Optional[Dict[str, Any]]:
-#     ...
-
 async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
     """
-    第三层：40秒稳定测试（山东地区优化版）
-    - 针对山东酒店源/组播源优化FFmpeg参数（增大缓冲、队列、探测时间）
-    - 20秒时极优源提前通过（条件更保守）
-    - 全程速度方差检测，过滤波动源
-    - 完整分段衰减检测，防断崖式掉速
+    第三层：40秒稳定测试（GitHub Actions 优化版）
+    - 增大缓冲区，降低并发，错峰启动
+    - 放宽多项速度/稳定性阈值
+    - 低速判死时间延长至 5 秒
     """
     headers = (
         "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n"
         "Referer: https://www.miguvideo.com/\r\n"
     )
     
-    # 山东地区优化：增大线程队列和缓冲区，适应酒店源/组播源的高抖动和长握手
+    # GitHub Actions 优化：增大缓冲区，降低对瞬时带宽争抢的敏感度
     cmd = [
         FFMPEG_PATH, "-hide_banner", "-y",
-        "-thread_queue_size", "4096",           # 增大线程队列，防止山东组播源丢包
+        "-thread_queue_size", "4096",
         "-headers", headers,
         "-fflags", "+genpts+nobuffer+discardcorrupt+ignidx+fastseek",
         "-flags", "low_delay",
-        "-max_delay", "2000000",                # 增大最大延迟容忍到2秒
-        "-analyzeduration", "1200000",          # 增大分析时长到1.2秒（山东酒店源需要更久握手）
-        "-probesize", "1200000",                # 增大探测大小
-        "-rw_timeout", "8000000",               # 读写超时8秒（山东网络偶发延迟）
-        "-buffer_size", "65536",                # 增大TCP缓冲区
-        "-err_detect", "bitstream+explode",     # 更严格的错误检测
+        "-max_delay", "1000000",                # 1秒（原 2秒）
+        "-analyzeduration", "1200000",
+        "-probesize", "1200000",
+        "-rw_timeout", "5000000",               # 5秒（原 8秒）
+        "-buffer_size", "262144",               # 增大到 256KB（原 64KB）
+        "-err_detect", "bitstream+explode",
         "-i", url,
         "-t", str(STABLE_FFMPEG_DURATION),
         "-f", "null", "-"
@@ -386,7 +385,7 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
         last_check_time = start_time
         w, h = 0, 0
         resolution_parsed = False
-        early_passed = False  # 是否已提前通过
+        early_passed = False
 
         # 异步逐行读取输出，实时监控+提前终止
         try:
@@ -407,16 +406,15 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
                         w, h = int(res_match.group(1)), int(res_match.group(2))
                         resolution_parsed = True
 
-                # 3. 解析速度 + 低速度累计检测
+                # 3. 解析速度 + 低速度累计检测（放宽到连续 5 秒低于阈值才判死）
                 speed_match = RE_SPEED.search(line)
                 if speed_match:
                     speed = float(speed_match.group(1))
                     all_speeds.append(speed)
-                    # 启动5秒后，连续3秒低于最低速度阈值，直接判死（山东源启动慢，放宽到5秒）
                     if elapsed > 5.0:
                         if speed < MIN_SPEED_MIN:
                             low_speed_duration += elapsed - last_check_time
-                            if low_speed_duration >= 3.0:
+                            if low_speed_duration >= LOW_SPEED_KILL_DURATION:
                                 proc.kill()
                                 break
                         else:
@@ -434,16 +432,13 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
                     play_sec = parse_ffmpeg_time(*time_match.groups())
                     time_points.append((elapsed, play_sec))
 
-                # 6. 提前通过检查（仅在第20秒附近触发一次，条件更保守）
+                # 6. 提前通过检查（略微放宽）
                 if not early_passed and elapsed >= EARLY_PASS_TIME and elapsed < EARLY_PASS_TIME + 2:
                     if len(all_speeds) >= 10:
                         stats = _compute_speed_stats(all_speeds)
-                        # 最近5秒平均速度
                         recent_avg = sum(all_speeds[-5:]) / min(5, len(all_speeds))
-                        # 后半段平均速度（取第10秒之后的样本）
                         late_idx = len(all_speeds) // 2
                         late_avg = sum(all_speeds[late_idx:]) / len(all_speeds[late_idx:]) if late_idx < len(all_speeds) else 0
-                        
                         # 粗略分段衰减检查
                         seg_len = len(all_speeds) // 3
                         decay = 0.0
@@ -453,8 +448,7 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
                             avg_seg1 = sum(seg1)/len(seg1) if seg1 else 0
                             avg_seg3 = sum(seg3)/len(seg3) if seg3 else 0
                             decay = (avg_seg1 - avg_seg3) / avg_seg1 if avg_seg1 > 0 else 0
-
-                        # 提前通过条件（山东优化：更严格）
+                        # 提前通过条件（放宽后）
                         if (recent_avg >= EARLY_PASS_MIN_SPEED and
                             late_avg >= EARLY_PASS_LATE_SPEED and
                             decay <= SPEED_DECAY_THRESHOLD and
@@ -484,7 +478,7 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
 
         elapsed_total = time.perf_counter() - start_time
 
-        # ===== 指标统计（山东优化版） =====
+        # ===== 指标统计 =====
         frames = all_frames[-1] if all_frames else 0
         stats = _compute_speed_stats(all_speeds)
         avg_speed = stats["avg"]
@@ -492,7 +486,6 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
         speed_p20 = stats["p20"]
         min_speed = stats["min"]
 
-        # 分段速度：后半段平均速度
         if len(all_speeds) >= 5:
             split_idx = int(len(all_speeds) * 0.4)
             late_speeds = all_speeds[split_idx:]
@@ -500,7 +493,6 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
         else:
             late_avg_speed = avg_speed
 
-        # 实际播放时长
         actual_play_time = 0.0
         if len(time_points) >= 2:
             actual_play_time = max(time_points[-1][1] - time_points[0][1], 0.1)
@@ -510,7 +502,6 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
         effective_test_time = max(elapsed_total - 1.0, 0.1)
         net_feed_ratio = actual_play_time / effective_test_time if effective_test_time > 0 else 0.0
 
-        # 帧率与波动
         actual_fps = frames / actual_play_time if actual_play_time > 0 else 0.0
         fps_jitter = 0.0
         if len(all_frames) >= 4:
@@ -534,21 +525,21 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
                 if avg_seg3 < LATE_SEGMENT_MIN_SPEED or decay_ratio > SPEED_DECAY_THRESHOLD:
                     late_decay_fail = True
 
-        # ===== 最终判定（山东严格版） =====
+        # ===== 最终判定（放宽版） =====
         is_ok = (
             frames >= MIN_FRAMES
             and actual_fps >= MIN_AVG_FPS
-            and avg_speed >= 0.80              # 平均速度不低于0.80
-            and late_avg_speed >= MIN_LATE_SPEED   # 后半段不低于0.85
-            and min_speed >= MIN_SPEED_MIN     # 全程最低不低于0.85
-            and net_feed_ratio >= MIN_NET_FEED_RATIO  # 净进给比不低于0.78
+            and avg_speed >= 0.60              # 平均速度最低 0.60x
+            and late_avg_speed >= MIN_LATE_SPEED
+            and min_speed >= MIN_SPEED_MIN
+            and net_feed_ratio >= MIN_NET_FEED_RATIO
             and elapsed_total < STABLE_FFMPEG_DURATION * 2.5
             and not has_errors
-            and fps_jitter <= MAX_FPS_JITTER   # 帧率波动不超过0.25
-            and realtime_factor >= MIN_REALTIME_FACTOR  # 实时因子不低于0.80
-            and not late_decay_fail            # 无严重衰减
-            and speed_std <= MAX_SPEED_STD     # 速度标准差不超过0.20（新增：稳定性检测）
-            and speed_p20 >= MIN_SPEED_PERCENTILE_20  # 20%分位速度不低于0.80（新增：防偶发峰值）
+            and fps_jitter <= MAX_FPS_JITTER
+            and realtime_factor >= MIN_REALTIME_FACTOR
+            and not late_decay_fail
+            and speed_std <= MAX_SPEED_STD
+            and speed_p20 >= MIN_SPEED_PERCENTILE_20
         )
 
         return {
@@ -563,8 +554,9 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
             "realtime": round(realtime_factor, 3),
             "has_errors": has_errors,
             "fps_jitter": round(fps_jitter, 3),
-            "speed_std": round(speed_std, 3),    # 新增：返回速度标准差供调试
-            "decay": round(decay_ratio, 3),     # 新增：返回衰减比例供调试
+            "speed_std": round(speed_std, 3),
+            "min_speed": round(min_speed, 3),
+            "decay": round(decay_ratio, 3),
         }
 
     except Exception as e:
@@ -572,20 +564,18 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
         return {
             "ok": False, "fps": 0, "frames": 0, "width": 0, "height": 0,
             "speed": 0, "elapsed": 0, "realtime": 0, "has_errors": True,
-            "speed_std": 999, "decay": 1.0
+            "speed_std": 999, "decay": 1.0, "min_speed": 0
         }
 
 def stream_quality_score(item: tuple) -> float:
     """
-    综合流质量评分（山东优化版）
-    大幅提高稳定性权重，降低启动速度权重
-    优先排序：速度稳定 > 全程高速 > 高分辨率
+    综合流质量评分（放宽版）
+    仍优先稳定性，但降低启动速度权重
     """
     _url, fps, w, _h, speed, elapsed = item
     fps_score = min(fps / 25.0, 1.0) if fps > 0 else 0.0
     speed_score = min(speed, 1.5) / 1.5 if speed > 0 else 0.0
-    # 启动速度权重降低：超过4秒开始扣分
-    time_score = max(0.0, 1.0 - (max(elapsed - 4.0, 0) / 6.0))
+    time_score = max(0.0, 1.0 - (max(elapsed - 4.0, 0) / 8.0))
     
     if w >= 1920:
         res_score = 1.0
@@ -596,7 +586,6 @@ def stream_quality_score(item: tuple) -> float:
     else:
         res_score = 0.1
     
-    # 山东优化权重：速度稳定性40% + 速度30% + 分辨率20% + 启动速度10%
     return speed_score * 0.30 + fps_score * 0.20 + time_score * 0.10 + res_score * 0.20 + (speed_score * fps_score) * 0.20
 
 def _finalize_result(result_map):
@@ -651,7 +640,7 @@ async def batch_test_pipeline(channel_map: Dict[Tuple[str, str], List[str]]
     for u in dead_urls:
         new_cache[u] = {"ok": False, "ts": time.time()}
     
-    # ===== 舍弃第二层，直接进入第三层 =====
+    # 舍弃第二层，直接进入第三层
     fast_passed = [(url, None) for url in alive_urls]
     logger.info(f"跳过第二层快速探测，直接进行第三层稳定测试，共 {len(fast_passed)} 个链接")
     
@@ -659,6 +648,8 @@ async def batch_test_pipeline(channel_map: Dict[Tuple[str, str], List[str]]
     stable_sem = asyncio.Semaphore(STABLE_FFMPEG_CONCURRENCY)
     
     async def _stable_test(url: str, fast_res: dict):
+        # 错峰启动，避免瞬间带宽冲击
+        await asyncio.sleep(random.uniform(0, 3))
         async with stable_sem:
             res = await stable_ffmpeg_test(url)
             return url, fast_res, res
@@ -680,6 +671,14 @@ async def batch_test_pipeline(channel_map: Dict[Tuple[str, str], List[str]]
             ))
         else:
             fail += 1
+            # 调试日志：输出失败原因
+            logger.debug(
+                f"FAIL {url[:60]} | fps={res['fps']} speed={res['speed']} "
+                f"late={res['late_speed']} min={res.get('min_speed','?')} "
+                f"std={res['speed_std']} decay={res['decay']} "
+                f"frames={res['frames']} jitter={res['fps_jitter']} "
+                f"errors={res['has_errors']}"
+            )
         
         new_cache[url] = {
             "ok": res["ok"], "fps": res["fps"], "frames": res["frames"],
