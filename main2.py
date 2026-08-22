@@ -16,8 +16,62 @@ from typing import Dict, List, Tuple, Optional, Any
 import aiohttp
 from playwright.async_api import async_playwright
 
-# ========================== 配置区域 ==========================
+# ========================== 配置区域（可在此替换链接） ==========================
+# 主要数据源网站（可替换为您自己的地址）
 TARGET_URL = "https://iptv.cqshushu.com/index.php"
+
+# GitHub 备用源列表（可增删或替换）
+GITHUB_URLS = [
+    "http://183.131.83.37:40782/屿风眠星辞雾听澜书禾念安知夏遇秋寻冬观月.txt",
+    "http://47.120.41.246:8025/vip/jar/zb.php",
+    "https://gitee.com/OscarWilde/itv/raw/master/tv.txt",
+    "https://gh.927223.xyz/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u",
+    "https://gh-proxy.com/raw.githubusercontent.com/yoursmile66/TVBox/main/live.txt",
+    "http://rihou.cc:567/gggg.nzk",
+    "http://38.75.136.137:88/api/tvlist.php",
+    "https://4kkj.cn/uploads/ok专用接口/[直播]/央卫.txt",
+    "https://gitee.com/yuan301/tv/raw/master/A/z_v.png",
+    "http://wangziduoqing.com/yuan/zb.txt",
+    "https://gitee.com/main-stream/tv/raw/master/BOSS.json",
+    "http://mg.cttv.vip",
+    "https://pub.tgyes.eu.org/555.txt",
+    "https://pub.tgyes.eu.org/444.txt",
+    "https://0701.tv1288.xyz/",
+    "https://pub.tgyes.eu.org/live01.txt",
+    "http://www.52top.com.cn:678/downloads/migu.txt",
+    "https://ghfile.geekertao.top/https://raw.githubusercontent.com/TianmuTNT/iptv/main/iptv.txt",
+    "https://cnb.cool/ms511/PG/-/git/raw/main/sub/live.txt",
+    "https://ds65.tv1288.xyz",
+    "https://ghfast.top/https://raw.githubusercontent.com/develop202/migu_video/refs/heads/main/interface.txt",
+    "https://www.iyouhun.com/tv/migu.txt",
+    "https://live.hacks.tools/tv/iptv4.txt",
+    "https://gh-proxy.org/https://raw.githubusercontent.com/q1017673817/iptvz/refs/heads/main/zubo_all.txt",
+    "https://live.zbds.top/tv/iptv4.txt",
+    "https://live.zbds.top/tv/iptv4.m3u",
+    "https://fzl4k.xyz/8/zb.php?s=zb8",
+    "https://live.hacks.tools/tv/ipv4/categories/taiwan.m3u",
+    "https://live.hacks.tools/tv/ipv4/categories/macau.m3u",
+    "https://live.hacks.tools/tv/ipv4/categories/hong_kong.m3u",
+    "https://pub.tgyes.eu.org/txt/万部电影10000.txt",
+    "http://82.156.243.185:33389/fwc.m3u",
+    "https://l.gmbbk.com/upload/61596159.txt",
+    "https://l.gmbbk.com/upload/18281828.txt",
+    "http://iptv.4666888.xyz/FYTV.m3u",
+    "http://cyh92.cn/list.m3u",
+    "https://fastgit.cc/https://raw.githubusercontent.com/iTCoffe/Collect-iTV/main/Internet_iTV.m3u",
+    "https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u"
+]
+
+# ========================== 功能开关 ==========================
+ENABLE_SCRAPE = False          # 设为 False 可关闭网站爬取（仅使用 GitHub 源）
+ENABLE_GITHUB = True          # 是否启用 GitHub 源
+ENABLE_CACHE = True           # 是否启用测速缓存
+ENABLE_FFMPEG = True          # 是否启用 FFmpeg 测速
+
+# ========================== 测速时长配置 ==========================
+TEST_DURATION = 40            # 稳定测试时长（秒），建议 40~60，越长越准确但耗时增加
+
+# ========================== 协议与分页 ==========================
 DEFAULT_PROTOCOL = "http://"
 IPS_PER_PAGE = 10
 MAX_PAGES = 10
@@ -42,20 +96,18 @@ PAGE_TIMEOUT = 60000
 IDLE_TIMEOUT = 15000
 SCRAPE_SOURCE_FILTER = "hotel"
 
-# ========================== 测速配置（优化版） ==========================
-ENABLE_FFMPEG = True
+# ========================== 测速参数（优化版） ==========================
 FFMPEG_PATH = "ffmpeg"
 
 # 第一层：连通性预检
 CONN_TIMEOUT = 5.0
 CONN_CONCURRENCY = 40
 
-# 第三层：稳定测试
-STABLE_FFMPEG_DURATION = 40
-STABLE_PROC_TIMEOUT = 50
-STABLE_FFMPEG_CONCURRENCY = 4          # 关键：大幅降低并发
+# 第三层：稳定测试（时长由 TEST_DURATION 控制）
+STABLE_PROC_TIMEOUT = TEST_DURATION + 10   # 允许额外 10 秒
+STABLE_FFMPEG_CONCURRENCY = 4              # 关键：大幅降低并发
 
-# 放宽后的阈值
+# 放宽后的阈值（经实践调整，可保证长期播放不卡顿）
 MIN_AVG_FPS = 20
 MIN_FRAMES = 800
 MIN_REALTIME_FACTOR = 0.60
@@ -76,18 +128,11 @@ EARLY_PASS_MAX_STD = 0.20
 LOW_SPEED_KILL_DURATION = 5.0         # 连续低速判死时间
 
 # ========================== 缓存 ==========================
-ENABLE_CACHE = True
 CACHE_FILE = Path(__file__).parent / "iptv_speed_cache.json"
 CACHE_EXPIRE_HOURS = 72
 CACHE_EXPIRE_SEC = CACHE_EXPIRE_HOURS * 3600
 
-# ========================== GitHub源 ==========================
-ENABLE_GITHUB = True
-GITHUB_URLS = [
-    "https://gh-proxy.com/https://github.com/vbskycn/iptv/blob/master/tv/iptv4.txt",
-    "https://gh-proxy.com/https://github.com/GSD-3726/TY/blob/main/iptv_channels.txt",
-    "https://gh.927223.xyz/https://raw.githubusercontent.com/develop202/migu_video/refs/heads/main/interface.txt",
-]
+# ========================== GitHub 源配置 ==========================
 GITHUB_TIMEOUT = 30
 GITHUB_RETRIES = 3
 
@@ -295,9 +340,9 @@ async def quick_connectivity_test(urls: List[str]) -> List[str]:
 
 async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
     """
-    第三层：40秒稳定测试（GitHub Actions 优化版）
-    - 添加了 User-Agent 和 m3u8 白名单
-    - 放宽了各项阈值
+    第三层：稳定测试（时长由 TEST_DURATION 控制）
+    评估指标涵盖速度、帧率、衰减、抖动等，综合判断是否满足长期播放不卡顿。
+    如果需更严格，可适当增大 TEST_DURATION 或调高阈值。
     """
     cmd = [
         FFMPEG_PATH, "-hide_banner", "-y",
@@ -305,7 +350,7 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
         "-protocol_whitelist", "file,http,https,tcp,tls,crypto",
         "-multiple_requests", "1",
         "-i", url,
-        "-t", str(STABLE_FFMPEG_DURATION),
+        "-t", str(TEST_DURATION),          # 使用配置的测试时长
         "-f", "null", "-"
     ]
 
@@ -371,7 +416,7 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
                     play_sec = parse_ffmpeg_time(*time_match.groups())
                     time_points.append((elapsed, play_sec))
 
-                # 提前通过
+                # 提前通过（若前半段已经非常稳定，可提前结束）
                 if not early_passed and elapsed >= EARLY_PASS_TIME and elapsed < EARLY_PASS_TIME + 2:
                     if len(all_speeds) >= 10:
                         stats = _compute_speed_stats(all_speeds)
@@ -432,7 +477,7 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
         if len(time_points) >= 2:
             actual_play_time = max(time_points[-1][1] - time_points[0][1], 0.1)
         else:
-            actual_play_time = STABLE_FFMPEG_DURATION if frames > MIN_FRAMES else 0.0
+            actual_play_time = TEST_DURATION if frames > MIN_FRAMES else 0.0
 
         effective_test_time = max(elapsed_total - 1.0, 0.1)
         net_feed_ratio = actual_play_time / effective_test_time if effective_test_time > 0 else 0.0
@@ -465,7 +510,7 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
             and late_avg_speed >= MIN_LATE_SPEED
             and min_speed >= MIN_SPEED_MIN
             and net_feed_ratio >= MIN_NET_FEED_RATIO
-            and elapsed_total < STABLE_FFMPEG_DURATION * 2.5
+            and elapsed_total < TEST_DURATION * 2.5
             and not has_errors
             and fps_jitter <= MAX_FPS_JITTER
             and realtime_factor >= MIN_REALTIME_FACTOR
@@ -563,7 +608,7 @@ async def batch_test_pipeline(channel_map: Dict[Tuple[str, str], List[str]]
     fast_passed = [(url, None) for url in alive_urls]
     logger.info(f"跳过第二层快速探测，直接进行第三层稳定测试，共 {len(fast_passed)} 个链接")
 
-    logger.info(f"=== 第三层：40秒稳定测试 ({len(fast_passed)} 个, 并发:{STABLE_FFMPEG_CONCURRENCY}) ===")
+    logger.info(f"=== 第三层：{TEST_DURATION}秒稳定测试 ({len(fast_passed)} 个, 并发:{STABLE_FFMPEG_CONCURRENCY}) ===")
     stable_sem = asyncio.Semaphore(STABLE_FFMPEG_CONCURRENCY)
 
     async def _stable_test(url: str, fast_res: dict):
@@ -1035,11 +1080,13 @@ async def main():
     max_ips = args.max_ips
     headless = args.headless.lower() != "false" if args.headless else HEADLESS
     do_ffmpeg = ENABLE_FFMPEG and not args.skip_ffmpeg
-    do_scrape = not args.skip_scrape
+    # 网站爬取开关：全局 ENABLE_SCRAPE 控制，且可通过命令行 --skip-scrape 临时关闭
+    do_scrape = ENABLE_SCRAPE and not args.skip_scrape
 
     start_time = time.time()
     logger.info("=" * 60)
     logger.info(f"IPTV 源抓取器启动 | 类型: {ft} | 抓取: {'开' if do_scrape else '关'} | GitHub: {'开' if ENABLE_GITHUB and not args.skip_github else '关'} | FFmpeg: {'开' if do_ffmpeg else '关'}")
+    logger.info(f"测速时长: {TEST_DURATION} 秒")
     logger.info("=" * 60)
 
     all_channels = []
@@ -1124,7 +1171,7 @@ async def main():
     logger.info(f"去重后: {len(ch_map)} 个频道, {total_before} 条链接")
 
     if do_ffmpeg and ch_map:
-        logger.info("--- 三层筛选测速 ---")
+        logger.info(f"--- 三层筛选测速（测试时长 {TEST_DURATION} 秒） ---")
         ff_start = time.time()
         ch_map = await batch_test_pipeline(ch_map)
         logger.info(f"测速总耗时: {time.time() - ff_start:.1f}s")
