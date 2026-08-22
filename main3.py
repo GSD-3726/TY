@@ -97,8 +97,8 @@ GITHUB_URLS = [
 ]
 MAX_TEST_URLS_PER_CHANNEL = 8                       # 每个频道最多测试的链接数
 MAX_LINKS_PER_CHANNEL = 8                           # 每个频道最终保留的最大有效链接数（与测试数一致，可独立调整）
-GITHUB_TIMEOUT = 30
-GITHUB_RETRIES = 3
+GITHUB_TIMEOUT = 10
+GITHUB_RETRIES = 0
 
 # ============================================================================
 # 输出配置
