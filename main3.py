@@ -88,13 +88,10 @@ GITHUB_URLS = [
     "https://gh.927223.xyz/https://raw.githubusercontent.com/develop202/migu_video/refs/heads/main/interface.txt",
     "http://www.52top.com.cn:678/downloads/migu.txt",
     "http://cyh92.cn/list.m3u",
-    "https://4kkj.cn/uploads/ok专线接口/[直播]/央视.txt",
     "http://rihou.cc:567/gggg.nzk",
     "http://wangziduoqing.com/yuan/zb.txt",
     "https://gitee.com/main-stream/tv/raw/master/BOSS.json",
-    "http://183.131.83.37:40782/移动魔百和直播源_2025-04-08_湖南_未知_未知.txt",
-    "https://cnb.cool/ms511/PG/-/git/raw/main/sub/live.txt",
-]
+   ]
 MAX_TEST_URLS_PER_CHANNEL = 8                       # 每个频道最多测试的链接数
 MAX_LINKS_PER_CHANNEL = 8                           # 每个频道最终保留的最大有效链接数（与测试数一致，可独立调整）
 GITHUB_TIMEOUT = 10
