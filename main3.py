@@ -79,7 +79,6 @@ CACHE_EXPIRE_SEC = CACHE_EXPIRE_HOURS * 3600
 # ============================================================================
 ENABLE_GITHUB = True
 GITHUB_URLS = [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt",
     "https://live.zbds.top/tv/iptv4.txt",
     "https://gitee.com/OscarWilde/itv/raw/master/tv.txt",
     "https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u",
