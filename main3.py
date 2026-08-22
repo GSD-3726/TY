@@ -62,7 +62,7 @@ MIN_REALTIME_FACTOR = 0.65                          # 实时性因子最小值
 MIN_NET_FEED_RATIO = 0.70                           # 网络喂入比率最小值
 MIN_LATE_SPEED = 0.70                               # 后半段平均速度最小值（倍速）
 MIN_SPEED_MIN = 0.50                                # 全程最低速度最小值（倍速）
-MIN_AVG_SPEED = 0.75                                # 平均速度最小值（倍速）——新增配置
+MIN_AVG_SPEED = 0.75                                # 平均速度最小值（倍速）
 MAX_FPS_JITTER = 0.4                                # 帧率抖动最大值（归一化）
 FFMPEG_RETRIES = 1                                  # 重试次数（目前未使用）
 
@@ -96,6 +96,7 @@ GITHUB_URLS = [
     "https://cnb.cool/ms511/PG/-/git/raw/main/sub/live.txt",
 ]
 MAX_TEST_URLS_PER_CHANNEL = 8                       # 每个频道最多测试的链接数
+MAX_LINKS_PER_CHANNEL = 8                           # 每个频道最终保留的最大有效链接数（与测试数一致，可独立调整）
 GITHUB_TIMEOUT = 30
 GITHUB_RETRIES = 3
 
@@ -451,7 +452,7 @@ async def stable_ffmpeg_test(url: str) -> Dict[str, Any]:
         is_ok = (
             frames >= MIN_FRAMES
             and actual_fps >= MIN_AVG_FPS
-            and avg_speed >= MIN_AVG_SPEED          # 引用配置变量
+            and avg_speed >= MIN_AVG_SPEED
             and late_avg_speed >= MIN_LATE_SPEED
             and min_speed >= MIN_SPEED_MIN
             and net_feed_ratio >= MIN_NET_FEED_RATIO
@@ -504,7 +505,7 @@ def _finalize_result(result_map):
     final = {}
     for k, vs in result_map.items():
         vs.sort(key=stream_quality_score, reverse=True)
-        final[k] = [u for u, _, _, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]
+        final[k] = [u for u, _, _, _, _, _ in vs[:MAX_LINKS_PER_CHANNEL]]  # 使用正确变量
     return final
 
 # ============================================================================
@@ -1092,7 +1093,7 @@ async def main():
     max_ips = args.max_ips
     headless = args.headless.lower() != "false" if args.headless else HEADLESS
     do_ffmpeg = ENABLE_FFMPEG and not args.skip_ffmpeg
-    do_scrape = ENABLE_SCRAPE and not args.skip_scrape   # 配置开关与命令行参数结合
+    do_scrape = ENABLE_SCRAPE and not args.skip_scrape
 
     start_time = time.time()
     logger.info("=" * 60)
