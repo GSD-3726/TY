@@ -21,7 +21,7 @@ from playwright.async_api import async_playwright
 TARGET_URL = "https://iptv.cqshushu.com/index.php"  # 抓取源地址
 DEFAULT_PROTOCOL = "http://"                        # 补全URL缺失的协议头
 SCRAPE_SOURCE_FILTER = "hotel"                      # 默认抓取类型：all/hotel/multicast/migu/other
-ENABLE_SCRAPE = False                                # 是否启用目标站抓取（可与 --skip-scrape 配合）
+ENABLE_SCRAPE = True                                # 是否启用目标站抓取（可与 --skip-scrape 配合）
 MAX_IPS = 0                                         # 最大处理IP数量，0表示无限制
 MAX_PAGES = 10                                      # IP列表最大翻页数
 IPS_PER_PAGE = 10                                   # 每页IP数量（页面实际可能不同）
@@ -49,22 +49,22 @@ ENABLE_FFMPEG = True                                # 是否启用FFmpeg测速
 FFMPEG_PATH = "ffmpeg"                              # FFmpeg可执行文件路径
 
 # 快速连通性预检（仅检测HTTP状态）
-CONN_TIMEOUT = 2.0                                  # 连接超时（秒）
+CONN_TIMEOUT = 1.0                                  # 连接超时（秒）
 CONN_CONCURRENCY = 80                               # 并发连接数
 
 # 稳定长测参数（播放10秒，严格筛选）
 STABLE_FFMPEG_DURATION = 10                         # 测试时长（秒）
 STABLE_PROC_TIMEOUT = 13                            # 进程超时（秒）
-STABLE_FFMPEG_CONCURRENCY = 16                      # 并发数，适配低性能环境
-MIN_AVG_FPS = 15                                    # 最低平均帧率
-MIN_FRAMES = 150                                    # 最少帧数
+STABLE_FFMPEG_CONCURRENCY = 8                      # 并发数，适配低性能环境
+MIN_AVG_FPS = 24                                    # 最低平均帧率
+MIN_FRAMES = 200                                    # 最少帧数
 MIN_REALTIME_FACTOR = 0.65                          # 实时性因子最小值
 MIN_NET_FEED_RATIO = 0.70                           # 网络喂入比率最小值
 MIN_LATE_SPEED = 0.70                               # 后半段平均速度最小值（倍速）
 MIN_SPEED_MIN = 0.50                                # 全程最低速度最小值（倍速）
 MIN_AVG_SPEED = 0.75                                # 平均速度最小值（倍速）
 MAX_FPS_JITTER = 0.4                                # 帧率抖动最大值（归一化）
-FFMPEG_RETRIES = 1                                  # 重试次数（目前未使用）
+FFMPEG_RETRIES = 0                                  # 重试次数（目前未使用）
 
 # ============================================================================
 # 缓存配置
